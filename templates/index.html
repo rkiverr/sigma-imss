@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Prueba de Concepto — Altas/Bajas IMSS</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 900px; margin: 30px auto; color: #222; }
+  h1 { font-size: 20px; }
+  h2 { font-size: 16px; margin-top: 30px; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+  form { background: #f7f7f7; padding: 15px; border-radius: 6px; }
+  label { display: block; margin-top: 8px; font-size: 13px; font-weight: bold; }
+  input, select { width: 100%; padding: 5px; box-sizing: border-box; }
+  .row { display: flex; gap: 10px; }
+  .row > div { flex: 1; }
+  button { margin-top: 15px; padding: 8px 16px; cursor: pointer; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+  th, td { border: 1px solid #ddd; padding: 6px; text-align: left; }
+  .flash-success { background: #e6f4ea; color: #1e7a34; padding: 8px; border-radius: 4px; }
+  .flash-error { background: #fdecea; color: #a4262c; padding: 8px; border-radius: 4px; }
+  .estado-Válido { color: #1e7a34; }
+  .estado-Rechazado { color: #a4262c; }
+  .estado-Exportado { color: #555; }
+</style>
+</head>
+<body>
+<h1>Prueba de Concepto — Sistema de Altas/Bajas IMSS (Entrega 3)</h1>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% for category, message in messages %}
+    <div class="flash-{{ category }}">{{ message }}</div>
+  {% endfor %}
+{% endwith %}
+
+<h2>Captura de movimiento afiliatorio</h2>
+<form action="/capturar" method="post">
+  <label>Usuario que captura</label>
+  <select name="usuario_id">
+    {% for u in usuarios %}
+      <option value="{{ u['id'] }}">{{ u['nombre'] }} ({{ u['rol'] }})</option>
+    {% endfor %}
+  </select>
+
+  <div class="row">
+    <div><label>Nombre completo</label><input name="nombre_completo"></div>
+    <div><label>CURP</label><input name="curp" placeholder="RIDG050515HNLVLL09"></div>
+  </div>
+  <div class="row">
+    <div><label>NSS</label><input name="nss" placeholder="12345678901"></div>
+    <div><label>RFC</label><input name="rfc" placeholder="RIDG050515AB1"></div>
+  </div>
+  <div class="row">
+    <div>
+      <label>Tipo de movimiento</label>
+      <select name="tipo_movimiento">
+        <option value="08">08 - Alta / Reingreso</option>
+        <option value="02">02 - Baja</option>
+      </select>
+    </div>
+    <div><label>Fecha de movimiento (DDMMAAAA)</label><input name="fecha_movimiento" placeholder="05092026"></div>
+  </div>
+  <div class="row">
+    <div><label>Tipo de trabajador</label><input name="tipo_trabajador"></div>
+    <div><label>Tipo de salario</label><input name="tipo_salario"></div>
+    <div><label>Tipo de jornada</label><input name="tipo_jornada"></div>
+  </div>
+  <div class="row">
+    <div><label>SDI</label><input name="sdi"></div>
+    <div><label>Causa de baja (si aplica)</label><input name="causa_baja"></div>
+  </div>
+  <button type="submit">Capturar movimiento</button>
+</form>
+
+<h2>Movimientos capturados</h2>
+<table>
+  <tr><th>ID</th><th>Trabajador</th><th>CURP</th><th>Tipo</th><th>Fecha</th><th>Estado</th></tr>
+  {% for m in movimientos %}
+  <tr>
+    <td>{{ m['id'] }}</td>
+    <td>{{ m['nombre_completo'] }}</td>
+    <td>{{ m['curp'] }}</td>
+    <td>{{ m['tipo_movimiento'] }}</td>
+    <td>{{ m['fecha_movimiento'] }}</td>
+    <td class="estado-{{ m['estado'] }}">{{ m['estado'] }}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+<form action="/exportar" method="post" style="margin-top:15px;">
+  <select name="usuario_id">
+    {% for u in usuarios %}
+      <option value="{{ u['id'] }}">{{ u['nombre'] }} ({{ u['rol'] }})</option>
+    {% endfor %}
+  </select>
+  <button type="submit">Generar lote IDSE (movimientos válidos pendientes)</button>
+  <a href="/descargar-lote">Descargar último lote generado</a>
+</form>
+
+<h2>Bitácora de auditoría (últimos 15 registros)</h2>
+<table>
+  <tr><th>Fecha/hora</th><th>Usuario</th><th>Acción</th><th>Detalle</th></tr>
+  {% for b in bitacora %}
+  <tr>
+    <td>{{ b['timestamp'] }}</td>
+    <td>{{ b['usuario'] }}</td>
+    <td>{{ b['accion'] }}</td>
+    <td>{{ b['detalle'] }}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+</body>
+</html>

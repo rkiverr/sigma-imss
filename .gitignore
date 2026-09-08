@@ -1,0 +1,6 @@
+venv/
+__pycache__/
+*.pyc
+*.db
+lote_idse*.txt
+resultados_prueba_concepto.txt
