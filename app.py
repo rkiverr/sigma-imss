@@ -2,6 +2,7 @@
 Prototipo de prueba de concepto — Entrega 3.
 Interfaz cliente (formulario web) + lógica de servidor (validación,
 persistencia y exportación) para el sistema de altas/bajas IMSS/IDSE.
+Persistencia sobre PostgreSQL.
 """
 from flask import Flask, render_template, request, redirect, url_for, flash, send_file
 from database import get_conn, init_db, registrar_bitacora, obtener_o_crear_trabajador
@@ -15,17 +16,25 @@ app.secret_key = "prueba-concepto-trl3"
 @app.route("/")
 def index():
     conn = get_conn()
-    movimientos = conn.execute("""
+    cur = conn.cursor()
+    cur.execute("""
         SELECT m.id, t.nombre_completo, t.curp, m.tipo_movimiento, m.fecha_movimiento, m.estado
         FROM movimiento m JOIN trabajador t ON t.id = m.trabajador_id
         ORDER BY m.id DESC
-    """).fetchall()
-    usuarios = conn.execute("SELECT id, nombre, rol FROM usuario").fetchall()
-    bitacora = conn.execute("""
+    """)
+    movimientos = cur.fetchall()
+
+    cur.execute("SELECT id, nombre, rol FROM usuario ORDER BY id")
+    usuarios = cur.fetchall()
+
+    cur.execute("""
         SELECT b.timestamp, u.nombre AS usuario, b.accion, b.detalle
         FROM bitacora b JOIN usuario u ON u.id = b.usuario_id
         ORDER BY b.id DESC LIMIT 15
-    """).fetchall()
+    """)
+    bitacora = cur.fetchall()
+
+    cur.close()
     conn.close()
     return render_template("index.html", movimientos=movimientos, usuarios=usuarios, bitacora=bitacora)
 
@@ -50,27 +59,33 @@ def capturar():
     es_valido, errores = validar_movimiento(datos)
 
     conn = get_conn()
+    cur = conn.cursor()
+
     if not es_valido:
         registrar_bitacora(conn, usuario_id, None, "Intento de captura rechazado", "; ".join(errores))
         conn.commit()
+        cur.close()
         conn.close()
         flash("Movimiento RECHAZADO: " + " | ".join(errores), "error")
         return redirect(url_for("index"))
 
-    patron_id = conn.execute("SELECT id FROM patron LIMIT 1").fetchone()["id"]
+    cur.execute("SELECT id FROM patron LIMIT 1")
+    patron_id = cur.fetchone()["id"]
     trabajador_id = obtener_o_crear_trabajador(conn, datos["nombre_completo"], datos["curp"], datos["nss"], datos["rfc"])
 
-    cur = conn.execute("""
+    cur.execute("""
         INSERT INTO movimiento (trabajador_id, patron_id, tipo_movimiento, fecha_movimiento,
             tipo_trabajador, tipo_salario, tipo_jornada, sdi, causa_baja, estado, exportado)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Válido', 0)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 'Válido', FALSE)
+        RETURNING id
     """, (trabajador_id, patron_id, datos["tipo_movimiento"], datos["fecha_movimiento"],
           datos["tipo_trabajador"], datos["tipo_salario"], datos["tipo_jornada"],
           datos["sdi"], datos["causa_baja"]))
-    movimiento_id = cur.lastrowid
+    movimiento_id = cur.fetchone()["id"]
 
     registrar_bitacora(conn, usuario_id, movimiento_id, "Movimiento capturado", f"Tipo {datos['tipo_movimiento']} - CURP {datos['curp']}")
     conn.commit()
+    cur.close()
     conn.close()
     flash("Movimiento capturado y validado correctamente.", "success")
     return redirect(url_for("index"))
@@ -80,27 +95,30 @@ def capturar():
 def exportar():
     usuario_id = int(request.form.get("usuario_id"))
     conn = get_conn()
-    rows = conn.execute("""
+    cur = conn.cursor()
+    cur.execute("""
         SELECT m.id AS movimiento_id, p.registro_patronal, m.tipo_movimiento, t.curp, t.nss, t.rfc,
                m.fecha_movimiento, m.tipo_trabajador, m.tipo_salario, m.tipo_jornada, m.sdi, m.causa_baja
         FROM movimiento m
         JOIN trabajador t ON t.id = m.trabajador_id
         JOIN patron p ON p.id = m.patron_id
-        WHERE m.estado = 'Válido' AND m.exportado = 0
-    """).fetchall()
-    registros = [dict(r) for r in rows]
+        WHERE m.estado = 'Válido' AND m.exportado = FALSE
+    """)
+    registros = [dict(r) for r in cur.fetchall()]
 
     if not registros:
         flash("No hay movimientos válidos pendientes de exportar.", "error")
+        cur.close()
         conn.close()
         return redirect(url_for("index"))
 
     ruta = exportar_a_archivo(registros, "lote_idse.txt")
 
     ids = [r["movimiento_id"] for r in registros]
-    conn.executemany("UPDATE movimiento SET exportado = 1, estado = 'Exportado' WHERE id = ?", [(i,) for i in ids])
+    cur.executemany("UPDATE movimiento SET exportado = TRUE, estado = 'Exportado' WHERE id = %s", [(i,) for i in ids])
     registrar_bitacora(conn, usuario_id, None, "Exportación de lote IDSE", f"{len(registros)} movimiento(s) exportado(s)")
     conn.commit()
+    cur.close()
     conn.close()
     flash(f"Lote IDSE generado con {len(registros)} movimiento(s): {ruta}", "success")
     return redirect(url_for("index"))

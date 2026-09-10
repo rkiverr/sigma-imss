@@ -1,6 +1,6 @@
 """
 Arnés de pruebas para el Desarrollo experimental de la Entrega 3.
-Ejecuta los tres bloques descritos en el informe:
+Ejecuta los tres bloques descritos en el informe, ahora contra PostgreSQL:
   Bloque 1 - Validación de captura (casos válidos e inválidos)
   Bloque 2 - Exportación al formato IDSE
   Bloque 3 - Concurrencia y auditoría (dos usuarios capturando a la vez)
@@ -8,7 +8,6 @@ Ejecuta los tres bloques descritos en el informe:
 Produce un reporte de texto con los resultados, listo para pegar en la
 sección "Resultados" del informe.
 """
-import os
 import threading
 from database import get_conn, init_db, registrar_bitacora, obtener_o_crear_trabajador
 from validaciones import validar_movimiento
@@ -22,9 +21,6 @@ def log(linea=""):
     REPORTE.append(linea)
 
 
-# --------------------------------------------------------------------------
-# Dataset de prueba: mezcla de casos válidos e inválidos
-# --------------------------------------------------------------------------
 CASOS_PRUEBA = [
     {"caso": "C1 - Alta válida",
      "datos": {"nombre_completo": "Gael Antonio Rivera Diego", "curp": "RIDG050515HNLVLL09",
@@ -75,6 +71,7 @@ def bloque_1_validacion():
     log("BLOQUE 1 — VALIDACIÓN DE CAPTURA")
     log("=" * 78)
     conn = get_conn()
+    cur = conn.cursor()
     aciertos = 0
     for caso in CASOS_PRUEBA:
         es_valido, errores = validar_movimiento(caso["datos"])
@@ -87,24 +84,27 @@ def bloque_1_validacion():
             for e in errores:
                 log(f"        -> {e}")
 
-        # Persistir el intento en la base de datos / bitácora (usuario 1 = admin.rrhh)
         if es_valido:
-            patron_id = conn.execute("SELECT id FROM patron LIMIT 1").fetchone()["id"]
+            cur.execute("SELECT id FROM patron LIMIT 1")
+            patron_id = cur.fetchone()["id"]
             trabajador_id = obtener_o_crear_trabajador(
                 conn, caso["datos"]["nombre_completo"], caso["datos"]["curp"],
                 caso["datos"]["nss"], caso["datos"]["rfc"])
-            cur = conn.execute("""
+            cur.execute("""
                 INSERT INTO movimiento (trabajador_id, patron_id, tipo_movimiento, fecha_movimiento,
                     tipo_trabajador, tipo_salario, tipo_jornada, sdi, causa_baja, estado, exportado)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Válido', 0)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 'Válido', FALSE)
+                RETURNING id
             """, (trabajador_id, patron_id, caso["datos"]["tipo_movimiento"], caso["datos"]["fecha_movimiento"],
                   caso["datos"].get("tipo_trabajador", ""), caso["datos"].get("tipo_salario", ""),
                   caso["datos"].get("tipo_jornada", ""), caso["datos"].get("sdi", ""),
                   caso["datos"].get("causa_baja", "")))
-            registrar_bitacora(conn, 1, cur.lastrowid, "Movimiento capturado", caso["caso"])
+            movimiento_id = cur.fetchone()["id"]
+            registrar_bitacora(conn, 1, movimiento_id, "Movimiento capturado", caso["caso"])
         else:
             registrar_bitacora(conn, 1, None, "Intento de captura rechazado", "; ".join(errores))
     conn.commit()
+    cur.close()
     conn.close()
     log("")
     log(f"Resultado del bloque 1: {aciertos}/{len(CASOS_PRUEBA)} casos cumplen el resultado esperado "
@@ -118,21 +118,23 @@ def bloque_2_exportacion():
     log("BLOQUE 2 — EXPORTACIÓN AL FORMATO IDSE")
     log("=" * 78)
     conn = get_conn()
-    rows = conn.execute("""
+    cur = conn.cursor()
+    cur.execute("""
         SELECT m.id AS movimiento_id, p.registro_patronal, m.tipo_movimiento, t.curp, t.nss, t.rfc,
                m.fecha_movimiento, m.tipo_trabajador, m.tipo_salario, m.tipo_jornada, m.sdi, m.causa_baja
         FROM movimiento m
         JOIN trabajador t ON t.id = m.trabajador_id
         JOIN patron p ON p.id = m.patron_id
-        WHERE m.estado = 'Válido' AND m.exportado = 0
-    """).fetchall()
-    registros = [dict(r) for r in rows]
+        WHERE m.estado = 'Válido' AND m.exportado = FALSE
+    """)
+    registros = [dict(r) for r in cur.fetchall()]
     ruta = exportar_a_archivo(registros, "lote_idse_prueba.txt")
 
     ids = [r["movimiento_id"] for r in registros]
-    conn.executemany("UPDATE movimiento SET exportado = 1, estado = 'Exportado' WHERE id = ?", [(i,) for i in ids])
+    cur.executemany("UPDATE movimiento SET exportado = TRUE, estado = 'Exportado' WHERE id = %s", [(i,) for i in ids])
     registrar_bitacora(conn, 1, None, "Exportación de lote IDSE (prueba)", f"{len(registros)} movimiento(s)")
     conn.commit()
+    cur.close()
     conn.close()
 
     log(f"Movimientos válidos exportados: {len(registros)}")
@@ -158,28 +160,36 @@ def bloque_3_concurrencia():
 
     def capturar_usuario_a():
         conn = get_conn()
-        patron_id = conn.execute("SELECT id FROM patron LIMIT 1").fetchone()["id"]
+        cur = conn.cursor()
+        cur.execute("SELECT id FROM patron LIMIT 1")
+        patron_id = cur.fetchone()["id"]
         trabajador_id = obtener_o_crear_trabajador(conn, "Usuario Concurrente A", "CONA900101HNLNNC01", "10101010101", "CONA900101AB1")
-        cur = conn.execute("""
+        cur.execute("""
             INSERT INTO movimiento (trabajador_id, patron_id, tipo_movimiento, fecha_movimiento, estado, exportado)
-            VALUES (?, ?, '08', '01092026', 'Válido', 0)
+            VALUES (%s, %s, '08', '01092026', 'Válido', FALSE) RETURNING id
         """, (trabajador_id, patron_id))
-        registrar_bitacora(conn, 1, cur.lastrowid, "Movimiento capturado", "Prueba de concurrencia - Usuario A")
+        movimiento_id = cur.fetchone()["id"]
+        registrar_bitacora(conn, 1, movimiento_id, "Movimiento capturado", "Prueba de concurrencia - Usuario A")
         conn.commit()
-        resultados["usuario_a"] = cur.lastrowid
+        resultados["usuario_a"] = movimiento_id
+        cur.close()
         conn.close()
 
     def capturar_usuario_b():
         conn = get_conn()
-        patron_id = conn.execute("SELECT id FROM patron LIMIT 1").fetchone()["id"]
+        cur = conn.cursor()
+        cur.execute("SELECT id FROM patron LIMIT 1")
+        patron_id = cur.fetchone()["id"]
         trabajador_id = obtener_o_crear_trabajador(conn, "Usuario Concurrente B", "CONB900101MNLNNC02", "20202020202", "CONB900101AB2")
-        cur = conn.execute("""
+        cur.execute("""
             INSERT INTO movimiento (trabajador_id, patron_id, tipo_movimiento, fecha_movimiento, estado, exportado)
-            VALUES (?, ?, '08', '01092026', 'Válido', 0)
+            VALUES (%s, %s, '08', '01092026', 'Válido', FALSE) RETURNING id
         """, (trabajador_id, patron_id))
-        registrar_bitacora(conn, 2, cur.lastrowid, "Movimiento capturado", "Prueba de concurrencia - Usuario B")
+        movimiento_id = cur.fetchone()["id"]
+        registrar_bitacora(conn, 2, movimiento_id, "Movimiento capturado", "Prueba de concurrencia - Usuario B")
         conn.commit()
-        resultados["usuario_b"] = cur.lastrowid
+        resultados["usuario_b"] = movimiento_id
+        cur.close()
         conn.close()
 
     t1 = threading.Thread(target=capturar_usuario_a)
@@ -188,12 +198,15 @@ def bloque_3_concurrencia():
     t1.join(); t2.join()
 
     conn = get_conn()
-    bitacora = conn.execute("""
+    cur = conn.cursor()
+    cur.execute("""
         SELECT b.timestamp, u.nombre AS usuario, b.accion, b.detalle
         FROM bitacora b JOIN usuario u ON u.id = b.usuario_id
-        WHERE b.detalle LIKE '%concurrencia%'
+        WHERE b.detalle LIKE %s
         ORDER BY b.id
-    """).fetchall()
+    """, ("%concurrencia%",))
+    bitacora = cur.fetchall()
+    cur.close()
     conn.close()
 
     log(f"Movimiento insertado por usuario A: id={resultados['usuario_a']}")
@@ -215,12 +228,11 @@ def bloque_3_concurrencia():
 
 
 if __name__ == "__main__":
-    if os.path.exists("prueba_concepto.db"):
-        os.remove("prueba_concepto.db")
     init_db()
 
     log("REPORTE DE RESULTADOS — PRUEBA DE CONCEPTO (ENTREGA 3 / TRL 3)")
     log("Sistema para la automatización de altas y bajas de seguro social")
+    log("Persistencia: PostgreSQL")
     log("")
 
     aciertos, total = bloque_1_validacion()

@@ -2,111 +2,369 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Prueba de Concepto — Altas/Bajas IMSS</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sigma · Movimientos IMSS</title>
 <style>
-  body { font-family: Arial, sans-serif; max-width: 900px; margin: 30px auto; color: #222; }
-  h1 { font-size: 20px; }
-  h2 { font-size: 16px; margin-top: 30px; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
-  form { background: #f7f7f7; padding: 15px; border-radius: 6px; }
-  label { display: block; margin-top: 8px; font-size: 13px; font-weight: bold; }
-  input, select { width: 100%; padding: 5px; box-sizing: border-box; }
-  .row { display: flex; gap: 10px; }
-  .row > div { flex: 1; }
-  button { margin-top: 15px; padding: 8px 16px; cursor: pointer; }
-  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
-  th, td { border: 1px solid #ddd; padding: 6px; text-align: left; }
-  .flash-success { background: #e6f4ea; color: #1e7a34; padding: 8px; border-radius: 4px; }
-  .flash-error { background: #fdecea; color: #a4262c; padding: 8px; border-radius: 4px; }
-  .estado-Válido { color: #1e7a34; }
-  .estado-Rechazado { color: #a4262c; }
-  .estado-Exportado { color: #555; }
+  :root {
+    --bg: #f5f6f2;
+    --paper: #fffffe;
+    --ink: #16241c;
+    --muted: #5c6b60;
+    --brand: #0e6b45;
+    --brand-dark: #0a4f34;
+    --line: #dde3da;
+    --success-bg: #e8f3ea;
+    --success-ink: #1e7a3c;
+    --error-bg: #fbeae7;
+    --error-ink: #a2382b;
+    --mono: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    --serif: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  a { color: var(--brand-dark); }
+
+  .letterhead {
+    background: var(--brand);
+    color: #f4f7f2;
+    padding: 22px 28px;
+  }
+  .letterhead-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .letterhead h1 {
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: 22px;
+    margin: 0;
+  }
+  .letterhead p {
+    margin: 0;
+    font-size: 13px;
+    color: #d7e8dd;
+  }
+
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 32px 28px 80px;
+  }
+
+  .expediente {
+    background: var(--paper);
+    border: 1px solid var(--line);
+  }
+
+  section {
+    padding: 26px 30px;
+    border-bottom: 1px solid var(--line);
+  }
+  section:last-child { border-bottom: none; }
+
+  h2 {
+    font-family: var(--serif);
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 4px;
+  }
+  .section-note {
+    color: var(--muted);
+    font-size: 13px;
+    margin: 0 0 18px;
+  }
+
+  .flash {
+    max-width: 900px;
+    margin: 18px auto 0;
+    padding: 10px 16px;
+    font-size: 13.5px;
+    border-left: 3px solid transparent;
+  }
+  .flash-success { background: var(--success-bg); color: var(--success-ink); border-color: var(--success-ink); }
+  .flash-error   { background: var(--error-bg);   color: var(--error-ink);   border-color: var(--error-ink); }
+
+  /* --- formulario --- */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px 16px;
+  }
+  .grid .span-2 { grid-column: span 2; }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.01em;
+  }
+  input, select {
+    font: inherit;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--ink);
+    border-radius: 2px;
+  }
+  input:focus, select:focus, button:focus, a.btn:focus {
+    outline: 2px solid var(--brand);
+    outline-offset: 1px;
+  }
+  input[name="curp"], input[name="nss"], input[name="rfc"] { font-family: var(--mono); }
+
+  .actions { margin-top: 18px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+
+  button {
+    font: inherit;
+    background: var(--brand);
+    color: #fff;
+    border: none;
+    padding: 9px 18px;
+    border-radius: 2px;
+    cursor: pointer;
+  }
+  button:hover { background: var(--brand-dark); }
+  button.secondary { background: transparent; color: var(--brand-dark); border: 1px solid var(--brand); }
+  button.secondary:hover { background: var(--success-bg); }
+
+  a.btn-link { font-size: 13px; color: var(--muted); text-decoration: underline; }
+
+  /* --- ledger table --- */
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  thead th {
+    text-align: left;
+    font-weight: 600;
+    color: var(--muted);
+    font-size: 12px;
+    padding: 0 10px 8px;
+    border-bottom: 1px solid var(--line);
+  }
+  tbody td {
+    padding: 9px 10px;
+    border-bottom: 1px solid #eef1ec;
+  }
+  tbody tr:nth-child(even) { background: #fafbf9; }
+  td.curp { font-family: var(--mono); font-size: 12.5px; }
+
+  .estado { display: flex; align-items: center; gap: 7px; }
+  .estado::before {
+    content: "";
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+  .estado-Válido::before { background: var(--success-ink); }
+  .estado-Rechazado::before { background: var(--error-ink); }
+  .estado-Exportado::before { background: var(--muted); }
+  .estado-Válido { color: var(--success-ink); }
+  .estado-Rechazado { color: var(--error-ink); }
+  .estado-Exportado { color: var(--muted); }
+
+  .empty { color: var(--muted); font-size: 13.5px; padding: 6px 0; }
+
+  /* --- bitácora timeline --- */
+  .timeline { list-style: none; margin: 0; padding: 0; }
+  .timeline li {
+    display: grid;
+    grid-template-columns: 150px 16px 1fr;
+    column-gap: 10px;
+    padding: 10px 0;
+  }
+  .timeline li:not(:last-child) { border-bottom: 1px dashed var(--line); }
+  .timeline time { font-family: var(--mono); font-size: 11.5px; color: var(--muted); padding-top: 2px; }
+  .timeline .dot { display: flex; justify-content: center; padding-top: 4px; }
+  .timeline .dot::before {
+    content: "";
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--brand);
+    display: block;
+  }
+  .timeline .entry strong { font-weight: 600; }
+  .timeline .entry span { color: var(--muted); font-size: 13px; }
+
+  @media (max-width: 640px) {
+    main { padding: 20px 14px 60px; }
+    section { padding: 20px 16px; }
+    .grid { grid-template-columns: 1fr; }
+    .grid .span-2 { grid-column: span 1; }
+    .timeline li { grid-template-columns: 20px 1fr; }
+    .timeline time { grid-column: 1 / -1; padding-top: 0; }
+    .timeline .dot { display: none; }
+  }
 </style>
 </head>
 <body>
-<h1>Prueba de Concepto — Sistema de Altas/Bajas IMSS (Entrega 3)</h1>
+
+<div class="letterhead">
+  <div class="letterhead-inner">
+    <h1>Sigma</h1>
+    <p>Gestión de movimientos afiliatorios ante el IMSS</p>
+  </div>
+</div>
 
 {% with messages = get_flashed_messages(with_categories=true) %}
   {% for category, message in messages %}
-    <div class="flash-{{ category }}">{{ message }}</div>
+    <div class="flash flash-{{ category }}">{{ message }}</div>
   {% endfor %}
 {% endwith %}
 
-<h2>Captura de movimiento afiliatorio</h2>
-<form action="/capturar" method="post">
-  <label>Usuario que captura</label>
-  <select name="usuario_id">
-    {% for u in usuarios %}
-      <option value="{{ u['id'] }}">{{ u['nombre'] }} ({{ u['rol'] }})</option>
-    {% endfor %}
-  </select>
+<main>
+<div class="expediente">
 
-  <div class="row">
-    <div><label>Nombre completo</label><input name="nombre_completo"></div>
-    <div><label>CURP</label><input name="curp" placeholder="RIDG050515HNLVLL09"></div>
-  </div>
-  <div class="row">
-    <div><label>NSS</label><input name="nss" placeholder="12345678901"></div>
-    <div><label>RFC</label><input name="rfc" placeholder="RIDG050515AB1"></div>
-  </div>
-  <div class="row">
-    <div>
-      <label>Tipo de movimiento</label>
-      <select name="tipo_movimiento">
-        <option value="08">08 - Alta / Reingreso</option>
-        <option value="02">02 - Baja</option>
-      </select>
-    </div>
-    <div><label>Fecha de movimiento (DDMMAAAA)</label><input name="fecha_movimiento" placeholder="05092026"></div>
-  </div>
-  <div class="row">
-    <div><label>Tipo de trabajador</label><input name="tipo_trabajador"></div>
-    <div><label>Tipo de salario</label><input name="tipo_salario"></div>
-    <div><label>Tipo de jornada</label><input name="tipo_jornada"></div>
-  </div>
-  <div class="row">
-    <div><label>SDI</label><input name="sdi"></div>
-    <div><label>Causa de baja (si aplica)</label><input name="causa_baja"></div>
-  </div>
-  <button type="submit">Capturar movimiento</button>
-</form>
+  <section>
+    <h2>Captura de movimiento</h2>
+    <p class="section-note">Alta (08) o baja (02) de un trabajador ante el IMSS. Los campos se validan al enviarse.</p>
+    <form action="/capturar" method="post">
+      <div class="grid">
+        <div class="field">
+          <label for="usuario_id">Usuario que captura</label>
+          <select id="usuario_id" name="usuario_id">
+            {% for u in usuarios %}
+              <option value="{{ u['id'] }}">{{ u['nombre'] }} — {{ u['rol'] }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field span-2">
+          <label for="nombre_completo">Nombre completo</label>
+          <input id="nombre_completo" name="nombre_completo" placeholder="Apellido Paterno Apellido Materno Nombre(s)">
+        </div>
 
-<h2>Movimientos capturados</h2>
-<table>
-  <tr><th>ID</th><th>Trabajador</th><th>CURP</th><th>Tipo</th><th>Fecha</th><th>Estado</th></tr>
-  {% for m in movimientos %}
-  <tr>
-    <td>{{ m['id'] }}</td>
-    <td>{{ m['nombre_completo'] }}</td>
-    <td>{{ m['curp'] }}</td>
-    <td>{{ m['tipo_movimiento'] }}</td>
-    <td>{{ m['fecha_movimiento'] }}</td>
-    <td class="estado-{{ m['estado'] }}">{{ m['estado'] }}</td>
-  </tr>
-  {% endfor %}
-</table>
+        <div class="field">
+          <label for="curp">CURP</label>
+          <input id="curp" name="curp" placeholder="RIDG050515HNLVLL09" maxlength="18">
+        </div>
+        <div class="field">
+          <label for="nss">NSS</label>
+          <input id="nss" name="nss" placeholder="12345678901" maxlength="11">
+        </div>
+        <div class="field">
+          <label for="rfc">RFC</label>
+          <input id="rfc" name="rfc" placeholder="RIDG050515AB1">
+        </div>
 
-<form action="/exportar" method="post" style="margin-top:15px;">
-  <select name="usuario_id">
-    {% for u in usuarios %}
-      <option value="{{ u['id'] }}">{{ u['nombre'] }} ({{ u['rol'] }})</option>
-    {% endfor %}
-  </select>
-  <button type="submit">Generar lote IDSE (movimientos válidos pendientes)</button>
-  <a href="/descargar-lote">Descargar último lote generado</a>
-</form>
+        <div class="field">
+          <label for="tipo_movimiento">Tipo de movimiento</label>
+          <select id="tipo_movimiento" name="tipo_movimiento">
+            <option value="08">08 — Alta / Reingreso</option>
+            <option value="02">02 — Baja</option>
+          </select>
+        </div>
+        <div class="field span-2">
+          <label for="fecha_movimiento">Fecha de movimiento (DDMMAAAA)</label>
+          <input id="fecha_movimiento" name="fecha_movimiento" placeholder="05092026" maxlength="8">
+        </div>
 
-<h2>Bitácora de auditoría (últimos 15 registros)</h2>
-<table>
-  <tr><th>Fecha/hora</th><th>Usuario</th><th>Acción</th><th>Detalle</th></tr>
-  {% for b in bitacora %}
-  <tr>
-    <td>{{ b['timestamp'] }}</td>
-    <td>{{ b['usuario'] }}</td>
-    <td>{{ b['accion'] }}</td>
-    <td>{{ b['detalle'] }}</td>
-  </tr>
-  {% endfor %}
-</table>
+        <div class="field">
+          <label for="tipo_trabajador">Tipo de trabajador</label>
+          <input id="tipo_trabajador" name="tipo_trabajador">
+        </div>
+        <div class="field">
+          <label for="tipo_salario">Tipo de salario</label>
+          <input id="tipo_salario" name="tipo_salario">
+        </div>
+        <div class="field">
+          <label for="tipo_jornada">Tipo de jornada</label>
+          <input id="tipo_jornada" name="tipo_jornada">
+        </div>
+
+        <div class="field">
+          <label for="sdi">Salario diario integrado</label>
+          <input id="sdi" name="sdi" placeholder="450.50">
+        </div>
+        <div class="field span-2">
+          <label for="causa_baja">Causa de baja (si aplica)</label>
+          <input id="causa_baja" name="causa_baja">
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="submit">Capturar movimiento</button>
+      </div>
+    </form>
+  </section>
+
+  <section>
+    <h2>Movimientos capturados</h2>
+    <p class="section-note">Registro de altas y bajas procesadas por el sistema, más reciente primero.</p>
+    {% if movimientos %}
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Trabajador</th><th>CURP</th><th>Tipo</th><th>Fecha</th><th>Estado</th></tr>
+      </thead>
+      <tbody>
+        {% for m in movimientos %}
+        <tr>
+          <td>{{ m['id'] }}</td>
+          <td>{{ m['nombre_completo'] }}</td>
+          <td class="curp">{{ m['curp'] }}</td>
+          <td>{{ m['tipo_movimiento'] }}</td>
+          <td>{{ m['fecha_movimiento'] }}</td>
+          <td><span class="estado estado-{{ m['estado'] }}">{{ m['estado'] }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="empty">Todavía no hay movimientos capturados.</p>
+    {% endif %}
+  </section>
+
+  <section>
+    <h2>Exportación a IDSE</h2>
+    <p class="section-note">Genera el lote de texto plano con los movimientos válidos aún no exportados.</p>
+    <form action="/exportar" method="post">
+      <div class="actions">
+        <select name="usuario_id">
+          {% for u in usuarios %}
+            <option value="{{ u['id'] }}">{{ u['nombre'] }} — {{ u['rol'] }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="secondary">Generar lote IDSE</button>
+        <a class="btn-link" href="/descargar-lote">Descargar último lote generado</a>
+      </div>
+    </form>
+  </section>
+
+  <section>
+    <h2>Bitácora de auditoría</h2>
+    <p class="section-note">Últimos 15 movimientos en el sistema, con usuario y marca de tiempo.</p>
+    {% if bitacora %}
+    <ul class="timeline">
+      {% for b in bitacora %}
+      <li>
+        <time>{{ b['timestamp'] }}</time>
+        <span class="dot"></span>
+        <div class="entry">
+          <strong>{{ b['accion'] }}</strong> <span>por {{ b['usuario'] }}</span>
+          <br><span>{{ b['detalle'] }}</span>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="empty">Sin actividad registrada todavía.</p>
+    {% endif %}
+  </section>
+
+</div>
+</main>
 
 </body>
 </html>
