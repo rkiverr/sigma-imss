@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Sigma — sistema de captura, validación y exportación de movimientos afiliatorios ante el IMSS.">
+<title>{% block titulo %}Sigma · Movimientos IMSS{% endblock %}</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231c3f77'/%3E%3Ctext x='16' y='23' font-family='system-ui,sans-serif' font-size='19' font-weight='700' fill='white' text-anchor='middle'%3E%CE%A3%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
+<script>
+  // Se aplica el tema guardado ANTES de pintar, para que no haya un
+  // parpadeo blanco al cargar la página en modo oscuro.
+  (function () {
+    try {
+      var guardado = localStorage.getItem("sigma-tema");
+      if (guardado === "claro" || guardado === "oscuro") {
+        document.documentElement.setAttribute("data-tema", guardado);
+      }
+    } catch (e) { /* almacenamiento bloqueado: manda el tema del sistema */ }
+  })();
+</script>
+</head>
+<body>
+
+<a class="saltar-al-contenido" href="#contenido">Saltar al contenido</a>
+
+<header class="barra">
+  <div class="barra-interior">
+    <div class="marca">
+      <span class="marca-logo" aria-hidden="true">Σ</span>
+      <div>
+        <h1>Sigma</h1>
+        <p>Movimientos afiliatorios ante el IMSS</p>
+      </div>
+    </div>
+
+    {% block insignias %}{% endblock %}
+
+    <button type="button" id="interruptor-tema" class="tema" aria-pressed="false"
+            title="Cambiar de tema">
+      <svg class="icono-sol" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="4"/>
+        <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
+      </svg>
+      <svg class="icono-luna" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>
+      </svg>
+      <span class="etiqueta-claro">Claro</span>
+      <span class="etiqueta-oscuro">Oscuro</span>
+    </button>
+  </div>
+</header>
+
+{% block contenido %}{% endblock %}
+
+<footer class="pie">
+  <p>Sigma — prueba de concepto (TRL 3) para la automatización de altas y bajas ante el IMSS.</p>
+  <p>La estructura del archivo IDSE debe confirmarse contra el layout oficial vigente antes de usarse en producción.</p>
+</footer>
+
+<div class="notificaciones" role="status" aria-live="polite">
+  {% with mensajes = get_flashed_messages(with_categories=true) %}
+    {% for categoria, mensaje in mensajes %}
+      <div class="notificacion notificacion-{{ categoria }}">
+        <p>{{ mensaje }}</p>
+        <button type="button" aria-label="Cerrar aviso">&times;</button>
+      </div>
+    {% endfor %}
+  {% endwith %}
+</div>
+
+<script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+</body>
+</html>

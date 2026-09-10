@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block titulo %}{{ codigo }} · {{ titulo }} — Sigma{% endblock %}
+
+{% block contenido %}
+<main class="pagina-error" id="contenido">
+  <div class="codigo">{{ codigo }}</div>
+  <h1>{{ titulo }}</h1>
+
+  {% if codigo == 503 %}
+    <p>El servidor no pudo abrir la base de datos. Revisa que PostgreSQL esté
+       corriendo y que <code>DATABASE_URL</code> apunte al servidor correcto, o
+       define <code>SIGMA_DB=sqlite</code> para trabajar con el motor local.</p>
+    <pre>{{ detalle }}</pre>
+  {% else %}
+    <p>{{ detalle }}</p>
+  {% endif %}
+
+  <a class="boton" href="{{ url_for('index') }}">Volver al inicio</a>
+</main>
+{% endblock %}

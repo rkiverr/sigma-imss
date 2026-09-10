@@ -8,10 +8,25 @@ Ejecuta los tres bloques descritos en el informe, ahora contra PostgreSQL:
 Produce un reporte de texto con los resultados, listo para pegar en la
 sección "Resultados" del informe.
 """
+import os
 import threading
-from database import get_conn, init_db, registrar_bitacora, obtener_o_crear_trabajador
-from validaciones import validar_movimiento
-from exportar_idse import exportar_a_archivo
+
+# El arnés trabaja sobre su propia base para que los resultados sean
+# reproducibles y no se mezclen con lo capturado desde la interfaz web.
+# Debe hacerse ANTES de importar database, que lee la configuración al cargarse.
+if not os.environ.get("DATABASE_URL"):
+    os.environ.setdefault("SIGMA_DB", "sqlite")
+    os.environ.setdefault(
+        "SQLITE_PATH",
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "sigma_pruebas.db"),
+    )
+    if os.path.exists(os.environ["SQLITE_PATH"]):
+        os.remove(os.environ["SQLITE_PATH"])
+
+from database import (descripcion_backend, get_conn, init_db,  # noqa: E402
+                      obtener_o_crear_trabajador, registrar_bitacora)
+from exportar_idse import exportar_a_archivo  # noqa: E402
+from validaciones import validar_movimiento  # noqa: E402
 
 REPORTE = []
 
@@ -31,7 +46,7 @@ CASOS_PRUEBA = [
     {"caso": "C2 - Baja válida",
      "datos": {"nombre_completo": "Ernesto Beas Hernandez", "curp": "BEHE900101HNLRRN05",
                "nss": "98765432101", "rfc": "BEHE900101AB2", "tipo_movimiento": "02",
-               "fecha_movimiento": "01092026", "causa_baja": "Terminación de obra"},
+               "fecha_movimiento": "01092026", "causa_baja": "1"},
      "esperado": True},
     {"caso": "C3 - CURP con longitud incorrecta",
      "datos": {"nombre_completo": "Pedro Luna Salas", "curp": "LUSP99010",
@@ -46,7 +61,7 @@ CASOS_PRUEBA = [
     {"caso": "C5 - Fecha fuera de formato (usa guiones)",
      "datos": {"nombre_completo": "Emilio Garza Diaz de Leon", "curp": "GADE970707HNLRML08",
                "nss": "55566677788", "rfc": "GADE970707AB5", "tipo_movimiento": "02",
-               "fecha_movimiento": "12-09-2026", "causa_baja": "Renuncia"},
+               "fecha_movimiento": "12-09-2026", "causa_baja": "2"},
      "esperado": False},
     {"caso": "C6 - Fecha inexistente en el calendario (31 de febrero)",
      "datos": {"nombre_completo": "Sofia Ramirez Torres", "curp": "RATS930231MNLMRF01",
@@ -232,7 +247,7 @@ if __name__ == "__main__":
 
     log("REPORTE DE RESULTADOS — PRUEBA DE CONCEPTO (ENTREGA 3 / TRL 3)")
     log("Sistema para la automatización de altas y bajas de seguro social")
-    log("Persistencia: PostgreSQL")
+    log(f"Persistencia: {descripcion_backend()}")
     log("")
 
     aciertos, total = bloque_1_validacion()
