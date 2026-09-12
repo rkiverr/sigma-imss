@@ -1,370 +1,441 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sigma · Movimientos IMSS</title>
-<style>
-  :root {
-    --bg: #f5f6f2;
-    --paper: #fffffe;
-    --ink: #16241c;
-    --muted: #5c6b60;
-    --brand: #0e6b45;
-    --brand-dark: #0a4f34;
-    --line: #dde3da;
-    --success-bg: #e8f3ea;
-    --success-ink: #1e7a3c;
-    --error-bg: #fbeae7;
-    --error-ink: #a2382b;
-    --mono: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-    --serif: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
-    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  }
+{% extends "base.html" %}
 
-  * { box-sizing: border-box; }
+{#- Ayudantes para no repetir la lógica de error/aviso en cada campo -#}
+{% macro estado(nombre) -%}
+{%- if errores.get(nombre) %} data-estado="error"
+{%- elif avisos.get(nombre) %} data-estado="aviso"{% endif -%}
+{%- endmacro %}
 
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--ink);
-    font-family: var(--sans);
-    font-size: 15px;
-    line-height: 1.5;
-  }
+{% macro mensaje(nombre) -%}
+<span class="mensaje">{{ errores.get(nombre) or avisos.get(nombre) or "" }}</span>
+{%- endmacro %}
 
-  a { color: var(--brand-dark); }
+{% macro opciones(nombre, catalogo, vacio) -%}
+<option value="">{{ vacio }}</option>
+{% for clave, etiqueta in catalogo.items() -%}
+<option value="{{ clave }}" {% if form.get(nombre) == clave %}selected{% endif %}>{{ etiqueta }}</option>
+{% endfor -%}
+{%- endmacro %}
 
-  .letterhead {
-    background: var(--brand);
-    color: #f4f7f2;
-    padding: 22px 28px;
-  }
-  .letterhead-inner {
-    max-width: 900px;
-    margin: 0 auto;
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-  .letterhead h1 {
-    font-family: var(--serif);
-    font-weight: 700;
-    font-size: 22px;
-    margin: 0;
-  }
-  .letterhead p {
-    margin: 0;
-    font-size: 13px;
-    color: #d7e8dd;
-  }
+{% block insignias %}
+  {#- El texto se recorta para no ensanchar la barra, así que el title lleva
+      el dato completo: es lo único que el usuario puede consultar al pasar
+      el mouse. -#}
+  <span class="insignia"
+        title="Patrón al que se cargan los movimientos&#10;Registro patronal: {{ patron.registro_patronal }}&#10;Razón social: {{ patron.razon_social }}">
+    {{ patron.registro_patronal }} · {{ patron.razon_social|truncate(34, true, "…") }}
+  </span>
+  <span class="insignia insignia-motor"
+        title="Motor de base de datos en uso: {{ motor }}">
+    <span class="punto" aria-hidden="true"></span>{{ motor }}
+  </span>
+{% endblock %}
 
-  main {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 32px 28px 80px;
-  }
+{% block contenido %}
+<main class="contenedor" id="contenido">
 
-  .expediente {
-    background: var(--paper);
-    border: 1px solid var(--line);
-  }
+  <!-- ================= Tablero ================= -->
+  <section aria-labelledby="titulo-tablero">
+    <h2 id="titulo-tablero" class="solo-lectores">Resumen del sistema</h2>
+    <dl class="metricas">
+      <div class="metrica" style="--color-metrica: var(--acento)">
+        <dt>Movimientos capturados</dt>
+        <dd>{{ stats.total }}
+          {% if stats.rechazos %}<span class="nota">· {{ stats.rechazos }} intento(s) rechazado(s)</span>{% endif %}
+        </dd>
+      </div>
+      <div class="metrica" style="--color-metrica: var(--aviso)">
+        <dt>Pendientes de exportar</dt>
+        <dd>{{ stats.pendientes }}</dd>
+      </div>
+      <div class="metrica" style="--color-metrica: var(--exito)">
+        <dt>Exportados a IDSE</dt>
+        <dd>{{ stats.exportados }}</dd>
+      </div>
+      <div class="metrica" style="--color-metrica: var(--info)">
+        <dt>Altas (08)</dt>
+        <dd>{{ stats.altas }}</dd>
+      </div>
+      <div class="metrica" style="--color-metrica: var(--texto-suave)">
+        <dt>Bajas (02)</dt>
+        <dd>{{ stats.bajas }}</dd>
+      </div>
+    </dl>
+  </section>
 
-  section {
-    padding: 26px 30px;
-    border-bottom: 1px solid var(--line);
-  }
-  section:last-child { border-bottom: none; }
+  <div class="columnas">
 
-  h2 {
-    font-family: var(--serif);
-    font-size: 18px;
-    font-weight: 700;
-    margin: 0 0 4px;
-  }
-  .section-note {
-    color: var(--muted);
-    font-size: 13px;
-    margin: 0 0 18px;
-  }
+    <!-- ================= Captura ================= -->
+    <section class="tarjeta" aria-labelledby="titulo-captura">
+      <div class="tarjeta-encabezado">
+        <div>
+          <h2 id="titulo-captura">Captura de movimiento</h2>
+          <p>Alta (08) o baja (02) de un trabajador. Los campos se verifican mientras escribes
+             y el servidor los vuelve a validar antes de guardar.</p>
+        </div>
+      </div>
 
-  .flash {
-    max-width: 900px;
-    margin: 18px auto 0;
-    padding: 10px 16px;
-    font-size: 13.5px;
-    border-left: 3px solid transparent;
-  }
-  .flash-success { background: var(--success-bg); color: var(--success-ink); border-color: var(--success-ink); }
-  .flash-error   { background: var(--error-bg);   color: var(--error-ink);   border-color: var(--error-ink); }
-
-  /* --- formulario --- */
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px 16px;
-  }
-  .grid .span-2 { grid-column: span 2; }
-  .field { display: flex; flex-direction: column; gap: 5px; }
-  .field label {
-    font-size: 12px;
-    color: var(--muted);
-    letter-spacing: 0.01em;
-  }
-  input, select {
-    font: inherit;
-    padding: 8px 10px;
-    border: 1px solid var(--line);
-    background: #fff;
-    color: var(--ink);
-    border-radius: 2px;
-  }
-  input:focus, select:focus, button:focus, a.btn:focus {
-    outline: 2px solid var(--brand);
-    outline-offset: 1px;
-  }
-  input[name="curp"], input[name="nss"], input[name="rfc"] { font-family: var(--mono); }
-
-  .actions { margin-top: 18px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-
-  button {
-    font: inherit;
-    background: var(--brand);
-    color: #fff;
-    border: none;
-    padding: 9px 18px;
-    border-radius: 2px;
-    cursor: pointer;
-  }
-  button:hover { background: var(--brand-dark); }
-  button.secondary { background: transparent; color: var(--brand-dark); border: 1px solid var(--brand); }
-  button.secondary:hover { background: var(--success-bg); }
-
-  a.btn-link { font-size: 13px; color: var(--muted); text-decoration: underline; }
-
-  /* --- ledger table --- */
-  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-  thead th {
-    text-align: left;
-    font-weight: 600;
-    color: var(--muted);
-    font-size: 12px;
-    padding: 0 10px 8px;
-    border-bottom: 1px solid var(--line);
-  }
-  tbody td {
-    padding: 9px 10px;
-    border-bottom: 1px solid #eef1ec;
-  }
-  tbody tr:nth-child(even) { background: #fafbf9; }
-  td.curp { font-family: var(--mono); font-size: 12.5px; }
-
-  .estado { display: flex; align-items: center; gap: 7px; }
-  .estado::before {
-    content: "";
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    display: inline-block;
-    flex-shrink: 0;
-  }
-  .estado-Válido::before { background: var(--success-ink); }
-  .estado-Rechazado::before { background: var(--error-ink); }
-  .estado-Exportado::before { background: var(--muted); }
-  .estado-Válido { color: var(--success-ink); }
-  .estado-Rechazado { color: var(--error-ink); }
-  .estado-Exportado { color: var(--muted); }
-
-  .empty { color: var(--muted); font-size: 13.5px; padding: 6px 0; }
-
-  /* --- bitácora timeline --- */
-  .timeline { list-style: none; margin: 0; padding: 0; }
-  .timeline li {
-    display: grid;
-    grid-template-columns: 150px 16px 1fr;
-    column-gap: 10px;
-    padding: 10px 0;
-  }
-  .timeline li:not(:last-child) { border-bottom: 1px dashed var(--line); }
-  .timeline time { font-family: var(--mono); font-size: 11.5px; color: var(--muted); padding-top: 2px; }
-  .timeline .dot { display: flex; justify-content: center; padding-top: 4px; }
-  .timeline .dot::before {
-    content: "";
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: var(--brand);
-    display: block;
-  }
-  .timeline .entry strong { font-weight: 600; }
-  .timeline .entry span { color: var(--muted); font-size: 13px; }
-
-  @media (max-width: 640px) {
-    main { padding: 20px 14px 60px; }
-    section { padding: 20px 16px; }
-    .grid { grid-template-columns: 1fr; }
-    .grid .span-2 { grid-column: span 1; }
-    .timeline li { grid-template-columns: 20px 1fr; }
-    .timeline time { grid-column: 1 / -1; padding-top: 0; }
-    .timeline .dot { display: none; }
-  }
-</style>
-</head>
-<body>
-
-<div class="letterhead">
-  <div class="letterhead-inner">
-    <h1>Sigma</h1>
-    <p>Gestión de movimientos afiliatorios ante el IMSS</p>
-  </div>
-</div>
-
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% for category, message in messages %}
-    <div class="flash flash-{{ category }}">{{ message }}</div>
-  {% endfor %}
-{% endwith %}
-
-<main>
-<div class="expediente">
-
-  <section>
-    <h2>Captura de movimiento</h2>
-    <p class="section-note">Alta (08) o baja (02) de un trabajador ante el IMSS. Los campos se validan al enviarse.</p>
-    <form action="/capturar" method="post">
-      <div class="grid">
-        <div class="field">
-          <label for="usuario_id">Usuario que captura</label>
-          <select id="usuario_id" name="usuario_id">
-            {% for u in usuarios %}
-              <option value="{{ u['id'] }}">{{ u['nombre'] }} — {{ u['rol'] }}</option>
+      <div class="tarjeta-cuerpo">
+        {% if errores %}
+        <div class="resumen-errores" role="alert">
+          <strong>El movimiento no se guardó. Corrige {{ errores|length }}
+            {{ "campo" if errores|length == 1 else "campos" }}:</strong>
+          <ul>
+            {% for campo in orden_campos if errores.get(campo) %}
+              <li>{{ errores[campo] }}</li>
             {% endfor %}
-          </select>
+            {% for campo, texto in errores.items() if campo not in orden_campos %}
+              <li>{{ texto }}</li>
+            {% endfor %}
+          </ul>
         </div>
-        <div class="field span-2">
-          <label for="nombre_completo">Nombre completo</label>
-          <input id="nombre_completo" name="nombre_completo" placeholder="Apellido Paterno Apellido Materno Nombre(s)">
-        </div>
+        {% endif %}
 
-        <div class="field">
-          <label for="curp">CURP</label>
-          <input id="curp" name="curp" placeholder="RIDG050515HNLVLL09" maxlength="18">
-        </div>
-        <div class="field">
-          <label for="nss">NSS</label>
-          <input id="nss" name="nss" placeholder="12345678901" maxlength="11">
-        </div>
-        <div class="field">
-          <label for="rfc">RFC</label>
-          <input id="rfc" name="rfc" placeholder="RIDG050515AB1">
-        </div>
+        <form action="{{ url_for('capturar') }}" method="post" id="formulario-captura" novalidate>
 
-        <div class="field">
-          <label for="tipo_movimiento">Tipo de movimiento</label>
-          <select id="tipo_movimiento" name="tipo_movimiento">
-            <option value="08">08 — Alta / Reingreso</option>
-            <option value="02">02 — Baja</option>
-          </select>
-        </div>
-        <div class="field span-2">
-          <label for="fecha_movimiento">Fecha de movimiento (DDMMAAAA)</label>
-          <input id="fecha_movimiento" name="fecha_movimiento" placeholder="05092026" maxlength="8">
-        </div>
+          <fieldset class="grupo-campos">
+            <legend>Identificación del trabajador</legend>
+            <div class="rejilla">
+              <div class="campo col-6" data-campo="nombre_completo" {{- estado('nombre_completo') }}>
+                <label for="nombre_completo">Nombre completo <span class="requerido" aria-hidden="true">*</span></label>
+                <input id="nombre_completo" name="nombre_completo" autocomplete="off" required
+                       placeholder="Apellido paterno · Apellido materno · Nombre(s)"
+                       value="{{ form.get('nombre_completo', '') }}">
+                {{ mensaje('nombre_completo') }}
+              </div>
 
-        <div class="field">
-          <label for="tipo_trabajador">Tipo de trabajador</label>
-          <input id="tipo_trabajador" name="tipo_trabajador">
-        </div>
-        <div class="field">
-          <label for="tipo_salario">Tipo de salario</label>
-          <input id="tipo_salario" name="tipo_salario">
-        </div>
-        <div class="field">
-          <label for="tipo_jornada">Tipo de jornada</label>
-          <input id="tipo_jornada" name="tipo_jornada">
-        </div>
+              <div class="campo col-2" data-campo="curp" {{- estado('curp') }}>
+                <label for="curp">CURP <span class="requerido" aria-hidden="true">*</span>
+                  <span class="contador">0/18</span></label>
+                <input id="curp" name="curp" class="mono" maxlength="18" required
+                       autocomplete="off" spellcheck="false" placeholder="RIDG050515HNLVLL09"
+                       value="{{ form.get('curp', '') }}">
+                {{ mensaje('curp') }}
+              </div>
 
-        <div class="field">
-          <label for="sdi">Salario diario integrado</label>
-          <input id="sdi" name="sdi" placeholder="450.50">
+              <div class="campo col-2" data-campo="nss" {{- estado('nss') }}>
+                <label for="nss">NSS <span class="requerido" aria-hidden="true">*</span>
+                  <span class="contador">0/11</span></label>
+                <input id="nss" name="nss" class="mono" maxlength="11" required
+                       inputmode="numeric" autocomplete="off" placeholder="12345678901"
+                       value="{{ form.get('nss', '') }}">
+                {{ mensaje('nss') }}
+              </div>
+
+              <div class="campo col-2" data-campo="rfc" {{- estado('rfc') }}>
+                <label for="rfc">RFC <span class="requerido" aria-hidden="true">*</span>
+                  <span class="contador">0/13</span></label>
+                <input id="rfc" name="rfc" class="mono" maxlength="13" required
+                       autocomplete="off" spellcheck="false" placeholder="RIDG050515AB1"
+                       value="{{ form.get('rfc', '') }}">
+                {{ mensaje('rfc') }}
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="grupo-campos">
+            <legend>Movimiento</legend>
+            <div class="rejilla">
+              <div class="campo col-2" data-campo="tipo_movimiento" {{- estado('tipo_movimiento') }}>
+                <label for="tipo_movimiento">Tipo de movimiento <span class="requerido" aria-hidden="true">*</span></label>
+                <select id="tipo_movimiento" name="tipo_movimiento">
+                  <option value="08" {% if form.get('tipo_movimiento', '08') == '08' %}selected{% endif %}>
+                    08 — Alta / Reingreso</option>
+                  <option value="02" {% if form.get('tipo_movimiento') == '02' %}selected{% endif %}>
+                    02 — Baja</option>
+                </select>
+                {{ mensaje('tipo_movimiento') }}
+              </div>
+
+              <div class="campo col-2" data-campo="fecha_movimiento" {{- estado('fecha_movimiento') }}>
+                <label for="fecha_movimiento">Fecha del movimiento <span class="requerido" aria-hidden="true">*</span>
+                  <span class="contador">0/8</span></label>
+                <input id="fecha_movimiento" name="fecha_movimiento" class="mono" maxlength="8"
+                       inputmode="numeric" autocomplete="off" required placeholder="DDMMAAAA"
+                       value="{{ form.get('fecha_movimiento', '') }}">
+                {{ mensaje('fecha_movimiento') }}
+                <span class="ayuda">Formato IDSE: DDMMAAAA</span>
+              </div>
+
+              <div class="campo col-2">
+                <label for="selector-fecha">Elegir en calendario</label>
+                <input type="date" id="selector-fecha" aria-label="Elegir la fecha en un calendario">
+                <span class="ayuda">Rellena el campo anterior</span>
+              </div>
+            </div>
+          </fieldset>
+
+          <!-- Campos exclusivos de un ALTA (08) -->
+          <fieldset class="grupo-campos" data-visible-en="08">
+            <legend>Condiciones de contratación</legend>
+            <div class="rejilla">
+              <div class="campo col-3" data-campo="tipo_trabajador" {{- estado('tipo_trabajador') }}>
+                <label for="tipo_trabajador">Tipo de trabajador
+                  <span class="requerido" data-requerido-en="08" aria-hidden="true">*</span></label>
+                <select id="tipo_trabajador" name="tipo_trabajador">
+                  {{ opciones('tipo_trabajador', catalogos.tipo_trabajador, 'Selecciona…') }}
+                </select>
+                {{ mensaje('tipo_trabajador') }}
+              </div>
+
+              <div class="campo col-3" data-campo="tipo_salario" {{- estado('tipo_salario') }}>
+                <label for="tipo_salario">Tipo de salario
+                  <span class="requerido" data-requerido-en="08" aria-hidden="true">*</span></label>
+                <select id="tipo_salario" name="tipo_salario">
+                  {{ opciones('tipo_salario', catalogos.tipo_salario, 'Selecciona…') }}
+                </select>
+                {{ mensaje('tipo_salario') }}
+              </div>
+
+              <div class="campo col-3" data-campo="tipo_jornada" {{- estado('tipo_jornada') }}>
+                <label for="tipo_jornada">Tipo de jornada
+                  <span class="requerido" data-requerido-en="08" aria-hidden="true">*</span></label>
+                <select id="tipo_jornada" name="tipo_jornada">
+                  {{ opciones('tipo_jornada', catalogos.tipo_jornada, 'Selecciona…') }}
+                </select>
+                {{ mensaje('tipo_jornada') }}
+              </div>
+
+              <div class="campo col-3" data-campo="sdi" {{- estado('sdi') }}>
+                <label for="sdi">Salario diario integrado
+                  <span class="requerido" data-requerido-en="08" aria-hidden="true">*</span></label>
+                <input id="sdi" name="sdi" inputmode="decimal" autocomplete="off"
+                       placeholder="450.50" value="{{ form.get('sdi', '') }}">
+                {{ mensaje('sdi') }}
+                <span class="ayuda">Pesos por día, con hasta dos decimales</span>
+              </div>
+            </div>
+          </fieldset>
+
+          <!-- Campos exclusivos de una BAJA (02) -->
+          <fieldset class="grupo-campos" data-visible-en="02" hidden>
+            <legend>Motivo de la baja</legend>
+            <div class="rejilla">
+              <div class="campo col-6" data-campo="causa_baja" {{- estado('causa_baja') }}>
+                <label for="causa_baja">Causa de baja
+                  <span class="requerido" data-requerido-en="02" aria-hidden="true">*</span></label>
+                <select id="causa_baja" name="causa_baja">
+                  {{ opciones('causa_baja', catalogos.causa_baja, 'Selecciona…') }}
+                </select>
+                {{ mensaje('causa_baja') }}
+                <span class="ayuda">Catálogo de causas de baja del IDSE</span>
+              </div>
+            </div>
+          </fieldset>
+
+          <div class="acciones">
+            <div class="campo" data-campo="usuario_id" {{- estado('usuario_id') }}
+                 style="flex: 1 1 220px; max-width: 300px">
+              <label for="usuario_id">Usuario que captura</label>
+              <select id="usuario_id" name="usuario_id">
+                {% for u in usuarios %}
+                  <option value="{{ u.id }}">{{ u.nombre }} — {{ u.rol }}</option>
+                {% endfor %}
+              </select>
+              {{ mensaje('usuario_id') }}
+            </div>
+            <button type="button" class="boton boton-tenue separador" id="boton-limpiar">Limpiar</button>
+            <button type="submit" class="boton" id="boton-capturar">Capturar movimiento</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ================= Columna lateral ================= -->
+    <div class="columna-lateral">
+
+      <section class="tarjeta" aria-labelledby="titulo-exportar">
+        <div class="tarjeta-encabezado">
+          <div>
+            <h2 id="titulo-exportar">Exportación a IDSE</h2>
+            <p>Genera el archivo de texto plano con los movimientos válidos que
+               todavía no se han enviado.</p>
+          </div>
         </div>
-        <div class="field span-2">
-          <label for="causa_baja">Causa de baja (si aplica)</label>
-          <input id="causa_baja" name="causa_baja">
+        <div class="tarjeta-cuerpo">
+          <p style="margin: 0 0 16px; color: var(--texto-suave); font-size: 13.5px">
+            {% if stats.pendientes %}
+              Hay <strong style="color: var(--texto)">{{ stats.pendientes }}</strong>
+              movimiento(s) listo(s) para incluirse en el próximo lote.
+            {% else %}
+              No hay movimientos pendientes. Captura al menos uno para generar un lote.
+            {% endif %}
+          </p>
+          <form action="{{ url_for('exportar') }}" method="post">
+            <div class="campo" style="margin-bottom: 14px">
+              <label for="usuario_exporta">Usuario responsable</label>
+              <select id="usuario_exporta" name="usuario_id">
+                {% for u in usuarios %}
+                  <option value="{{ u.id }}">{{ u.nombre }} — {{ u.rol }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap">
+              <button type="submit" class="boton boton-secundario" style="flex: 1"
+                      {% if not stats.pendientes %}disabled{% endif %}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+                </svg>
+                Generar lote
+              </button>
+              {% if lote_disponible %}
+              <a class="boton boton-tenue" href="{{ url_for('descargar_lote') }}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                </svg>
+                Descargar
+              </a>
+              {% endif %}
+            </div>
+          </form>
         </div>
+      </section>
+
+      <section class="tarjeta" aria-labelledby="titulo-bitacora">
+        <div class="tarjeta-encabezado">
+          <div>
+            <h2 id="titulo-bitacora">Bitácora de auditoría</h2>
+            <p>Últimas 15 acciones, con usuario y marca de tiempo.</p>
+          </div>
+        </div>
+        <div class="tarjeta-cuerpo">
+          {% if bitacora %}
+          <ul class="linea-tiempo">
+            {% for b in bitacora %}
+            <li data-tipo="{% if 'rechazado' in b.accion|lower %}rechazo
+                {%- elif 'exportaci' in b.accion|lower %}exportacion{% else %}captura{% endif %}">
+              <span class="accion">{{ b.accion }}</span>
+              <span class="meta">{{ b.timestamp|momento }} · {{ b.usuario }}</span>
+              {% if b.detalle %}<span class="detalle">{{ b.detalle }}</span>{% endif %}
+            </li>
+            {% endfor %}
+          </ul>
+          {% else %}
+          <div class="vacio">
+            <p>Sin actividad todavía</p>
+            <span>Las acciones aparecerán aquí conforme se capturen movimientos.</span>
+          </div>
+          {% endif %}
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- ================= Movimientos ================= -->
+  <section class="tarjeta" aria-labelledby="titulo-movimientos" style="margin-top: 20px">
+    <div class="tarjeta-encabezado">
+      <div>
+        <h2 id="titulo-movimientos">Movimientos capturados</h2>
+        <p>{{ total_movimientos }} registro(s){% if filtros_activos %} que coinciden con el filtro{% endif %}.
+           Selecciona una fila para ver el expediente completo.</p>
       </div>
 
-      <div class="actions">
-        <button type="submit">Capturar movimiento</button>
-      </div>
-    </form>
-  </section>
-
-  <section>
-    <h2>Movimientos capturados</h2>
-    <p class="section-note">Registro de altas y bajas procesadas por el sistema, más reciente primero.</p>
-    {% if movimientos %}
-    <table>
-      <thead>
-        <tr><th>ID</th><th>Trabajador</th><th>CURP</th><th>Tipo</th><th>Fecha</th><th>Estado</th></tr>
-      </thead>
-      <tbody>
-        {% for m in movimientos %}
-        <tr>
-          <td>{{ m['id'] }}</td>
-          <td>{{ m['nombre_completo'] }}</td>
-          <td class="curp">{{ m['curp'] }}</td>
-          <td>{{ m['tipo_movimiento'] }}</td>
-          <td>{{ m['fecha_movimiento'] }}</td>
-          <td><span class="estado estado-{{ m['estado'] }}">{{ m['estado'] }}</span></td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    {% else %}
-    <p class="empty">Todavía no hay movimientos capturados.</p>
-    {% endif %}
-  </section>
-
-  <section>
-    <h2>Exportación a IDSE</h2>
-    <p class="section-note">Genera el lote de texto plano con los movimientos válidos aún no exportados.</p>
-    <form action="/exportar" method="post">
-      <div class="actions">
-        <select name="usuario_id">
-          {% for u in usuarios %}
-            <option value="{{ u['id'] }}">{{ u['nombre'] }} — {{ u['rol'] }}</option>
-          {% endfor %}
+      <form class="filtros" id="formulario-filtros" method="get" action="{{ url_for('index') }}">
+        <div class="buscador">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>
+          </svg>
+          <input type="search" name="q" value="{{ filtros.q }}"
+                 placeholder="Nombre, CURP o NSS" aria-label="Buscar movimientos">
+        </div>
+        <select name="estado" aria-label="Filtrar por estado">
+          <option value="">Todos los estados</option>
+          <option value="Válido" {% if filtros.estado == 'Válido' %}selected{% endif %}>Pendientes</option>
+          <option value="Exportado" {% if filtros.estado == 'Exportado' %}selected{% endif %}>Exportados</option>
         </select>
-        <button type="submit" class="secondary">Generar lote IDSE</button>
-        <a class="btn-link" href="/descargar-lote">Descargar último lote generado</a>
-      </div>
-    </form>
-  </section>
+        <select name="tipo" aria-label="Filtrar por tipo de movimiento">
+          <option value="">Altas y bajas</option>
+          <option value="08" {% if filtros.tipo == '08' %}selected{% endif %}>Solo altas</option>
+          <option value="02" {% if filtros.tipo == '02' %}selected{% endif %}>Solo bajas</option>
+        </select>
+        {% if filtros_activos %}
+        <a class="boton boton-tenue boton-chico" href="{{ url_for('index') }}">Limpiar</a>
+        {% endif %}
+        <noscript><button type="submit" class="boton boton-chico">Filtrar</button></noscript>
+      </form>
+    </div>
 
-  <section>
-    <h2>Bitácora de auditoría</h2>
-    <p class="section-note">Últimos 15 movimientos en el sistema, con usuario y marca de tiempo.</p>
-    {% if bitacora %}
-    <ul class="timeline">
-      {% for b in bitacora %}
-      <li>
-        <time>{{ b['timestamp'] }}</time>
-        <span class="dot"></span>
-        <div class="entry">
-          <strong>{{ b['accion'] }}</strong> <span>por {{ b['usuario'] }}</span>
-          <br><span>{{ b['detalle'] }}</span>
-        </div>
-      </li>
-      {% endfor %}
-    </ul>
+    {% if movimientos %}
+    <div class="tabla-envoltura">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Folio</th>
+            <th scope="col">Trabajador</th>
+            <th scope="col">CURP</th>
+            <th scope="col">Tipo</th>
+            <th scope="col">Fecha</th>
+            <th scope="col" style="text-align: right">SDI</th>
+            <th scope="col">Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in movimientos %}
+          <tr data-movimiento="{{ m.id }}" tabindex="0"
+              aria-label="Ver detalle del movimiento {{ m.id }} de {{ m.nombre_completo }}">
+            <td class="folio">#{{ m.id }}</td>
+            <td class="nombre">{{ m.nombre_completo }}</td>
+            <td class="identificador">{{ m.curp }}</td>
+            <td>
+              <span class="pastilla {{ 'pastilla-alta' if m.tipo_movimiento == '08' else 'pastilla-baja' }}">
+                {{ m.tipo_movimiento }} · {{ m.tipo_movimiento|etiqueta_tipo }}
+              </span>
+            </td>
+            <td>{{ m.fecha_movimiento|fecha_idse }}</td>
+            <td class="numero">{{ m.sdi or "—" }}</td>
+            <td><span class="pastilla estado-{{ m.estado }}">{{ m.estado }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if paginas > 1 %}
+    <div class="paginacion">
+      <span>Página {{ pagina }} de {{ paginas }}</span>
+      <nav aria-label="Paginación de movimientos">
+        {% if pagina > 1 %}
+        <a class="boton boton-secundario boton-chico"
+           href="{{ url_for('index', q=filtros.q, estado=filtros.estado, tipo=filtros.tipo, pagina=pagina-1) }}">Anterior</a>
+        {% endif %}
+        {% if pagina < paginas %}
+        <a class="boton boton-secundario boton-chico"
+           href="{{ url_for('index', q=filtros.q, estado=filtros.estado, tipo=filtros.tipo, pagina=pagina+1) }}">Siguiente</a>
+        {% endif %}
+      </nav>
+    </div>
+    {% endif %}
+
     {% else %}
-    <p class="empty">Sin actividad registrada todavía.</p>
+    <div class="vacio">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <path d="M14 2v6h6M9 15h6"/>
+      </svg>
+      {% if filtros_activos %}
+        <p>Ningún movimiento coincide con el filtro</p>
+        <span>Prueba con otro término o <a href="{{ url_for('index') }}">quita los filtros</a>.</span>
+      {% else %}
+        <p>Todavía no hay movimientos capturados</p>
+        <span>Usa el formulario de arriba para registrar el primer alta o baja.</span>
+      {% endif %}
+    </div>
     {% endif %}
   </section>
 
-</div>
 </main>
 
-</body>
-</html>
+<dialog id="dialogo-detalle" aria-labelledby="dialogo-titulo">
+  <div class="dialogo-encabezado">
+    <h2 id="dialogo-titulo">Movimiento</h2>
+    <button type="button" class="dialogo-cerrar" aria-label="Cerrar">&times;</button>
+  </div>
+  <div class="dialogo-cuerpo" id="dialogo-cuerpo"></div>
+</dialog>
+{% endblock %}
