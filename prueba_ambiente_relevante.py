@@ -28,6 +28,7 @@ Uso:
   python prueba_ambiente_relevante.py                         # servidor de producción
   python prueba_ambiente_relevante.py --servidor desarrollo   # servidor de Flask
   python prueba_ambiente_relevante.py --bloques A,B --etiqueta prueba
+  python prueba_ambiente_relevante.py --codigo ../version_e4 --servidor desarrollo --etiqueta antes
 """
 import argparse
 import html
@@ -40,6 +41,7 @@ import shutil
 import socket
 import sqlite3
 import statistics
+import struct
 import subprocess
 import sys
 import tempfile
@@ -50,6 +52,7 @@ import urllib.parse
 from datetime import date, datetime, timedelta
 
 RAIZ = os.path.dirname(os.path.abspath(__file__))
+CODIGO = RAIZ            # versión del sistema que se prueba (--codigo la cambia)
 REPORTE = []
 RESULTADOS = {}
 
@@ -181,14 +184,16 @@ class Plantilla:
         self.azar = random.Random(semilla)
         self.candado = threading.Lock()
         self.curps = set()
+        self.nss = set()
         self.consecutivo = self.azar.randint(1000, 4000)
 
     def trabajador(self):
         with self.candado:
             while True:
                 t = self._intentar()
-                if t["curp"] not in self.curps:
+                if t["curp"] not in self.curps and t["nss"] not in self.nss:
                     self.curps.add(t["curp"])
+                    self.nss.add(t["nss"])
                     return t
 
     def _intentar(self):
@@ -267,7 +272,7 @@ class Servidor:
     def __init__(self, modo):
         self.modo = modo
         self.dir = tempfile.mkdtemp(prefix="sigma_trl5_")
-        shutil.copytree(RAIZ, self.dir, ignore=self.IGNORAR, dirs_exist_ok=True)
+        shutil.copytree(CODIGO, self.dir, ignore=self.IGNORAR, dirs_exist_ok=True)
         self.base = os.path.join(self.dir, "sigma_ambiente.db")
         self.puerto = _puerto_libre()
         self.proceso = None
@@ -303,20 +308,27 @@ class Servidor:
         raise RuntimeError("El servidor no respondió en 30 s. Revisa " + self.bitacora_servidor)
 
     def detener(self):
+        """Termina el proceso de golpe, con todo su árbol (el python.exe de un
+        entorno virtual es un lanzador que crea al intérprete como hijo)."""
         if self.proceso and self.proceso.poll() is None:
-            self.proceso.kill()
+            if os.name == "nt":
+                subprocess.run(["taskkill", "/PID", str(self.proceso.pid), "/T", "/F"],
+                               capture_output=True, check=False)
+            else:
+                self.proceso.kill()
             self.proceso.wait(timeout=10)
 
     def memoria_mb(self):
-        """Memoria de trabajo del proceso del servidor, leída con tasklist."""
+        """Memoria de trabajo del intérprete que atiende al servidor."""
         if not self.proceso or os.name != "nt":
             return None
-        salida = subprocess.run(["tasklist", "/FI", f"PID eq {self.proceso.pid}", "/FO", "CSV", "/NH"],
-                                capture_output=True, text=True, encoding="latin-1").stdout
-        cifra = re.search(r'"([\d.,\s]+)\s*K"', salida)
-        if not cifra:
-            return None
-        return int(re.sub(r"\D", "", cifra.group(1))) / 1024
+        pid = self.proceso.pid
+        consulta = (f"Get-CimInstance Win32_Process -Filter 'ProcessId={pid} or ParentProcessId={pid}'"
+                    " | ForEach-Object { $_.WorkingSetSize }")
+        salida = subprocess.run(["powershell", "-NoProfile", "-Command", consulta],
+                                capture_output=True, text=True, check=False).stdout
+        tamanos = [int(x) for x in salida.split() if x.isdigit()]
+        return round(max(tamanos) / 1024 / 1024, 1) if tamanos else None
 
     def excepciones(self):
         try:
@@ -367,6 +379,7 @@ class Metricas:
     def __init__(self):
         self.candado = threading.Lock()
         self.registros = []
+        self.tipos_error = {}
 
     def agregar(self, ruta, estado, segundos):
         with self.candado:
@@ -379,6 +392,11 @@ class Metricas:
     def errores(self):
         return sum(1 for _, e, _ in self.registros if e == 0 or e >= 500)
 
+    def anotar_error(self, respuesta):
+        with self.candado:
+            clave = f"HTTP {respuesta.estado}: " + " ".join(respuesta.texto[:80].split())
+            self.tipos_error[clave] = self.tipos_error.get(clave, 0) + 1
+
 
 def resumen_tiempos(segundos):
     if not segundos:
@@ -390,27 +408,68 @@ def resumen_tiempos(segundos):
 
 
 class Cliente:
+    """
+    Cliente HTTP de un capturista. Reutiliza su conexión (keep-alive) como lo
+    hace un navegador y, al cerrarla, libera el puerto de inmediato; así la
+    prueba mide al servidor y no el agotamiento de puertos del equipo cliente.
+    """
+
+    REINTENTABLES = (http.client.RemoteDisconnected, ConnectionResetError,
+                     ConnectionAbortedError, BrokenPipeError)
+
     def __init__(self, puerto, host="127.0.0.1", metricas=None):
         self.puerto, self.host, self.metricas = puerto, host, metricas
         self.origen = f"http://{host}:{puerto}"
+        self._conexion = None
+
+    def _conectar(self):
+        conexion = http.client.HTTPConnection(self.host, self.puerto, timeout=60)
+        conexion.connect()
+        conexion.sock.setsockopt(socket.SOL_SOCKET, socket.SO_LINGER, struct.pack("ii", 1, 0))
+        return conexion
+
+    def cerrar(self):
+        if self._conexion is not None:
+            try:
+                self._conexion.close()
+            except OSError:
+                pass
+            self._conexion = None
 
     def pedir(self, metodo, ruta, cuerpo=None, cabeceras=None, etiqueta=None):
         cabeceras = dict(cabeceras or {})
         inicio = time.perf_counter()
-        conexion = http.client.HTTPConnection(self.host, self.puerto, timeout=60)
-        try:
-            conexion.request(metodo, ruta, body=cuerpo, headers=cabeceras)
-            r = conexion.getresponse()
-            cuerpo_r = r.read()
-            respuesta = Respuesta(r.status, {k.lower(): v for k, v in r.getheaders()}, cuerpo_r,
-                                  time.perf_counter() - inicio, r.getheader("Set-Cookie"),
-                                  r.getheader("Location"))
-        except (OSError, http.client.HTTPException) as exc:
-            respuesta = Respuesta(0, {}, str(exc).encode(), time.perf_counter() - inicio)
-        finally:
-            conexion.close()
+        respuesta = None
+        for intento in range(2):
+            reutilizada = self._conexion is not None
+            try:
+                if self._conexion is None:
+                    self._conexion = self._conectar()
+                self._conexion.request(metodo, ruta, body=cuerpo, headers=cabeceras)
+                r = self._conexion.getresponse()
+                cuerpo_r = r.read()
+                respuesta = Respuesta(r.status, {k.lower(): v for k, v in r.getheaders()}, cuerpo_r,
+                                      time.perf_counter() - inicio, r.getheader("Set-Cookie"),
+                                      r.getheader("Location"))
+                if r.will_close:
+                    self.cerrar()
+                break
+            except self.REINTENTABLES as exc:
+                # Conexión inactiva que el servidor ya cerró: el navegador
+                # reintenta una vez con una conexión nueva, igual que aquí.
+                self.cerrar()
+                if reutilizada and intento == 0:
+                    continue
+                respuesta = Respuesta(0, {}, str(exc).encode(), time.perf_counter() - inicio)
+                break
+            except (OSError, http.client.HTTPException) as exc:
+                self.cerrar()
+                respuesta = Respuesta(0, {}, str(exc).encode(), time.perf_counter() - inicio)
+                break
         if self.metricas is not None:
             self.metricas.agregar(etiqueta or ruta.split("?")[0], respuesta.estado, respuesta.segundos)
+            if respuesta.estado == 0 or respuesta.estado >= 500:
+                self.metricas.anotar_error(respuesta)
         return respuesta
 
     def formulario(self, ruta, datos, origen=None, cookie=None, etiqueta=None):
@@ -851,6 +910,7 @@ def _par_simultaneo(puerto, datos_a, datos_b, desfase=0.0):
 
     def enviar(indice, datos, espera):
         cliente = Cliente(puerto)
+        cliente._conexion = cliente._conectar()     # conexión lista: ambos envíos salen juntos
         barrera.wait()
         if espera:
             time.sleep(espera)
@@ -874,9 +934,9 @@ def bloque_c(modo):
     with Servidor(modo) as srv:
         cliente = Cliente(srv.puerto)
         pruebas = [
-            ("Trabajador nuevo: dos capturistas registran la misma alta", 15, "nuevo", 0.0),
+            ("Trabajador nuevo: dos capturistas registran la misma alta", 25, "nuevo", 0.0),
             ("Reingreso: dos capturistas registran la misma alta de un trabajador conocido",
-             15, "reingreso", 0.0),
+             25, "reingreso", 0.0),
             ("Doble envío del mismo capturista (40 ms de diferencia)", 10, "nuevo", 0.04),
         ]
         for descripcion, repeticiones, tipo, desfase in pruebas:
@@ -969,6 +1029,7 @@ def bloque_d(modo):
                 "capturar": metricas.resumen("POST /capturar"),
                 "tablero": metricas.resumen("GET /"),
                 "memoria_mb": srv.memoria_mb(),
+                "tipos_error": dict(sorted(metricas.tipos_error.items(), key=lambda x: -x[1])[:3]),
             }
             niveles.append(nivel)
             log(f"  {usuarios:>2} usuario(s): {nivel['peticiones_por_s']:>6} pet/s · "
@@ -1136,6 +1197,7 @@ def bloque_f(modo):
                "capturas_confirmadas_perdidas": perdidos, "integridad": integridad,
                "movimientos_sin_bitacora": huerfanos,
                "tiempo_hasta_servicio_restablecido_s": round(recuperacion, 2),
+               "arranque_tras_caida_s": round(srv.arranques[-1], 2),
                "estado_tras_reinicio": sigue}
     log(f"  Capturas confirmadas antes de la caída: {len(confirmados)} · peticiones sin respuesta "
         f"durante la caída: {fallidos[0]}")
@@ -1252,7 +1314,7 @@ def bloque_h():
     log("=" * 78)
     log("BLOQUE H — CONTRASTE DE LA PALETA (WCAG 2.1, criterio 1.4.3, mínimo 4.5:1)")
     log("=" * 78)
-    with open(os.path.join(RAIZ, "static", "css", "estilos.css"), encoding="utf-8") as f:
+    with open(os.path.join(CODIGO, "static", "css", "estilos.css"), encoding="utf-8") as f:
         css = f.read()
     temas = {"claro": css[css.find(":root {"):css.find("}", css.find(":root {"))]}
     inicio_oscuro = css.find(":root:not([data-tema=\"claro\"])")
@@ -1282,12 +1344,16 @@ BLOQUES = {"A": bloque_a, "B": bloque_b, "C": bloque_c, "D": bloque_d, "E": bloq
 def main():
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
+    global CODIGO
     por_defecto = "produccion" if os.path.exists(os.path.join(RAIZ, "servidor.py")) else "desarrollo"
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[1])
+    parser.add_argument("--codigo", default=RAIZ,
+                        help="carpeta con otra versión del sistema (por ejemplo, la de la Entrega 4)")
     parser.add_argument("--servidor", choices=["produccion", "desarrollo"], default=por_defecto)
     parser.add_argument("--bloques", default="ABCDEFGH")
     parser.add_argument("--etiqueta", default="")
     argumentos = parser.parse_args()
+    CODIGO = os.path.abspath(argumentos.codigo)
 
     sufijo = f"_{argumentos.etiqueta}" if argumentos.etiqueta else ""
     log("REPORTE DE RESULTADOS — VALIDACIÓN EN AMBIENTE RELEVANTE (ENTREGA 5 / TRL 5)")
@@ -1297,7 +1363,8 @@ def main():
     log("")
     RESULTADOS["meta"] = {"fecha": datetime.now().isoformat(timespec="seconds"),
                           "servidor": argumentos.servidor, "python": sys.version.split()[0],
-                          "nucleos": os.cpu_count(), "etiqueta": argumentos.etiqueta}
+                          "nucleos": os.cpu_count(), "etiqueta": argumentos.etiqueta,
+                          "codigo": CODIGO}
     inicio = time.perf_counter()
     for clave in argumentos.bloques.replace(",", "").upper():
         BLOQUES[clave](argumentos.servidor)
