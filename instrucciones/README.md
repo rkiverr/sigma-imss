@@ -10,10 +10,12 @@ Abre una terminal **en la carpeta `sigma-imss`** (no en `instrucciones`) y corre
 
 ```bash
 pip install -r requirements.txt
-python app.py
+python servidor.py
 ```
 
-La primera línea solo hace falta la primera vez.
+La primera línea solo hace falta la primera vez (o cuando cambie
+`requirements.txt`). Para programar se puede usar `python app.py`, que solo se
+ve desde este equipo.
 
 ## Verla
 
@@ -40,12 +42,15 @@ Ctrl + C
 ```bash
 # Correr las pruebas automáticas (genera resultados_prueba_concepto.txt)
 python test_prueba_concepto.py
+
+# Validación en ambiente relevante, unos 3 minutos (genera resultados_ambiente_relevante.*)
+python prueba_ambiente_relevante.py
 ```
 
 ```bash
 # Empezar de cero: detén el servidor, borra la base y vuelve a arrancar
 rm sigma_imss.db
-python app.py
+python servidor.py
 ```
 
 ```powershell
@@ -64,7 +69,7 @@ taskkill /F /IM python.exe
 
 | Error | Solución |
 |---|---|
-| `python no se reconoce` | Instala Python marcando "Add Python to PATH", o usa `py app.py` |
+| `python no se reconoce` | Instala Python marcando "Add Python to PATH", o usa `py servidor.py` |
 | `No module named flask` | Corre `pip install -r requirements.txt` |
 | `Address already in use` | Ya hay un servidor corriendo: ciérralo con `Ctrl + C` |
 | La página se ve sin estilos | Recarga forzando con `Ctrl + Shift + R` |
