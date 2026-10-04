@@ -12,7 +12,13 @@ decisión**, para no volver a deducirlo desde cero.
 el IMSS. Es un trabajo académico (Entregas 1 a 5 de un informe por niveles TRL),
 no un producto en producción. Nació como prueba de concepto (TRL 3), se integró
 como prototipo (TRL 4) y en la Entrega 5 se validó en ambiente relevante
-(TRL 5): rama `trl5/ambiente-relevante`.
+(TRL 5).
+
+**Ramas.**
+- `main` es la vigente. Desde el 2026-10-04 incluye la Entrega 5: el merge
+  `cffd375` integró los 7 commits de `trl5/ambiente-relevante`.
+- `trl5/ambiente-relevante` sigue publicada porque el informe la cita.
+- `mejora/interfaz-y-validaciones` es la versión de la Entrega 4 (PR #1).
 
 El flujo completo que implementa:
 
