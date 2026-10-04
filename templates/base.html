@@ -8,7 +8,7 @@
 <title>{% block titulo %}Sigma · Movimientos IMSS{% endblock %}</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231c3f77'/%3E%3Ctext x='16' y='23' font-family='system-ui,sans-serif' font-size='19' font-weight='700' fill='white' text-anchor='middle'%3E%CE%A3%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
-<script>
+<script nonce="{{ csp_nonce }}">
   // Se aplica el tema guardado ANTES de pintar, para que no haya un
   // parpadeo blanco al cargar la página en modo oscuro.
   (function () {
@@ -57,7 +57,7 @@
 {% block contenido %}{% endblock %}
 
 <footer class="pie">
-  <p>Sigma — prueba de concepto (TRL 3) para la automatización de altas y bajas ante el IMSS.</p>
+  <p>Sigma — prototipo validado en ambiente relevante (TRL 5) para la automatización de altas y bajas ante el IMSS.</p>
   <p>La estructura del archivo IDSE debe confirmarse contra el layout oficial vigente antes de usarse en producción.</p>
 </footer>
 

@@ -20,7 +20,7 @@
   --borde-fuerte: #bcc7db;
   --texto: #131e35;
   --texto-suave: #566380;
-  --texto-tenue: #8492a9;
+  --texto-tenue: #5c6b84;   /* 5.4:1 sobre tarjeta y 4.6:1 sobre fondo (WCAG AA) */
 
   --acento: #1c3f77;
   --acento-fuerte: #142d56;

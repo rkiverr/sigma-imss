@@ -107,7 +107,7 @@
               <div class="campo col-2" data-campo="curp" {{- estado('curp') }}>
                 <label for="curp">CURP <span class="requerido" aria-hidden="true">*</span>
                   <span class="contador">0/18</span></label>
-                <input id="curp" name="curp" class="mono" maxlength="18" required
+                <input id="curp" name="curp" class="mono" data-longitud="18" required
                        autocomplete="off" spellcheck="false" placeholder="RIDG050515HNLVLL09"
                        value="{{ form.get('curp', '') }}">
                 {{ mensaje('curp') }}
@@ -116,7 +116,7 @@
               <div class="campo col-2" data-campo="nss" {{- estado('nss') }}>
                 <label for="nss">NSS <span class="requerido" aria-hidden="true">*</span>
                   <span class="contador">0/11</span></label>
-                <input id="nss" name="nss" class="mono" maxlength="11" required
+                <input id="nss" name="nss" class="mono" data-longitud="11" required
                        inputmode="numeric" autocomplete="off" placeholder="12345678901"
                        value="{{ form.get('nss', '') }}">
                 {{ mensaje('nss') }}
@@ -125,7 +125,7 @@
               <div class="campo col-2" data-campo="rfc" {{- estado('rfc') }}>
                 <label for="rfc">RFC <span class="requerido" aria-hidden="true">*</span>
                   <span class="contador">0/13</span></label>
-                <input id="rfc" name="rfc" class="mono" maxlength="13" required
+                <input id="rfc" name="rfc" class="mono" data-longitud="13" required
                        autocomplete="off" spellcheck="false" placeholder="RIDG050515AB1"
                        value="{{ form.get('rfc', '') }}">
                 {{ mensaje('rfc') }}
@@ -150,7 +150,7 @@
               <div class="campo col-2" data-campo="fecha_movimiento" {{- estado('fecha_movimiento') }}>
                 <label for="fecha_movimiento">Fecha del movimiento <span class="requerido" aria-hidden="true">*</span>
                   <span class="contador">0/8</span></label>
-                <input id="fecha_movimiento" name="fecha_movimiento" class="mono" maxlength="8"
+                <input id="fecha_movimiento" name="fecha_movimiento" class="mono" data-longitud="8"
                        inputmode="numeric" autocomplete="off" required placeholder="DDMMAAAA"
                        value="{{ form.get('fecha_movimiento', '') }}">
                 {{ mensaje('fecha_movimiento') }}
