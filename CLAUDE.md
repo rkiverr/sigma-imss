@@ -4,6 +4,14 @@ Guía para cualquier sesión futura de Claude Code sobre este repositorio.
 Documenta **qué es el proyecto, cómo está construido y por qué se tomó cada
 decisión**, para no volver a deducirlo desde cero.
 
+> **Segundo cerebro: `Obsidian/`.** Es el contexto completo del proyecto en
+> Markdown: entregables, normativa, módulos, reglas, decisiones (ADR), pruebas,
+> bugs y el historial de sesiones. Al empezar, lee `Obsidian/index.md` y
+> `Obsidian/wiki/inicio.md`. Las reglas para mantenerlo están en
+> `Obsidian/CLAUDE.md`: `raw/` no se edita y, si el wiki y el código no
+> coinciden, manda el código. Si cambias el código, actualiza las páginas que
+> indica su mapa de impacto y agrega una entrada al final de `Obsidian/log.md`.
+
 ---
 
 ## 1. Qué es
@@ -202,7 +210,11 @@ ambos la revisión previa; en las pruebas quedaban duplicados y errores 500.
   cada año**; la UMA rige desde el 1 de febrero). SDI < salario mínimo → error;
   SDI > 25 UMA → aviso, y `exportar_idse` lleva al lote el SDI topado.
 - Plazo: aviso si el movimiento está VENCIDO o POR_VENCER; si está en plazo, el
-  mensaje de éxito dice la fecha límite.
+  mensaje de éxito dice la fecha límite. Los descansos del art. 74 LFT se
+  calculan por año en `plazo.dias_de_descanso()`, y el arnés tiene una copia
+  (`_descansos()`): **si cambias uno, cambia el otro**. La transmisión del
+  Ejecutivo es el 1 de octubre de 2024, 2030… (`anio % 6 == 2`). Las jornadas
+  electorales (fr. IX) se agregan a mano en `DIAS_INHABILES_ADICIONALES`.
 - Dígito verificador de la CURP (RENAPO) como **aviso**. Ojo: con pesos
   módulo 10 no detecta todos los cambios de una letra (en las pruebas, 4 de 8).
 
@@ -238,6 +250,7 @@ Con `maxlength`, pegar "4316 89 1234 5" perdía dígitos.
 | (E5) Alta sobre alta vigente, doble baja, baja anterior al alta | Reglas de historial |
 | (E5) "La causa de baja es obligatorio" | Mensaje de catálogo sin concordancia de género |
 | (E5) Texto tenue 3.15:1 (no cumple WCAG AA) | `--texto-tenue: #5c6b84` (5.4:1) |
+| Feriado de transmisión del Ejecutivo el 1 de dic con `anio % 6 == 0` (regla anterior a la reforma de la LFT de 2024) | 1 de oct con `anio % 6 == 2`, en `plazo.py` y en el arnés |
 
 ---
 

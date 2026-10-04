@@ -10,3 +10,6 @@ lote_idse*.txt
 resultados_prueba_concepto.txt
 .env
 resultados_ambiente_relevante*
+# Configuración personal de Obsidian (se crea al abrir la bóveda)
+Obsidian/.obsidian/
+Obsidian/.trash/

@@ -79,6 +79,7 @@ con cualquiera de los dos motores.
 | `static/js/app.js` | Validación en vivo, máscaras de captura, tema y detalle |
 | `test_prueba_concepto.py` | Arnés de pruebas del "Desarrollo experimental" (Entrega 3) |
 | `prueba_ambiente_relevante.py` | Arnés de validación en ambiente relevante (Entrega 5) |
+| `Obsidian/` | Segundo cerebro del proyecto en Markdown (se abre como bóveda de Obsidian): entregables, normativa, decisiones, pruebas e historial |
 
 ## Validaciones aplicadas
 

@@ -1,0 +1,93 @@
+---
+tipo: historial
+tags: [log, bitacora]
+actualizado: 2026-10-04
+---
+
+# Log del segundo cerebro
+
+Bitácora cronológica: solo se agrega al final y lo anterior no se edita.
+Últimas entradas: `grep "^## \[" Obsidian/log.md | tail -5`.
+
+## [2026-10-04] sistema | Creación del segundo cerebro (`Obsidian/`)
+- Lo pidió Pedro: una carpeta `Obsidian/` en el repo con todo el contexto del proyecto, solo en `.md`, con el
+  patrón LLM Wiki (fuentes crudas inmutables, wiki del agente y esquema).
+- Creado `Obsidian/CLAUDE.md`: las tres capas, las convenciones, las operaciones, el mapa de impacto y las reglas.
+- Solo contenido del proyecto Sigma; nada de otras materias.
+- **Sin commit ni push** hasta que Pedro lo pida. Se subirá junto con los otros archivos actualizados.
+
+## [2026-10-04] ingesta | Fuentes crudas: entregables E1–E5 y rúbrica del E5
+- `raw/entregables/`: los 5 informes convertidos a Markdown desde los Word y PDF de `LAB AUTO/` (que solo se
+  leyeron), más `e5-rubrica-del-maestro.md`.
+- Se limpiaron los caracteres `​` que dejan los PDF.
+- Páginas creadas: [[entregables-trl]], [[entregable-1-trl1]] a [[entregable-5-trl5]], [[trayectoria-trl]],
+  [[empresa-y-problematica]], [[equipo-y-contexto-academico]], [[riesgos]] y [[hoja-de-ruta-trl6]].
+
+## [2026-10-04] ingesta | Normativa: LSS, RACERF, LFPDPPP, LFT y valores oficiales de 2026
+- `raw/normativa/`: artículos literales extraídos de los PDF oficiales, más `valores-oficiales-2026.md`
+  (salario mínimo de 315.04 y UMA de 117.31).
+- Páginas creadas: [[plazo-legal]], [[salario-sdi-y-limites]], [[historial-afiliatorio]], [[catalogos-idse]],
+  [[lote-idse]], [[seguridad-web]] y [[mantenimiento-anual]].
+- **Hallazgo:** la LFT vigente (art. 74, fr. VII, DOF 30-09-2024) pone el feriado de transmisión del Ejecutivo el
+  **1 de octubre**, pero `plazo.py` usa el 1 de diciembre, con `anio % 6 == 0`. Quedó como BUG-01 en
+  [[bugs-conocidos]]. No afecta a 2026 y se corrige solo si Pedro lo autoriza.
+
+## [2026-10-04] ingesta | Código de sigma-imss (`main` en `c29ad8f`)
+- Se leyeron `app.py`, `validaciones.py`, `database.py`, `exportar_idse.py`, `plazo.py`, `servidor.py`, los
+  dos arneses, `templates/`, `static/`, `README.md`, `instrucciones/` y `CLAUDE.md`.
+- Páginas creadas:
+  - Arquitectura (5): [[arquitectura-general]], [[flujo-de-captura]], [[rutas-http]], [[modelo-de-datos]] y
+    [[sigma-como-sistema-de-control]].
+  - Módulos (9), desde [[modulo-app]] hasta [[arnes-ambiente-relevante]].
+  - Reglas: [[reglas-de-validacion]] (las 30).
+  - Conceptos (10), desde [[glosario]] hasta [[niveles-trl]].
+- Decisiones: [[decisiones]] y los 16 ADR, de [[adr-001-cliente-servidor-con-sgbd-relacional]] a
+  [[adr-016-arnes-como-caja-negra]].
+- Operación: [[como-arrancar]], [[configuracion]], [[problemas-frecuentes]] y [[guia-para-modificar-el-codigo]].
+
+## [2026-10-04] ingesta | Historial de Git y resultados de los arneses
+- `raw/historial/git-log.md`: ramas, grafo y los 16 commits, generados con un script en el scratchpad.
+- `raw/resultados/`:
+  - La salida del arnés del E3 con el código vigente (8/8).
+  - La salida del arnés del E5 antes (6/10 criterios).
+  - La salida del arnés del E5 después (10/10).
+- Páginas creadas: [[estrategia-de-pruebas]], [[resultados-de-pruebas]], [[bugs-corregidos]],
+  [[bugs-conocidos]], [[cronologia]] y [[preguntas-frecuentes]].
+
+## [2026-10-04] sesion | Sesiones de trabajo registradas
+- [[sesion-2026-09-10-rediseno-y-entregable-4]]: el rediseño (`4c79ce4`), el PR #1 y el Entregable 4.
+- [[sesion-2026-10-04-entregable-5]]: el arnés, los 15 ajustes, el Entregable 5, el merge `cffd375` a `main`, la
+  documentación al día y este wiki.
+- [[como-se-hizo-el-entregable-5]]: la receta completa para repetir el informe en el E6.
+
+## [2026-10-04] lint | Revisión inicial del wiki
+- 73 páginas en `wiki/` y 15 fuentes crudas. No hay nombres duplicados ni páginas huérfanas, y todas están en
+  [[index]].
+- Se omiten los "enlaces" que van dentro de bloques de código (ejemplos del esquema y matrices de daltonismo).
+- Se agregó al esquema la excepción de nombre para [[preguntas-frecuentes]], que es un hub sin fecha.
+
+## [2026-10-04] sistema | Punteros al segundo cerebro en el repo
+- `CLAUDE.md` del repo: un recuadro al inicio que manda a leer `Obsidian/index.md` y [[inicio]], y a seguir el
+  mapa de impacto de `Obsidian/CLAUDE.md`.
+- `README.md`: una fila de `Obsidian/` en la tabla "Estructura".
+- Ambos cambios son locales y van **sin commit**, igual que `Obsidian/`.
+
+## [2026-10-04] ingesta | Corrección del calendario: feriado de transmisión del Ejecutivo (`3afbc9a`)
+- Pedro autorizó corregir BUG-01. `plazo.py` y el arnés usan ahora el 1 de octubre con `anio % 6 == 2` (LFT, art.
+  74, fr. VII, reforma del 30-09-2024). El calendario de 2026 no cambia.
+- Verificación: arnés del E3 8/8; bloques B, C y G del E5 con 96.9 %, 0 duplicados y 0 hallazgos.
+- Páginas actualizadas: [[bugs-corregidos]], [[bugs-conocidos]] (ya sin bugs abiertos), [[modulo-plazo]],
+  [[plazo-legal]], [[mantenimiento-anual]], [[riesgos]], [[hoja-de-ruta-trl6]], [[inicio]], [[cronologia]] y
+  [[sesion-2026-10-04-entregable-5]].
+- `CLAUDE.md` del repo: nota del calendario en §3.13 y fila nueva en "Bugs que ya se corrigieron".
+
+## [2026-10-04] ingesta | Historial de Git extraído de nuevo
+- `raw/historial/git-log.md` se regeneró completo: 17 commits, hasta `3afbc9a`. No incluye el commit que agrega
+  `Obsidian/`, porque se extrae antes de hacerlo.
+- Desde ahora el volcado **omite los correos de los autores**, porque el repo es público y basta con los nombres.
+
+## [2026-10-04] sistema | Publicación del segundo cerebro en GitHub
+- Pedro: "haz todo eso y súbelo". Un commit agrega `Obsidian/`, los punteros en `CLAUDE.md` y `README.md`, y en
+  `.gitignore` las carpetas `Obsidian/.obsidian/` y `Obsidian/.trash/` (configuración personal de Obsidian).
+- Se empujó `main` a `github.com/rkiverr/sigma-imss`. El repo es **público**: el texto de los entregables
+  (`raw/entregables/`) queda visible, con los nombres del equipo y los datos de la empresa.
