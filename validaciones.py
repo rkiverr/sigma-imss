@@ -9,12 +9,16 @@ afiliatorio:
   * Fecha de nacimiento embebida en la CURP realmente existente.
   * Coherencia entre CURP y RFC (mismas iniciales y misma fecha).
   * Reglas por tipo de movimiento (SDI obligatorio en altas, causa en bajas).
+  * Límites legales del salario base de cotización (art. 28 LSS).
+  * Plazo de cinco días hábiles para presentar el movimiento (art. 15 LSS).
 
 La función principal devuelve los errores indexados por campo, para que la
 interfaz pueda señalar exactamente el campo que hay que corregir.
 """
 import re
 from datetime import datetime, date
+
+import plazo
 
 # CURP: 4 letras + 6 dígitos (fecha nacimiento) + sexo (H/M) + 5 letras
 #       (entidad y consonantes) + 1 alfanumérico + 1 dígito verificador
@@ -65,13 +69,68 @@ CAUSAS_BAJA = {
     "A": "A — Pensión",
 }
 
-# Límites operativos del SDI (el tope legal son 25 UMA diarias).
-SDI_MINIMO = 1.0
+# Límites del salario base de cotización (art. 28 LSS): el inferior es el
+# salario mínimo general del área geográfica (Nuevo León está en la zona
+# general) y el superior 25 veces la UMA. Ambos cambian cada año: el salario
+# mínimo el 1 de enero (CONASAMI) y la UMA el 1 de febrero (INEGI, DOF).
+SALARIO_MINIMO_GENERAL = {2025: 278.80, 2026: 315.04}
+UMA_DIARIA = {2025: 113.14, 2026: 117.31}
+VECES_UMA_TOPE = 25
+
+# Arriba de este monto el dato casi seguro trae un error de captura (un punto
+# decimal omitido, por ejemplo), aunque ya se cotice con el tope.
 SDI_MAXIMO = 10000.0
+
+# Nombres: letras (con acentos y ñ), espacios, punto, guion y apóstrofo.
+NOMBRE_REGEX = re.compile(r"^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ][A-Za-zÁÉÍÓÚÜÑáéíóúüñ .'\-]*$")
+
+ALFABETO_CURP = "0123456789ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"
 
 # Ventana razonable para una fecha de movimiento, en días.
 DIAS_ANTIGUEDAD_MAXIMA = 365 * 5
 DIAS_FUTURO_MAXIMO = 365
+
+
+# --------------------------------------------------------------------------
+# Normalización: la misma para el formulario y para la validación en vivo
+# --------------------------------------------------------------------------
+def normalizar_datos(datos):
+    """
+    Limpia lo capturado antes de validar. La usan POST /capturar y
+    /api/validar, para que la validación en vivo y la del servidor reciban
+    exactamente el mismo texto. Quita los espacios y guiones con los que se
+    suelen pegar la CURP, el RFC y el NSS, y deja la fecha solo con dígitos.
+    """
+    limpio = {campo: str(valor if valor is not None else "").strip()
+              for campo, valor in datos.items()}
+    if "nombre_completo" in limpio:
+        limpio["nombre_completo"] = re.sub(r"\s+", " ", limpio["nombre_completo"])
+    for campo in ("curp", "rfc"):
+        if campo in limpio:
+            limpio[campo] = re.sub(r"[\s\-.]", "", limpio[campo]).upper()
+    for campo in ("nss", "fecha_movimiento"):
+        if campo in limpio:
+            limpio[campo] = re.sub(r"\D", "", limpio[campo])
+    for campo in ("causa_baja", "tipo_trabajador", "tipo_salario", "tipo_jornada"):
+        if campo in limpio:
+            limpio[campo] = limpio[campo].upper()
+    return limpio
+
+
+def limites_sbc(fecha_ddmmaaaa=None):
+    """
+    (mínimo, tope) del salario base de cotización vigentes en la fecha del
+    movimiento. La UMA nueva rige desde el 1 de febrero; en enero aplica la
+    del año anterior. Si el año no está en las tablas se usa el más reciente.
+    """
+    try:
+        fecha = datetime.strptime(str(fecha_ddmmaaaa), "%d%m%Y").date()
+    except ValueError:
+        fecha = date.today()
+    anio_sm = min(max(fecha.year, min(SALARIO_MINIMO_GENERAL)), max(SALARIO_MINIMO_GENERAL))
+    anio_uma = fecha.year if fecha.month >= 2 else fecha.year - 1
+    anio_uma = min(max(anio_uma, min(UMA_DIARIA)), max(UMA_DIARIA))
+    return SALARIO_MINIMO_GENERAL[anio_sm], round(UMA_DIARIA[anio_uma] * VECES_UMA_TOPE, 2)
 
 
 # --------------------------------------------------------------------------
@@ -103,6 +162,30 @@ def validar_curp(valor):
                        "sexo H o M, 5 letras, 1 alfanumérico y 1 dígito verificador.")
     if _fecha_desde_aammdd(valor[4:10]) is None:
         return False, "La fecha de nacimiento contenida en la CURP no existe en el calendario."
+    return True, None
+
+
+def _digito_verificador_curp(curp):
+    """Dígito verificador de la CURP (posición 18), según el algoritmo de RENAPO."""
+    suma = sum(ALFABETO_CURP.index(c) * (18 - i) for i, c in enumerate(curp[:17]))
+    return (10 - suma % 10) % 10
+
+
+def verificar_digito_curp(valor):
+    """
+    Detecta una letra o un número cambiado que conserva el formato de la CURP
+    (por ejemplo, una consonante mal tecleada). Igual que el dígito del NSS, se
+    reporta como AVISO: el IMSS valida la CURP contra RENAPO y quien captura
+    debe confirmarla contra la constancia del trabajador.
+    """
+    valor = (valor or "").strip().upper()
+    if not CURP_REGEX.match(valor):
+        return True, None
+    esperado = _digito_verificador_curp(valor)
+    if int(valor[17]) != esperado:
+        return False, (f"El dígito verificador de la CURP no coincide (se esperaba {esperado}): "
+                       "es probable que una letra o un número esté mal tecleado. "
+                       "Confírmala contra la constancia de CURP del trabajador.")
     return True, None
 
 
@@ -194,21 +277,34 @@ def validar_tipo_movimiento(valor):
     return True, None
 
 
-def validar_sdi(valor, obligatorio):
+def validar_sdi(valor, obligatorio, fecha=None):
+    """
+    Devuelve (ok, mensaje, aviso). El SDI menor al salario mínimo es error,
+    porque el art. 28 de la LSS no permite cotizar por debajo; el mayor al
+    tope de 25 UMA es aviso, porque el salario puede ser real pero ante el IMSS
+    se cotiza con el tope (art. 45 del RACERF).
+    """
     valor = (valor or "").strip()
     if not valor:
         if obligatorio:
-            return False, "El salario diario integrado es obligatorio en un alta."
-        return True, None
+            return False, "El salario diario integrado es obligatorio en un alta.", None
+        return True, None, None
     try:
         monto = float(valor.replace(",", ""))
     except ValueError:
-        return False, "El salario diario integrado debe ser un número (por ejemplo 450.50)."
-    if monto < SDI_MINIMO:
-        return False, f"El salario diario integrado debe ser mayor o igual a {SDI_MINIMO:.2f}."
+        return False, "El salario diario integrado debe ser un número (por ejemplo 450.50).", None
+    minimo, tope = limites_sbc(fecha)
+    if monto < minimo:
+        return False, (f"El salario diario integrado ({monto:,.2f}) es menor al salario mínimo "
+                       f"general ({minimo:,.2f}); la LSS no permite cotizar por debajo de él. "
+                       "Revisa si se corrió el punto decimal."), None
     if monto > SDI_MAXIMO:
-        return False, f"El salario diario integrado excede el tope permitido de {SDI_MAXIMO:,.2f}."
-    return True, None
+        return False, (f"El salario diario integrado ({monto:,.2f}) parece un error de captura: "
+                       "revisa el punto decimal."), None
+    if monto > tope:
+        return True, None, (f"El salario diario integrado rebasa el tope de 25 UMA ({tope:,.2f}); "
+                            "ante el IMSS se cotizará con el tope (art. 28 LSS).")
+    return True, None, None
 
 
 def validar_coherencia_curp_rfc(curp, rfc):
@@ -232,11 +328,12 @@ def validar_catalogo(valor, catalogo, etiqueta, obligatorio):
     valor = (valor or "").strip().upper()
     if not valor:
         if obligatorio:
-            return False, f"{etiqueta} es obligatorio para este tipo de movimiento."
+            return False, (f"Falta capturar {etiqueta[0].lower() + etiqueta[1:]}: es un dato "
+                           "obligatorio para este tipo de movimiento.")
         return True, None
     if valor not in catalogo:
         opciones = ", ".join(sorted(catalogo))
-        return False, f"{etiqueta} inválido. Valores permitidos: {opciones}."
+        return False, f"{etiqueta} no está en el catálogo del IDSE. Valores permitidos: {opciones}."
     return True, None
 
 
@@ -256,10 +353,15 @@ def validar_campos(datos):
     es_alta = tipo == TIPO_ALTA
     es_baja = tipo == TIPO_BAJA
 
-    if not (datos.get("nombre_completo") or "").strip():
+    nombre = (datos.get("nombre_completo") or "").strip()
+    if not nombre:
         errores["nombre_completo"] = "El nombre completo del trabajador es obligatorio."
-    elif len((datos.get("nombre_completo") or "").strip()) < 5:
+    elif len(nombre) < 5:
         errores["nombre_completo"] = "El nombre completo parece incompleto (mínimo 5 caracteres)."
+    elif not NOMBRE_REGEX.match(nombre):
+        errores["nombre_completo"] = ("El nombre solo admite letras, espacios, punto, guion y "
+                                      "apóstrofo: revisa si se tecleó un número o un símbolo "
+                                      "(por ejemplo, un cero en lugar de la letra O).")
 
     for campo, validador in (("curp", validar_curp), ("nss", validar_nss),
                              ("rfc", validar_rfc), ("fecha_movimiento", validar_fecha),
@@ -273,9 +375,12 @@ def validar_campos(datos):
         if not ok:
             errores["rfc"] = mensaje
 
-    ok, mensaje = validar_sdi(datos.get("sdi"), obligatorio=es_alta)
+    ok, mensaje, aviso_sdi = validar_sdi(datos.get("sdi"), obligatorio=es_alta,
+                                         fecha=datos.get("fecha_movimiento"))
     if not ok:
         errores["sdi"] = mensaje
+    elif aviso_sdi:
+        avisos["sdi"] = aviso_sdi
 
     ok, mensaje = validar_catalogo(datos.get("tipo_trabajador"), TIPOS_TRABAJADOR,
                                    "El tipo de trabajador", obligatorio=es_alta)
@@ -300,6 +405,11 @@ def validar_campos(datos):
         errores["causa_baja"] = "Un alta (08) no debe llevar causa de baja."
 
     # Avisos: no bloquean, solo advierten al capturista.
+    if "curp" not in errores:
+        ok, mensaje = verificar_digito_curp(datos.get("curp"))
+        if not ok:
+            avisos["curp"] = mensaje
+
     if "nss" not in errores:
         ok, mensaje = verificar_digito_nss(datos.get("nss"))
         if not ok:
@@ -309,8 +419,28 @@ def validar_campos(datos):
         ok, mensaje = verificar_rango_fecha(datos.get("fecha_movimiento"))
         if not ok:
             avisos["fecha_movimiento"] = mensaje
+        else:
+            mensaje = verificar_plazo(datos.get("fecha_movimiento"))
+            if mensaje:
+                avisos["fecha_movimiento"] = mensaje
 
     return errores, avisos
+
+
+def verificar_plazo(fecha_movimiento, hoy=None):
+    """
+    Aviso cuando el movimiento ya rebasó, o está por rebasar, el plazo de
+    cinco días hábiles del art. 15, fr. I, de la LSS. No bloquea: un aviso
+    extemporáneo se tiene que presentar de todos modos, y cuanto antes.
+    """
+    resultado = plazo.evaluar(fecha_movimiento, hoy)
+    limite = resultado["fecha_limite"].strftime("%d/%m/%Y")
+    if resultado["estado"] == "VENCIDO":
+        return (f"El plazo legal de 5 días hábiles venció el {limite} (art. 15, fr. I, LSS): "
+                "preséntalo en IDSE cuanto antes; el aviso extemporáneo puede multarse.")
+    if resultado["estado"] == "POR_VENCER":
+        return f"El plazo legal de 5 días hábiles vence el {limite}: preséntalo en IDSE hoy."
+    return None
 
 
 # Orden en el que se listan los errores, para que el resumen siga el orden
