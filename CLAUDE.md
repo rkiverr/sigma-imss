@@ -267,6 +267,22 @@ exportación, descarga, 404, inyección SQL y XSS. Sin errores en el log.
 
 Arnés de pruebas: **8/8 casos, los tres bloques CUMPLE.**
 
+Arnés de ambiente relevante (04/10/2026, waitress, misma máquina; "antes" =
+código del commit 4c79ce4 con el servidor de desarrollo):
+
+| Medida | Antes (E4) | Después (E5) |
+|---|---|---|
+| Errores de captura detectados (128 inyectados) | 50.0 % | 96.9 % |
+| Datos válidos rechazados por formato (24) | 24 | 0 |
+| Falsos positivos en 60 capturas limpias | 0 | 0 |
+| Duplicados / errores 500 en carreras (60 pares) | 5 / 7 | 0 / 0 |
+| Hallazgos de seguridad en red (8 pruebas) | 5 | 0 |
+| p95 de captura con 20 usuarios sin pausa | 497.6 ms | 120.0 ms |
+| Capturas confirmadas perdidas tras caída abrupta | 0 | 0 |
+
+Los 4 no detectados son CURP con una consonante cambiada que el dígito de
+RENAPO no distingue (límite del algoritmo, no del código).
+
 ⚠️ Si cambias las reglas de `validaciones.py`, **vuelve a correr el arnés**:
 los casos C1 y C2 tienen que seguir saliendo válidos y C3–C8 rechazados. Al
 introducir los catálogos IDSE hubo que actualizar C2 y C5, cuya causa de baja
