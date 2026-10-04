@@ -151,8 +151,8 @@ def _descansos(anio):
     dias = {date(anio, 1, 1), _enesimo_lunes(anio, 2, 1), _enesimo_lunes(anio, 3, 3),
             date(anio, 5, 1), date(anio, 9, 16), _enesimo_lunes(anio, 11, 3),
             date(anio, 12, 25)}
-    if anio % 6 == 0:
-        dias.add(date(anio, 12, 1))
+    if anio % 6 == 2:                    # 1 de octubre (LFT art. 74 fr. VII, reforma 2024)
+        dias.add(date(anio, 10, 1))
     return dias
 
 

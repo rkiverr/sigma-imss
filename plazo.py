@@ -19,8 +19,9 @@ from datetime import date, datetime, timedelta
 UMBRAL_DIAS_HABILES = 5
 
 # Días inhábiles que el IMSS publique cada año en el DOF y que no estén en el
-# artículo 74 de la LFT (por ejemplo, jueves y viernes santos). Se agregan aquí
-# como objetos date.
+# artículo 74 de la LFT (por ejemplo, jueves y viernes santos), y los días de
+# jornada electoral de la fr. IX del art. 74, que fijan las leyes electorales.
+# Se agregan aquí como objetos date.
 DIAS_INHABILES_ADICIONALES = set()
 
 
@@ -40,8 +41,10 @@ def dias_de_descanso(anio):
         _enesimo_lunes(anio, 11, 3),     # Revolución Mexicana
         date(anio, 12, 25),              # Navidad
     }
-    if anio % 6 == 0:
-        dias.add(date(anio, 12, 1))      # Transmisión del Poder Ejecutivo Federal
+    # Fr. VII, reformada en el DOF del 30-09-2024: el 1 de octubre de cada seis
+    # años, cuando hay transmisión del Poder Ejecutivo Federal (2024, 2030…).
+    if anio % 6 == 2:
+        dias.add(date(anio, 10, 1))      # Transmisión del Poder Ejecutivo Federal
     return dias
 
 
