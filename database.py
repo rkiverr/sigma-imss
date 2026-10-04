@@ -54,6 +54,13 @@ class ErrorBaseDeDatos(RuntimeError):
     """Error de conexión o de configuración de la base de datos."""
 
 
+# Violaciones de restricciones (UNIQUE, CHECK) en cualquiera de los dos motores.
+# Ocurren cuando dos capturistas guardan lo mismo al mismo tiempo: ambos pasan
+# las verificaciones previas y la base es la que decide quién llegó primero.
+ERRORES_DE_INTEGRIDAD = (sqlite3.IntegrityError,) + (
+    (psycopg2.IntegrityError,) if psycopg2 is not None else ())
+
+
 # --------------------------------------------------------------------------
 # Adaptadores de SQLite para que acepte el mismo SQL que PostgreSQL
 # --------------------------------------------------------------------------
@@ -285,6 +292,14 @@ _DDL_SQLITE = [
     "CREATE INDEX IF NOT EXISTS idx_bitacora_id ON bitacora(id)",
 ]
 
+# Un mismo movimiento (trabajador, tipo y fecha) solo puede existir una vez.
+# La aplicación ya lo revisa antes de insertar, pero dos capturas simultáneas
+# pueden pasar esa revisión a la vez; la restricción en la base lo impide.
+# Va aparte del DDL porque en una base con duplicados previos no se puede crear.
+_INDICE_MOVIMIENTO_UNICO = (
+    "CREATE UNIQUE INDEX IF NOT EXISTS uq_movimiento_trabajador_tipo_fecha "
+    "ON movimiento(trabajador_id, tipo_movimiento, fecha_movimiento)")
+
 PATRON_SEMILLA = ("A1234567890", "Desarrollos Eléctricos y Soluciones Avanzadas S.A de C.V.")
 USUARIOS_SEMILLA = [("admin.rrhh", "administrador"), ("captura.obra1", "captura")]
 
@@ -317,6 +332,15 @@ def init_db():
         if cur.fetchone()["n"] == 0:
             cur.executemany("INSERT INTO usuario (nombre, rol) VALUES (%s, %s)", USUARIOS_SEMILLA)
         cur.close()
+
+    try:
+        with conexion(commit=True) as conn:
+            cur = conn.cursor()
+            cur.execute(_INDICE_MOVIMIENTO_UNICO)
+            cur.close()
+    except ERRORES_DE_INTEGRIDAD:
+        print("[sigma] Aviso: la base ya contiene movimientos duplicados, así que no se creó "
+              "la restricción de unicidad. Depura los duplicados y reinicia el sistema.")
 
 
 # --------------------------------------------------------------------------
@@ -409,6 +433,35 @@ def movimiento_duplicado(conn, curp, tipo_movimiento, fecha_movimiento):
     fila = cur.fetchone()
     cur.close()
     return fila["id"] if fila else None
+
+
+# Fecha DDMMAAAA reordenada como AAAAMMDD para poder ordenar por ella en SQL.
+_FECHA_ORDENABLE = ("substr(m.fecha_movimiento, 5, 4) || substr(m.fecha_movimiento, 3, 2) "
+                    "|| substr(m.fecha_movimiento, 1, 2)")
+
+
+def estado_afiliatorio(conn, curp):
+    """
+    Estado del trabajador frente al patrón según su último movimiento:
+      ("SIN_REGISTRO", None)  nunca se ha capturado un movimiento suyo
+      ("VIGENTE", fila)       su último movimiento es un alta
+      ("NO_VIGENTE", fila)    su último movimiento es una baja
+    """
+    cur = conn.cursor()
+    cur.execute(
+        f"""SELECT m.id, m.tipo_movimiento, m.fecha_movimiento
+            FROM movimiento m JOIN trabajador t ON t.id = m.trabajador_id
+            WHERE t.curp = %s AND m.estado <> 'Rechazado'
+            ORDER BY {_FECHA_ORDENABLE} DESC, m.id DESC
+            LIMIT 1""",
+        (curp,),
+    )
+    fila = cur.fetchone()
+    cur.close()
+    if fila is None:
+        return "SIN_REGISTRO", None
+    fila = dict(fila)
+    return ("VIGENTE" if fila["tipo_movimiento"] == "08" else "NO_VIGENTE"), fila
 
 
 def estadisticas(conn):

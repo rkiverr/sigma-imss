@@ -8,9 +8,11 @@ decisión**, para no volver a deducirlo desde cero.
 
 ## 1. Qué es
 
-**Sigma** es una prueba de concepto (TRL 3) de un sistema para automatizar las
-altas y bajas de trabajadores ante el IMSS. Es un trabajo académico (Entregas
-1, 2 y 3 de un informe), no un producto en producción.
+**Sigma** es un sistema para automatizar las altas y bajas de trabajadores ante
+el IMSS. Es un trabajo académico (Entregas 1 a 5 de un informe por niveles TRL),
+no un producto en producción. Nació como prueba de concepto (TRL 3), se integró
+como prototipo (TRL 4) y en la Entrega 5 se validó en ambiente relevante
+(TRL 5): rama `trl5/ambiente-relevante`.
 
 El flujo completo que implementa:
 
@@ -32,7 +34,9 @@ Aplicación Flask cliente-servidor, sin dependencias de frontend.
 
 | Archivo | Responsabilidad |
 |---|---|
-| `app.py` | Rutas HTTP, flujo, filtros de plantilla, manejo de errores |
+| `app.py` | Rutas HTTP, flujo, reglas de historial, seguridad por petición, errores |
+| `servidor.py` | Arranque en producción con waitress (el que se usa en la oficina) |
+| `plazo.py` | Plazo legal de 5 días hábiles (art. 15 LSS; descansos art. 74 LFT) |
 | `validaciones.py` | Validación algorítmica y reglas de negocio |
 | `database.py` | Persistencia relacional y selección de motor |
 | `exportar_idse.py` | Traducción al formato de lote IDSE |
@@ -41,7 +45,8 @@ Aplicación Flask cliente-servidor, sin dependencias de frontend.
 | `templates/error.html` | Página de error 404 / 500 / 503 |
 | `static/css/estilos.css` | Sistema de diseño completo, temas claro y oscuro |
 | `static/js/app.js` | Validación en vivo, máscaras, tema, diálogo de detalle |
-| `test_prueba_concepto.py` | Arnés de pruebas del "Desarrollo experimental" |
+| `test_prueba_concepto.py` | Arnés de pruebas del "Desarrollo experimental" (E3) |
+| `prueba_ambiente_relevante.py` | Arnés de validación en ambiente relevante (E5) |
 
 Modelo de datos (5 tablas normalizadas):
 `patron`, `usuario`, `trabajador`, `movimiento`, `bitacora`.
@@ -148,6 +153,61 @@ Colores de las métricas: navy (total), ámbar (pendientes), teal (exportados),
 azul cielo (altas), gris azulado (bajas). Cada tarjeta lleva franja lateral de
 color y un velo del mismo tono al 4.5%.
 
+### 3.9 Producción con waitress, depuración solo a petición (Entrega 5)
+
+`python servidor.py` sirve la app con waitress en `0.0.0.0:5050` y cabecera
+`Server: Sigma`. `python app.py` es solo para programar: escucha en 127.0.0.1 y
+`debug` se activa únicamente con `SIGMA_DEBUG=1`. **Por qué:** con `debug=True`
+en `0.0.0.0`, como estaba, la consola de Werkzeug (`/console`) y el detalle
+técnico de cada error 500 quedaban visibles para toda la red de la oficina.
+
+### 3.10 Seguridad por petición
+
+- `before_request`: un POST cuyo `Origin` (o `Referer`) no sea el propio host
+  recibe 403 → frena CSRF desde otra página. Sin ninguna de las dos cabeceras
+  se deja pasar (clientes que no son navegador).
+- `after_request`: CSP con **nonce** por petición (el único script en línea es
+  el del tema, en `base.html`, y lleva `nonce="{{ csp_nonce }}"`; si agregas
+  otro script en línea, necesita el nonce o el navegador lo bloquea),
+  `X-Content-Type-Options`, `X-Frame-Options: DENY`, `Referrer-Policy`.
+- `/api/movimiento/<id>` responde 404 si el id rebasa `FOLIO_MAXIMO` (antes un
+  id gigante tumbaba la consulta con 500).
+
+### 3.11 Reglas de historial afiliatorio
+
+`app._validar_historial()` usa `database.estado_afiliatorio()` (último
+movimiento por fecha real): alta sobre alta vigente → error; baja de quien ya
+fue dado de baja → error; baja o reingreso con fecha anterior al movimiento
+previo → error; baja sin historial en Sigma → **aviso** (personal anterior a la
+puesta en marcha). Es el problema del E1: el Excel no distinguía cambio de obra
+de salida de la empresa.
+
+### 3.12 Unicidad del movimiento en la base
+
+Índice `UNIQUE(trabajador_id, tipo_movimiento, fecha_movimiento)`, creado
+aparte en `init_db()` (si la base ya trae duplicados, solo avisa). En
+`/capturar`, `ERRORES_DE_INTEGRIDAD` (sqlite3 o psycopg2) → rollback + 422.
+**Por qué:** dos capturistas que guardan el mismo movimiento a la vez pasan
+ambos la revisión previa; en las pruebas quedaban duplicados y errores 500.
+
+### 3.13 Límites legales del SDI y plazo
+
+- `SALARIO_MINIMO_GENERAL` y `UMA_DIARIA` en `validaciones.py` (**actualizar
+  cada año**; la UMA rige desde el 1 de febrero). SDI < salario mínimo → error;
+  SDI > 25 UMA → aviso, y `exportar_idse` lleva al lote el SDI topado.
+- Plazo: aviso si el movimiento está VENCIDO o POR_VENCER; si está en plazo, el
+  mensaje de éxito dice la fecha límite.
+- Dígito verificador de la CURP (RENAPO) como **aviso**. Ojo: con pesos
+  módulo 10 no detecta todos los cambios de una letra (en las pruebas, 4 de 8).
+
+### 3.14 Normalización única y longitudes sin maxlength
+
+`validaciones.normalizar_datos()` la usan `/capturar` **y** `/api/validar`
+(antes la API no quitaba espacios del NSS ni diagonales de la fecha y decía
+"error" donde el servidor aceptaba). Los campos CURP/NSS/RFC/fecha usan
+`data-longitud` en lugar de `maxlength`: `app.js` limpia y **después** recorta.
+Con `maxlength`, pegar "4316 89 1234 5" perdía dígitos.
+
 ---
 
 ## 4. Bugs que ya se corrigieron — no reintroducir
@@ -162,17 +222,36 @@ color y un velo del mismo tono al 4.5%.
 | Formulario rechazado perdía lo capturado | Se re-renderiza con los valores |
 | El interruptor mostraba "Claro" y "Oscuro" a la vez | Faltaba ocultar `.etiqueta-oscuro` por defecto |
 | La insignia del patrón desbordaba en móvil | `max-width` + `overflow: hidden`, oculta bajo 720px |
+| (E5) Consola de depuración expuesta a la LAN | `servidor.py` + debug solo con `SIGMA_DEBUG=1` |
+| (E5) Captura simultánea: duplicados y 500 por `IntegrityError` | Índice único + rollback y 422 |
+| (E5) Captura aceptada desde otro sitio (CSRF) | Verificación de `Origin`/`Referer` → 403 |
+| (E5) Id gigante en `/api/movimiento` → 500 con detalle técnico | `FOLIO_MAXIMO` → 404 |
+| (E5) Pegar CURP/NSS con espacios recortaba el dato | `data-longitud` + máscara que recorta al final |
+| (E5) `/api/validar` normalizaba distinto que el servidor | `normalizar_datos()` compartida |
+| (E5) SDI 45.05 (punto corrido) se aceptaba | Mínimo = salario mínimo general |
+| (E5) Alta sobre alta vigente, doble baja, baja anterior al alta | Reglas de historial |
+| (E5) "La causa de baja es obligatorio" | Mensaje de catálogo sin concordancia de género |
+| (E5) Texto tenue 3.15:1 (no cumple WCAG AA) | `--texto-tenue: #5c6b84` (5.4:1) |
 
 ---
 
 ## 5. Comandos
 
 ```bash
-python app.py                    # servidor en http://localhost:5050
-python test_prueba_concepto.py   # arnés de pruebas → resultados_prueba_concepto.txt
+python servidor.py                  # producción (waitress) en http://0.0.0.0:5050
+python app.py                       # desarrollo, solo 127.0.0.1 (SIGMA_DEBUG=1 para depurar)
+python test_prueba_concepto.py      # arnés del E3 → resultados_prueba_concepto.txt
+python prueba_ambiente_relevante.py # arnés del E5 (~3 min) → resultados_ambiente_relevante.*
+python prueba_ambiente_relevante.py --codigo <carpeta> --servidor desarrollo --etiqueta antes
 ```
 
-Variables de entorno: `DATABASE_URL`, `SIGMA_DB`, `SQLITE_PATH`, `SECRET_KEY`.
+Variables de entorno: `DATABASE_URL`, `SIGMA_DB`, `SQLITE_PATH`, `SECRET_KEY`,
+`SIGMA_HOST`, `SIGMA_PUERTO`, `SIGMA_HILOS`, `SIGMA_DEBUG`.
+
+El arnés del E5 copia el sistema a un directorio temporal por bloque (no toca
+`sigma_imss.db` ni `exportaciones/`). Emula al navegador: aplica `maxlength` /
+`data-longitud` leídos de la página y las máscaras de `app.js`; si cambias las
+máscaras, actualiza `emular_navegador()`.
 
 El arnés usa su propia base (`sigma_pruebas.db`), que borra al iniciar, para que
 los resultados sean reproducibles y no se mezclen con lo capturado desde la web.
@@ -188,6 +267,22 @@ exportación, descarga, 404, inyección SQL y XSS. Sin errores en el log.
 
 Arnés de pruebas: **8/8 casos, los tres bloques CUMPLE.**
 
+Arnés de ambiente relevante (04/10/2026, waitress, misma máquina; "antes" =
+código del commit 4c79ce4 con el servidor de desarrollo):
+
+| Medida | Antes (E4) | Después (E5) |
+|---|---|---|
+| Errores de captura detectados (128 inyectados) | 50.0 % | 96.9 % |
+| Datos válidos rechazados por formato (24) | 24 | 0 |
+| Falsos positivos en 60 capturas limpias | 0 | 0 |
+| Duplicados / errores 500 en carreras (60 pares) | 5 / 7 | 0 / 0 |
+| Hallazgos de seguridad en red (8 pruebas) | 5 | 0 |
+| p95 de captura con 20 usuarios sin pausa | 497.6 ms | 120.0 ms |
+| Capturas confirmadas perdidas tras caída abrupta | 0 | 0 |
+
+Los 4 no detectados son CURP con una consonante cambiada que el dígito de
+RENAPO no distingue (límite del algoritmo, no del código).
+
 ⚠️ Si cambias las reglas de `validaciones.py`, **vuelve a correr el arnés**:
 los casos C1 y C2 tienen que seguir saliendo válidos y C3–C8 rechazados. Al
 introducir los catálogos IDSE hubo que actualizar C2 y C5, cuya causa de baja
@@ -198,10 +293,10 @@ era texto libre.
 ## 7. Límites conocidos (no son bugs)
 
 - **No hay autenticación real.** El usuario se elige de un desplegable, así que
-  la bitácora documenta la autoría pero no la demuestra. Aceptable para TRL 3;
-  para producción haría falta login.
+  la bitácora documenta la autoría pero no la demuestra. Es el pendiente #1 para
+  TRL 6, junto con HTTPS en la red local.
 - **El layout del archivo IDSE es una representación**, con campos separados por
   `|`. Debe confirmarse contra el layout oficial vigente del IMSS antes de
   usarse de verdad. Está advertido en el código, el README y el pie de página.
-- **El servidor de desarrollo de Flask no es apto para producción.**
+- **Sin respaldo automático de la base.** Un archivo SQLite en una sola PC.
 - **Un solo patrón.** El modelo soporta varios, pero la interfaz usa el primero.

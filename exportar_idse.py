@@ -11,6 +11,8 @@ datos), suficiente para demostrar la prueba de concepto.
 import os
 from datetime import datetime
 
+from validaciones import limites_sbc
+
 CAMPOS_EXPORTACION = [
     "registro_patronal", "tipo_movimiento", "curp", "nss", "rfc",
     "fecha_movimiento", "tipo_trabajador", "tipo_salario", "tipo_jornada",
@@ -33,9 +35,27 @@ def _limpiar(valor):
     return texto.strip()
 
 
+def _sdi_para_cotizar(registro):
+    """
+    El salario se comunica al IMSS sin exceder el tope de 25 UMA (art. 28 LSS y
+    art. 45 del RACERF). En la base se conserva el SDI real capturado; al
+    lote se lleva el que efectivamente cotiza.
+    """
+    valor = str(registro.get("sdi") or "").replace(",", "").strip()
+    if not valor:
+        return ""
+    try:
+        monto = float(valor)
+    except ValueError:
+        return valor
+    _, tope = limites_sbc(registro.get("fecha_movimiento"))
+    return f"{min(monto, tope):.2f}"
+
+
 def generar_linea_idse(registro):
     """Convierte un movimiento en la línea de texto plano del lote."""
-    return SEPARADOR.join(_limpiar(registro.get(campo, "")) for campo in CAMPOS_EXPORTACION)
+    datos = dict(registro, sdi=_sdi_para_cotizar(registro))
+    return SEPARADOR.join(_limpiar(datos.get(campo, "")) for campo in CAMPOS_EXPORTACION)
 
 
 def generar_lote_idse(registros):

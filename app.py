@@ -1,5 +1,5 @@
 """
-Prototipo de prueba de concepto — Entrega 3.
+Sistema Sigma — prototipo validado en ambiente relevante (Entrega 5, TRL 5).
 
 Interfaz cliente (aplicación web) + lógica de servidor (validación,
 persistencia y exportación) para el sistema de altas y bajas IMSS/IDSE.
@@ -8,24 +8,29 @@ Arquitectura cliente-servidor:
     templates/ + static/   capa de presentación
     app.py                 controlador HTTP y reglas de flujo
     validaciones.py        validación algorítmica
+    plazo.py               plazo legal de cinco días hábiles
     database.py            persistencia relacional (PostgreSQL o SQLite)
     exportar_idse.py       abstracción de datos hacia el formato IDSE
+    servidor.py            arranque en modo producción (waitress)
 """
 import os
 import secrets
 from datetime import datetime
+from urllib.parse import urlparse
 
-from flask import (Flask, flash, jsonify, redirect, render_template, request,
-                   send_file, url_for)
+from flask import (Flask, abort, flash, g, jsonify, redirect, render_template,
+                   request, send_file, url_for)
 
 import exportar_idse
-from database import (ErrorBaseDeDatos, conexion, conflicto_de_identidad,
-                      descripcion_backend, estadisticas, init_db,
+import plazo
+from database import (ERRORES_DE_INTEGRIDAD, ErrorBaseDeDatos, conexion,
+                      conflicto_de_identidad, descripcion_backend,
+                      estadisticas, estado_afiliatorio, init_db,
                       movimiento_duplicado, obtener_o_crear_trabajador,
                       obtener_patron_id, registrar_bitacora)
 from validaciones import (CAUSAS_BAJA, ORDEN_CAMPOS, TIPO_ALTA, TIPO_BAJA,
                           TIPOS_JORNADA, TIPOS_SALARIO, TIPOS_TRABAJADOR,
-                          validar_campos)
+                          normalizar_datos, validar_campos)
 
 app = Flask(__name__)
 # En producción debe fijarse con la variable de entorno; en desarrollo se
@@ -33,6 +38,10 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY") or secrets.token_hex(32)
 
 MOVIMIENTOS_POR_PAGINA = 25
+
+# Folio más grande que cabe en un INTEGER de PostgreSQL; uno mayor no puede
+# existir y, sin esta revisión, hacía fallar la consulta con error 500.
+FOLIO_MAXIMO = 2 ** 31 - 1
 
 ETIQUETAS_TIPO = {TIPO_ALTA: "Alta / Reingreso", TIPO_BAJA: "Baja"}
 
@@ -87,12 +96,52 @@ def filtro_etiqueta_tipo(valor):
 # --------------------------------------------------------------------------
 def _leer_formulario():
     """Extrae y normaliza los campos capturados en el formulario."""
-    datos = {campo: (request.form.get(campo) or "").strip() for campo in CAMPOS_FORMULARIO}
-    for campo in ("curp", "rfc", "causa_baja", "tipo_trabajador", "tipo_salario", "tipo_jornada"):
-        datos[campo] = datos[campo].upper()
-    datos["nss"] = "".join(caracter for caracter in datos["nss"] if caracter.isdigit())
-    datos["fecha_movimiento"] = "".join(c for c in datos["fecha_movimiento"] if c.isdigit())
-    return datos
+    return normalizar_datos({campo: request.form.get(campo) for campo in CAMPOS_FORMULARIO})
+
+
+def _legible(ddmmaaaa):
+    return f"{ddmmaaaa[0:2]}/{ddmmaaaa[2:4]}/{ddmmaaaa[4:8]}"
+
+
+def _validar_historial(conn, datos):
+    """
+    Reglas que dependen del historial afiliatorio del trabajador. Atienden el
+    problema descrito en la Entrega 1: el archivo de control no distinguía a un
+    trabajador que solo cambió de obra de uno que salió de la empresa, lo que
+    producía altas duplicadas y bajas de personas ya dadas de baja.
+    Devuelve (errores, avisos).
+    """
+    estado, ultimo = estado_afiliatorio(conn, datos["curp"])
+    fecha = datetime.strptime(datos["fecha_movimiento"], "%d%m%Y").date()
+    previa = (datetime.strptime(ultimo["fecha_movimiento"], "%d%m%Y").date()
+              if ultimo else None)
+
+    if datos["tipo_movimiento"] == TIPO_ALTA:
+        if estado == "VIGENTE":
+            return {"tipo_movimiento": (
+                f"El trabajador ya tiene un alta vigente desde el "
+                f"{_legible(ultimo['fecha_movimiento'])} (folio #{ultimo['id']}). Si solo cambió "
+                "de obra no necesita un alta nueva; si salió de la empresa, registra primero "
+                "la baja.")}, {}
+        if estado == "NO_VIGENTE" and fecha < previa:
+            return {"fecha_movimiento": (
+                f"El reingreso no puede ser anterior a la baja del "
+                f"{_legible(ultimo['fecha_movimiento'])} (folio #{ultimo['id']}).")}, {}
+        return {}, {}
+
+    if estado == "SIN_REGISTRO":
+        return {}, {"tipo_movimiento": (
+            "Sigma no tiene registrada un alta de este trabajador. Verifica que esté dado de "
+            "alta ante el IMSS antes de presentar la baja.")}
+    if estado == "NO_VIGENTE":
+        return {"tipo_movimiento": (
+            f"El trabajador ya fue dado de baja el {_legible(ultimo['fecha_movimiento'])} "
+            f"(folio #{ultimo['id']}); no tiene un alta vigente que cerrar.")}, {}
+    if fecha < previa:
+        return {"fecha_movimiento": (
+            f"La fecha de baja ({_legible(datos['fecha_movimiento'])}) es anterior a la del alta "
+            f"vigente ({_legible(ultimo['fecha_movimiento'])}).")}, {}
+    return {}, {}
 
 
 def _usuario_valido(conn, valor):
@@ -210,6 +259,44 @@ def _filtros_de_peticion():
 
 
 # --------------------------------------------------------------------------
+# Seguridad de cada petición
+# --------------------------------------------------------------------------
+@app.before_request
+def preparar_peticion():
+    # Nonce de un solo uso para el único script en línea (el del tema), de modo
+    # que la política de contenido pueda prohibir cualquier otro.
+    g.csp_nonce = secrets.token_urlsafe(16)
+
+    # Un formulario solo se acepta si lo envió una página de Sigma. Los
+    # navegadores ponen el sitio de origen en Origin (o en Referer); si otro
+    # sitio intenta enviar una captura a nombre del usuario (CSRF), no coincide.
+    if request.method == "POST":
+        origen = request.headers.get("Origin") or request.headers.get("Referer")
+        if origen and urlparse(origen).netloc != request.host:
+            abort(403)
+
+
+@app.context_processor
+def variables_de_plantilla():
+    return {"csp_nonce": getattr(g, "csp_nonce", "")}
+
+
+@app.after_request
+def cabeceras_de_seguridad(respuesta):
+    nonce = getattr(g, "csp_nonce", "")
+    respuesta.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        f"script-src 'self' 'nonce-{nonce}'; "
+        "style-src 'self' 'unsafe-inline'; "
+        "img-src 'self' data:; "
+        "form-action 'self'; frame-ancestors 'none'; base-uri 'self'")
+    respuesta.headers["X-Content-Type-Options"] = "nosniff"
+    respuesta.headers["X-Frame-Options"] = "DENY"
+    respuesta.headers["Referrer-Policy"] = "same-origin"
+    return respuesta
+
+
+# --------------------------------------------------------------------------
 # Vistas
 # --------------------------------------------------------------------------
 @app.route("/")
@@ -243,6 +330,24 @@ def capturar():
                     f"Este movimiento ya fue capturado (folio #{duplicado}): mismo trabajador, "
                     "mismo tipo y misma fecha.")
 
+        if not errores:
+            errores_historial, avisos_historial = _validar_historial(conn, datos)
+            errores.update(errores_historial)
+            avisos.update(avisos_historial)
+
+        movimiento_id = None
+        if not errores:
+            try:
+                movimiento_id = _guardar_movimiento(conn, datos, usuario_id)
+            except ERRORES_DE_INTEGRIDAD:
+                # Otro capturista guardó lo mismo un instante antes: ambos
+                # pasaron las revisiones previas y la base de datos decidió.
+                conn.rollback()
+                errores["movimiento"] = (
+                    "Otro usuario acaba de registrar este mismo movimiento (o al mismo "
+                    "trabajador con esta CURP o NSS). Revisa la tabla de movimientos antes de "
+                    "volver a capturarlo.")
+
         if errores:
             if usuario_id is not None:
                 registrar_bitacora(conn, usuario_id, None, "Intento de captura rechazado",
@@ -251,37 +356,43 @@ def capturar():
             contexto = _contexto(conn, filtros, form=datos, errores=errores, avisos=avisos)
             return render_template("index.html", **contexto), 422
 
-        patron_id = obtener_patron_id(conn)
-        trabajador_id = obtener_o_crear_trabajador(
-            conn, datos["nombre_completo"], datos["curp"], datos["nss"], datos["rfc"])
-
-        cur = conn.cursor()
-        cur.execute(
-            """INSERT INTO movimiento (trabajador_id, patron_id, tipo_movimiento, fecha_movimiento,
-                   tipo_trabajador, tipo_salario, tipo_jornada, sdi, causa_baja, estado,
-                   exportado, creado_en)
-               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 'Válido', FALSE, %s)
-               RETURNING id""",
-            (trabajador_id, patron_id, datos["tipo_movimiento"], datos["fecha_movimiento"],
-             datos["tipo_trabajador"], datos["tipo_salario"], datos["tipo_jornada"],
-             datos["sdi"], datos["causa_baja"],
-             datetime.now().isoformat(sep=" ", timespec="seconds")),
-        )
-        movimiento_id = cur.fetchone()["id"]
-        cur.close()
-
-        registrar_bitacora(
-            conn, usuario_id, movimiento_id, "Movimiento capturado",
-            f"{ETIQUETAS_TIPO.get(datos['tipo_movimiento'], datos['tipo_movimiento'])} "
-            f"de {datos['nombre_completo']} (CURP {datos['curp']})")
-
+    limite = plazo.fecha_limite(datos["fecha_movimiento"]).strftime("%d/%m/%Y")
     mensaje = f"Movimiento #{movimiento_id} validado y guardado correctamente."
     if avisos:
         mensaje += " Avisos: " + " ".join(avisos.values())
         flash(mensaje, "warning")
     else:
+        mensaje += f" Plazo legal: preséntalo en IDSE a más tardar el {limite}."
         flash(mensaje, "success")
     return redirect(url_for("index"))
+
+
+def _guardar_movimiento(conn, datos, usuario_id):
+    """Inserta trabajador (si es nuevo), movimiento y asiento de bitácora."""
+    patron_id = obtener_patron_id(conn)
+    trabajador_id = obtener_o_crear_trabajador(
+        conn, datos["nombre_completo"], datos["curp"], datos["nss"], datos["rfc"])
+
+    cur = conn.cursor()
+    cur.execute(
+        """INSERT INTO movimiento (trabajador_id, patron_id, tipo_movimiento, fecha_movimiento,
+               tipo_trabajador, tipo_salario, tipo_jornada, sdi, causa_baja, estado,
+               exportado, creado_en)
+           VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 'Válido', FALSE, %s)
+           RETURNING id""",
+        (trabajador_id, patron_id, datos["tipo_movimiento"], datos["fecha_movimiento"],
+         datos["tipo_trabajador"], datos["tipo_salario"], datos["tipo_jornada"],
+         datos["sdi"], datos["causa_baja"],
+         datetime.now().isoformat(sep=" ", timespec="seconds")),
+    )
+    movimiento_id = cur.fetchone()["id"]
+    cur.close()
+
+    registrar_bitacora(
+        conn, usuario_id, movimiento_id, "Movimiento capturado",
+        f"{ETIQUETAS_TIPO.get(datos['tipo_movimiento'], datos['tipo_movimiento'])} "
+        f"de {datos['nombre_completo']} (CURP {datos['curp']})")
+    return movimiento_id
 
 
 @app.route("/exportar", methods=["POST"])
@@ -344,15 +455,15 @@ def api_validar():
     real. La validación del cliente es una ayuda visual, no una defensa.
     """
     datos = request.get_json(silent=True) or {}
-    limpio = {campo: str(datos.get(campo, "") or "").strip() for campo in CAMPOS_FORMULARIO}
-    for campo in ("curp", "rfc", "causa_baja", "tipo_trabajador", "tipo_salario", "tipo_jornada"):
-        limpio[campo] = limpio[campo].upper()
+    limpio = normalizar_datos({campo: datos.get(campo) for campo in CAMPOS_FORMULARIO})
     errores, avisos = validar_campos(limpio)
     return jsonify({"valido": not errores, "errores": errores, "avisos": avisos})
 
 
 @app.route("/api/movimiento/<int:movimiento_id>")
 def api_movimiento(movimiento_id):
+    if movimiento_id > FOLIO_MAXIMO:
+        return jsonify({"error": "El movimiento solicitado no existe."}), 404
     with conexion() as conn:
         cur = conn.cursor()
         cur.execute(
@@ -401,6 +512,13 @@ def error_404(_error):
                            detalle="La dirección solicitada no existe en el sistema."), 404
 
 
+@app.errorhandler(403)
+def error_403(_error):
+    return render_template("error.html", codigo=403, titulo="Solicitud rechazada",
+                           detalle="La captura no se envió desde una página de Sigma, así que no "
+                                   "se guardó. Vuelve al inicio y captura desde el formulario."), 403
+
+
 @app.errorhandler(ErrorBaseDeDatos)
 def error_base_de_datos(error):
     return render_template("error.html", codigo=503, titulo="Base de datos no disponible",
@@ -414,6 +532,8 @@ def error_no_controlado(error):
     codigo = getattr(error, "code", 500)
     if codigo == 404:
         return error_404(error)
+    if codigo == 403:
+        return error_403(error)
     app.logger.exception("Error no controlado")
     return render_template(
         "error.html", codigo=500, titulo="Ocurrió un error en el servidor",
@@ -422,7 +542,15 @@ def error_no_controlado(error):
 
 
 if __name__ == "__main__":
+    # Servidor de desarrollo, solo para programar. En la oficina se arranca con
+    # servidor.py (waitress). El modo debug publica una consola de depuración y
+    # el detalle de los errores, por eso solo se activa a petición expresa y,
+    # salvo que se indique otra cosa, escuchando únicamente en este equipo.
+    depurar = os.environ.get("SIGMA_DEBUG") == "1"
+    host = os.environ.get("SIGMA_HOST", "127.0.0.1")
+    puerto = int(os.environ.get("SIGMA_PUERTO", "5050"))
     init_db()
     print(f"[sigma] Motor de datos: {descripcion_backend()}")
-    print("[sigma] Interfaz disponible en http://127.0.0.1:5050")
-    app.run(debug=True, host="0.0.0.0", port=5050)
+    print(f"[sigma] Servidor de DESARROLLO en http://{host}:{puerto} "
+          f"(debug {'activo' if depurar else 'apagado'}). Para la oficina usa: python servidor.py")
+    app.run(debug=depurar, host=host, port=puerto)

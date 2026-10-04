@@ -153,7 +153,19 @@
     temporizador = setTimeout(function () { validarEnServidor(mostrarTodo); }, 260);
   }
 
-  /* Máscaras de captura: evitan el error antes de que ocurra. */
+  /* Máscaras de captura: evitan el error antes de que ocurra.
+     La longitud máxima la aplica la máscara (data-longitud) DESPUÉS de limpiar,
+     no el maxlength del navegador: con maxlength, al pegar "4316 89 1234 5" el
+     navegador recortaba el texto con todo y espacios y se perdían dígitos. */
+  function longitudDe(control) {
+    return Number(control.getAttribute("data-longitud")) || 0;
+  }
+
+  function recortar(control, texto) {
+    var maximo = longitudDe(control);
+    return maximo ? texto.slice(0, maximo) : texto;
+  }
+
   function aplicarMascaras() {
     var soloDigitos = ["nss", "fecha_movimiento"];
     var mayusculas = ["curp", "rfc"];
@@ -162,7 +174,7 @@
       var control = formulario.elements[nombre];
       if (!control) return;
       control.addEventListener("input", function () {
-        var limpio = control.value.replace(/\D/g, "");
+        var limpio = recortar(control, control.value.replace(/\D/g, ""));
         if (limpio !== control.value) control.value = limpio;
         actualizarContador(nombre);
       });
@@ -173,7 +185,7 @@
       if (!control) return;
       control.addEventListener("input", function () {
         var posicion = control.selectionStart;
-        var limpio = control.value.toUpperCase().replace(/[^A-ZÑ&0-9]/g, "");
+        var limpio = recortar(control, control.value.toUpperCase().replace(/[^A-ZÑ&0-9]/g, ""));
         if (limpio !== control.value) {
           control.value = limpio;
           try { control.setSelectionRange(posicion, posicion); } catch (e) { /* ignorado */ }
@@ -195,8 +207,8 @@
     if (!contenedor) return;
     var contador = contenedor.querySelector(".contador");
     var control = contenedor.querySelector("input");
-    if (!contador || !control || !control.maxLength || control.maxLength < 0) return;
-    contador.textContent = control.value.length + "/" + control.maxLength;
+    if (!contador || !control || !longitudDe(control)) return;
+    contador.textContent = control.value.length + "/" + longitudDe(control);
   }
 
   /* Selector de fecha nativo sincronizado con el campo DDMMAAAA que pide IDSE. */

@@ -36,16 +36,22 @@ pip install -r requirements.txt
 ### 3. Arranca el servidor
 
 ```bash
-python app.py
+python servidor.py
 ```
 
 Verás algo así:
 
 ```
 [sigma] Motor de datos: SQLite - sigma_imss.db
-[sigma] Interfaz disponible en http://127.0.0.1:5050
- * Running on http://127.0.0.1:5050
+[sigma] Servidor de producción (waitress, 8 hilos) en http://0.0.0.0:5050
 ```
+
+Desde otra computadora de la misma red se entra con la IP de este equipo,
+por ejemplo `http://192.168.0.8:5050`. La primera vez Windows puede preguntar
+si permite el acceso a Python: acepta solo **Redes privadas**.
+
+> `python app.py` sigue existiendo, pero es el servidor de **desarrollo**: solo
+> se ve desde este equipo y no debe usarse en la oficina.
 
 ### 4. Abre la página
 
@@ -76,13 +82,13 @@ crean solos la primera vez. No tienes que hacer nada.
 ```powershell
 # PowerShell (Windows)
 $env:DATABASE_URL = "postgresql://usuario:password@localhost:5432/sigma_imss"
-python app.py
+python servidor.py
 ```
 
 ```bash
 # bash (macOS / Linux)
 export DATABASE_URL="postgresql://usuario:password@localhost:5432/sigma_imss"
-python app.py
+python servidor.py
 ```
 
 Antes hay que crear la base vacía una sola vez, con PostgreSQL ya instalado y
@@ -115,7 +121,7 @@ Para borrar todo lo capturado y volver a la base vacía:
 
 1. Detén el servidor con `Ctrl + C`.
 2. Borra el archivo `sigma_imss.db`.
-3. Vuelve a arrancar con `python app.py`.
+3. Vuelve a arrancar con `python servidor.py`.
 
 Si además quieres borrar los lotes generados, elimina la carpeta
 `exportaciones/`.
@@ -131,7 +137,7 @@ Python no está instalado o no quedó en el PATH. Reinstálalo marcando
 `python`:
 
 ```bash
-py app.py
+py servidor.py
 ```
 
 ### "No module named flask"
@@ -166,5 +172,5 @@ en lugar de mostrar el error real. Ya está resuelto — `database.py` fuerza
 
 ### Cambié un archivo y no veo el cambio
 
-- Archivos `.py` → el servidor se reinicia solo, basta recargar el navegador.
+- Archivos `.py` → detén el servidor (`Ctrl + C`) y vuelve a arrancarlo.
 - Archivos `.css` o `.js` → recarga forzando con `Ctrl + Shift + R`.
