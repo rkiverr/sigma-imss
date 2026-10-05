@@ -1,7 +1,7 @@
 ---
 tipo: concepto
 tags: [accesibilidad, wcag, daltonismo, contraste, color]
-fuentes: ["static/css/estilos.css", "templates/index.html", "prueba_ambiente_relevante.py", "raw/entregables/e1-trl1-problematica.md"]
+fuentes: ["sigma/static/css/estilos.css", "sigma/templates/index.html", "pruebas/prueba_ambiente_relevante.py", "raw/entregables/e1-trl1-problematica.md"]
 actualizado: 2026-10-04
 ---
 

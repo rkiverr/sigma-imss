@@ -1,7 +1,7 @@
 ---
 tipo: concepto
 tags: [rfc, sat, identificadores, coherencia]
-fuentes: ["validaciones.py"]
+fuentes: ["sigma/validaciones.py"]
 actualizado: 2026-10-04
 ---
 

@@ -3,7 +3,7 @@ tipo: decision
 estado: vigente
 fecha: 2026-09-10 (Entregable 4)
 tags: [validacion, api, consistencia]
-fuentes: ["app.py", "validaciones.py", "static/js/app.js"]
+fuentes: ["sigma/app.py", "sigma/validaciones.py", "sigma/static/js/app.js"]
 actualizado: 2026-10-04
 ---
 

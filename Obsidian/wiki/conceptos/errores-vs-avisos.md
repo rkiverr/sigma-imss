@@ -1,7 +1,7 @@
 ---
 tipo: concepto
 tags: [errores, avisos, validacion, diseno]
-fuentes: ["validaciones.py", "templates/index.html", "static/css/estilos.css"]
+fuentes: ["sigma/validaciones.py", "sigma/templates/index.html", "sigma/static/css/estilos.css"]
 actualizado: 2026-10-04
 ---
 

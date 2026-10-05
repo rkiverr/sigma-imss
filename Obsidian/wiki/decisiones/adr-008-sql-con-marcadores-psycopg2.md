@@ -3,7 +3,7 @@ tipo: decision
 estado: vigente
 fecha: 2026-09-10 (Entregable 4)
 tags: [sql, compatibilidad, regla-de-oro]
-fuentes: ["database.py"]
+fuentes: ["sigma/database.py"]
 actualizado: 2026-10-04
 ---
 

@@ -1,7 +1,7 @@
 ---
 tipo: arquitectura
 tags: [rutas, api, http, flask]
-fuentes: ["app.py"]
+fuentes: ["sigma/app.py"]
 actualizado: 2026-10-04
 ---
 
@@ -44,7 +44,7 @@ Campos:
 | 503 | `ErrorBaseDeDatos`: no se pudo abrir la base | "Base de datos no disponible", con el detalle y una ayuda para PostgreSQL |
 | 500 | Cualquier otra excepción | Mensaje genérico. El detalle técnico **solo** aparece con `app.debug`, que en producción nunca está activo |
 
-Todas usan `templates/error.html`.
+Todas usan `sigma/templates/error.html`.
 
 ## Lo que corre en cada petición
 - `before_request` → `preparar_peticion()`:

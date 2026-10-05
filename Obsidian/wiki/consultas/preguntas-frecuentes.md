@@ -1,7 +1,7 @@
 ---
 tipo: consulta
 tags: [preguntas, faq, dudas-resueltas]
-fuentes: ["database.py", "app.py", "templates/base.html", "raw/historial/git-log.md"]
+fuentes: ["sigma/database.py", "sigma/app.py", "sigma/templates/base.html", "raw/historial/git-log.md"]
 actualizado: 2026-10-04
 ---
 

@@ -7,9 +7,9 @@ __pycache__/
 *.db-shm
 exportaciones/
 lote_idse*.txt
-resultados_prueba_concepto.txt
 .env
-resultados_ambiente_relevante*
+# Bases, lotes y reportes que generan los arneses de prueba
+pruebas/resultados/
 # Configuración personal de Obsidian (se crea al abrir la bóveda)
 Obsidian/.obsidian/
 Obsidian/.trash/

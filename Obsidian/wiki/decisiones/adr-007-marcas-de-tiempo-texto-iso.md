@@ -3,7 +3,7 @@ tipo: decision
 estado: vigente
 fecha: 2026-09-10 (Entregable 4)
 tags: [fechas, sqlite, python]
-fuentes: ["database.py", "app.py"]
+fuentes: ["sigma/database.py", "sigma/app.py"]
 actualizado: 2026-10-04
 ---
 

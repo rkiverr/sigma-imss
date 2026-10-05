@@ -1,11 +1,11 @@
 ---
 tipo: modulo
 tags: [validaciones, regex, reglas, comparador]
-fuentes: ["validaciones.py"]
+fuentes: ["sigma/validaciones.py"]
 actualizado: 2026-10-04
 ---
 
-# `validaciones.py` — validación algorítmica (el comparador)
+# `sigma/validaciones.py` — validación algorítmica (el comparador)
 
 Tiene 462 líneas. Es la **única fuente de verdad** de las reglas de captura: la usan `POST /capturar` y
 `POST /api/validar` ([[adr-003-un-solo-validador]]). No toca la base de datos; las reglas que necesitan la
@@ -56,7 +56,7 @@ base viven en `app.py` y `database.py`.
    los dos.
 
 ## Trampas al modificarlo
-- Si cambias reglas, **vuelve a correr** `python test_prueba_concepto.py`: C1 y C2 deben seguir válidos y C3–C8
+- Si cambias reglas, **vuelve a correr** `python pruebas/test_prueba_concepto.py`: C1 y C2 deben seguir válidos y C3–C8
   rechazados ([[arnes-prueba-de-concepto]]). Corre también el bloque B de [[arnes-ambiente-relevante]].
 - Si cambias la limpieza, **actualiza `emular_navegador()`** del arnés y las máscaras de `app.js`.
 - Un error bloquea y un aviso no. Antes de convertir un aviso en error, lee [[errores-vs-avisos]].

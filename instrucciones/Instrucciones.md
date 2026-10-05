@@ -219,18 +219,20 @@ Navegador  ──►  servidor.py  ──►  app.py  ──►  validaciones.py
                                             (archivo del lote)
 ```
 
+El código de la página está en la carpeta `sigma/`, y las pruebas en `pruebas/`.
+
 | Archivo | Qué hace |
 |---|---|
 | `servidor.py` | Arranca la aplicación con waitress, el servidor que se usa en la oficina |
-| `app.py` | Recibe las peticiones, revisa el historial del trabajador y coordina todo |
-| `validaciones.py` | Todas las reglas de validación |
-| `plazo.py` | Cuenta los días hábiles del plazo legal |
-| `database.py` | Guarda y consulta en la base de datos |
-| `exportar_idse.py` | Arma el archivo del lote |
-| `templates/` | Las pantallas (HTML) |
-| `static/` | Estilos (CSS) y comportamiento del navegador (JS) |
-| `test_prueba_concepto.py` | Pruebas de la Entrega 3 (8 casos) |
-| `prueba_ambiente_relevante.py` | Pruebas de la Entrega 5: varios usuarios a la vez, errores típicos, volumen, caídas y seguridad |
+| `sigma/app.py` | Recibe las peticiones, revisa el historial del trabajador y coordina todo |
+| `sigma/validaciones.py` | Todas las reglas de validación |
+| `sigma/plazo.py` | Cuenta los días hábiles del plazo legal |
+| `sigma/database.py` | Guarda y consulta en la base de datos |
+| `sigma/exportar_idse.py` | Arma el archivo del lote |
+| `sigma/templates/` | Las pantallas (HTML) |
+| `sigma/static/` | Estilos (CSS) y comportamiento del navegador (JS) |
+| `pruebas/test_prueba_concepto.py` | Pruebas de la Entrega 3 (8 casos) |
+| `pruebas/prueba_ambiente_relevante.py` | Pruebas de la Entrega 5: varios usuarios a la vez, errores típicos, volumen, caídas y seguridad |
 
 Dos detalles que vale la pena conocer:
 

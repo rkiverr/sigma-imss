@@ -1,7 +1,7 @@
 ---
 tipo: concepto
 tags: [postgresql, sqlite, persistencia, portabilidad]
-fuentes: ["database.py", "README.md"]
+fuentes: ["sigma/database.py", "README.md"]
 actualizado: 2026-10-04
 ---
 

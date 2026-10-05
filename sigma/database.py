@@ -15,7 +15,8 @@ superior usa únicamente SQL estándar:
 Selección del motor:
   DATABASE_URL   postgresql://usuario:password@host:5432/sigma_imss
   SIGMA_DB       "postgres" o "sqlite" para forzar uno de los dos.
-  SQLITE_PATH    ruta del archivo .db cuando se usa SQLite (por defecto sigma_imss.db)
+  SQLITE_PATH    ruta del archivo .db cuando se usa SQLite (por defecto sigma_imss.db,
+                 en la raíz del repositorio)
 """
 import os
 import re
@@ -37,13 +38,15 @@ try:
 except ImportError:  # el prototipo sigue siendo funcional sobre SQLite
     psycopg2 = None
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# Raíz del repositorio (este archivo vive en sigma/). La base de trabajo queda
+# ahí y no dentro del paquete, junto a exportaciones/.
+RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 DATABASE_URL = os.environ.get(
     "DATABASE_URL",
     "postgresql://postgres:postgres@localhost:5432/sigma_imss?client_encoding=UTF8",
 )
-SQLITE_PATH = os.environ.get("SQLITE_PATH", os.path.join(BASE_DIR, "sigma_imss.db"))
+SQLITE_PATH = os.environ.get("SQLITE_PATH", os.path.join(RAIZ, "sigma_imss.db"))
 MOTOR_FORZADO = os.environ.get("SIGMA_DB", "").strip().lower()
 
 _BACKEND = None          # "postgres" | "sqlite"

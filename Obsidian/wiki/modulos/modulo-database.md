@@ -1,11 +1,11 @@
 ---
 tipo: modulo
 tags: [database, persistencia, sqlite, postgresql, transacciones]
-fuentes: ["database.py"]
+fuentes: ["sigma/database.py"]
 actualizado: 2026-10-04
 ---
 
-# `database.py` — persistencia y selección de motor
+# `sigma/database.py` — persistencia y selección de motor
 
 Tiene 482 líneas. Implementa el modelo relacional ([[modelo-de-datos]]) sobre **PostgreSQL o SQLite**, con la
 misma lógica para ambos ([[doble-motor-de-base-de-datos]]).
@@ -15,7 +15,7 @@ misma lógica para ambos ([[doble-motor-de-base-de-datos]]).
 |---|---|---|
 | `DATABASE_URL` | `postgresql://postgres:postgres@localhost:5432/sigma_imss?client_encoding=UTF8` | Conexión a PostgreSQL |
 | `SIGMA_DB` | vacío | `sqlite` o `postgres` para forzar el motor |
-| `SQLITE_PATH` | `sigma_imss.db` junto al código | Archivo de SQLite |
+| `SQLITE_PATH` | `sigma_imss.db` en la raíz del repositorio (`RAIZ`, fuera de `sigma/`) | Archivo de SQLite |
 
 Al importarse, fuerza `LC_ALL=C` y `LANG=C` (y `PGCLIENTENCODING=UTF8`). Así, en Windows en español, `psycopg2`
 no truena con `UnicodeDecodeError` al leer los mensajes de error de `libpq` ([[problemas-frecuentes]]).

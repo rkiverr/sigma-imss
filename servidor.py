@@ -7,8 +7,10 @@ a cualquiera que alcance el puerto. En la oficina el sistema se usa desde la red
 local, así que aquí se sirve con waitress, un servidor WSGI de producción que
 funciona en Windows sin compilar nada.
 
-Uso:
+Uso (desde la raíz del repositorio):
     python servidor.py
+
+Para programar está el servidor de desarrollo: python -m sigma
 
 Variables de entorno:
     SIGMA_HOST     interfaz donde escucha (por defecto 0.0.0.0: toda la red local)
@@ -20,8 +22,8 @@ import os
 
 from waitress import serve
 
-from app import app
-from database import descripcion_backend, init_db
+from sigma.app import app
+from sigma.database import descripcion_backend, init_db
 
 
 def main():

@@ -44,23 +44,35 @@ acentos correctos. Es documentación académica y se lee así.
 
 ## 2. Arquitectura
 
-Aplicación Flask cliente-servidor, sin dependencias de frontend.
+Aplicación Flask cliente-servidor, sin dependencias de frontend. La aplicación
+es el paquete `sigma/`; los arneses viven en `pruebas/`. En el resto de este
+archivo los módulos se nombran sin carpeta (`app.py` = `sigma/app.py`).
 
 | Archivo | Responsabilidad |
 |---|---|
-| `app.py` | Rutas HTTP, flujo, reglas de historial, seguridad por petición, errores |
 | `servidor.py` | Arranque en producción con waitress (el que se usa en la oficina) |
-| `plazo.py` | Plazo legal de 5 días hábiles (art. 15 LSS; descansos art. 74 LFT) |
-| `validaciones.py` | Validación algorítmica y reglas de negocio |
-| `database.py` | Persistencia relacional y selección de motor |
-| `exportar_idse.py` | Traducción al formato de lote IDSE |
-| `templates/base.html` | Esqueleto: barra, tema, notificaciones, pie |
-| `templates/index.html` | Pantalla principal (hereda de `base.html`) |
-| `templates/error.html` | Página de error 404 / 500 / 503 |
-| `static/css/estilos.css` | Sistema de diseño completo, temas claro y oscuro |
-| `static/js/app.js` | Validación en vivo, máscaras, tema, diálogo de detalle |
-| `test_prueba_concepto.py` | Arnés de pruebas del "Desarrollo experimental" (E3) |
-| `prueba_ambiente_relevante.py` | Arnés de validación en ambiente relevante (E5) |
+| `sigma/__main__.py` | Servidor de desarrollo (`python -m sigma`) |
+| `sigma/app.py` | Rutas HTTP, flujo, reglas de historial, seguridad por petición, errores |
+| `sigma/plazo.py` | Plazo legal de 5 días hábiles (art. 15 LSS; descansos art. 74 LFT) |
+| `sigma/validaciones.py` | Validación algorítmica y reglas de negocio |
+| `sigma/database.py` | Persistencia relacional y selección de motor |
+| `sigma/exportar_idse.py` | Traducción al formato de lote IDSE |
+| `sigma/templates/base.html` | Esqueleto: barra, tema, notificaciones, pie |
+| `sigma/templates/index.html` | Pantalla principal (hereda de `base.html`) |
+| `sigma/templates/error.html` | Página de error 404 / 500 / 503 |
+| `sigma/static/css/estilos.css` | Sistema de diseño completo, temas claro y oscuro |
+| `sigma/static/js/app.js` | Validación en vivo, máscaras, tema, diálogo de detalle |
+| `pruebas/test_prueba_concepto.py` | Arnés de pruebas del "Desarrollo experimental" (E3) |
+| `pruebas/prueba_ambiente_relevante.py` | Arnés de validación en ambiente relevante (E5) |
+
+Lo que se genera al usar el sistema no se versiona: `sigma_imss.db` y
+`exportaciones/` en la raíz (fuera del paquete, a propósito: es la base y los
+lotes de trabajo), y `pruebas/resultados/` para todo lo que producen los
+arneses.
+
+⚠️ Dentro de `sigma/` los imports son **relativos** (`from .database import …`,
+`from . import plazo`). Por eso `sigma/app.py` ya no se ejecuta directo: el
+servidor de desarrollo es `python -m sigma`.
 
 Modelo de datos (5 tablas normalizadas):
 `patron`, `usuario`, `trabajador`, `movimiento`, `bitacora`.
@@ -100,7 +112,7 @@ Al leer, el filtro `momento` de Jinja acepta ambos tipos.
 ### 3.2 Un solo validador para servidor y navegador
 
 `validaciones.validar_campos()` es la única fuente de verdad. La ruta
-`POST /api/validar` la expone tal cual, y `static/js/app.js` la consume para dar
+`POST /api/validar` la expone tal cual, y `sigma/static/js/app.js` la consume para dar
 retroalimentación inmediata.
 
 **Por qué:** si el navegador tuviera su propia copia de las reglas, las dos se
@@ -170,7 +182,7 @@ color y un velo del mismo tono al 4.5%.
 ### 3.9 Producción con waitress, depuración solo a petición (Entrega 5)
 
 `python servidor.py` sirve la app con waitress en `0.0.0.0:5050` y cabecera
-`Server: Sigma`. `python app.py` es solo para programar: escucha en 127.0.0.1 y
+`Server: Sigma`. `python -m sigma` es solo para programar: escucha en 127.0.0.1 y
 `debug` se activa únicamente con `SIGMA_DEBUG=1`. **Por qué:** con `debug=True`
 en `0.0.0.0`, como estaba, la consola de Werkzeug (`/console`) y el detalle
 técnico de cada error 500 quedaban visibles para toda la red de la oficina.
@@ -256,12 +268,14 @@ Con `maxlength`, pegar "4316 89 1234 5" perdía dígitos.
 
 ## 5. Comandos
 
+Siempre desde la raíz del repositorio:
+
 ```bash
-python servidor.py                  # producción (waitress) en http://0.0.0.0:5050
-python app.py                       # desarrollo, solo 127.0.0.1 (SIGMA_DEBUG=1 para depurar)
-python test_prueba_concepto.py      # arnés del E3 → resultados_prueba_concepto.txt
-python prueba_ambiente_relevante.py # arnés del E5 (~3 min) → resultados_ambiente_relevante.*
-python prueba_ambiente_relevante.py --codigo <carpeta> --servidor desarrollo --etiqueta antes
+python servidor.py                          # producción (waitress) en http://0.0.0.0:5050
+python -m sigma                             # desarrollo, solo 127.0.0.1 (SIGMA_DEBUG=1 para depurar)
+python pruebas/test_prueba_concepto.py      # arnés del E3 → pruebas/resultados/
+python pruebas/prueba_ambiente_relevante.py # arnés del E5 (~3 min) → pruebas/resultados/
+python pruebas/prueba_ambiente_relevante.py --codigo <carpeta> --servidor desarrollo --etiqueta antes
 ```
 
 Variables de entorno: `DATABASE_URL`, `SIGMA_DB`, `SQLITE_PATH`, `SECRET_KEY`,
@@ -270,12 +284,15 @@ Variables de entorno: `DATABASE_URL`, `SIGMA_DB`, `SQLITE_PATH`, `SECRET_KEY`,
 El arnés del E5 copia el sistema a un directorio temporal por bloque (no toca
 `sigma_imss.db` ni `exportaciones/`). Emula al navegador: aplica `maxlength` /
 `data-longitud` leídos de la página y las máscaras de `app.js`; si cambias las
-máscaras, actualiza `emular_navegador()`.
+máscaras, actualiza `emular_navegador()`. Con `--codigo` acepta versiones con
+cualquiera de las dos estructuras: la de `sigma/` y la anterior, con todo en la
+raíz (E3 a E5); `codigo_en_paquete()` decide cuál.
 
-El arnés usa su propia base (`sigma_pruebas.db`), que borra al iniciar, para que
-los resultados sean reproducibles y no se mezclen con lo capturado desde la web.
-Fija `SQLITE_PATH` **antes** de importar `database`, porque ese módulo lee la
-configuración al cargarse.
+El arnés del E3 usa su propia base (`pruebas/resultados/sigma_pruebas.db`), que
+borra al iniciar, para que los resultados sean reproducibles y no se mezclen con
+lo capturado desde la web. Fija `SQLITE_PATH` **antes** de importar
+`sigma.database`, porque ese módulo lee la configuración al cargarse, y agrega
+la raíz a `sys.path` para encontrar el paquete.
 
 ---
 

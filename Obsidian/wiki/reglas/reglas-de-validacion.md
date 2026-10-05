@@ -1,7 +1,7 @@
 ---
 tipo: regla
 tags: [validacion, errores, avisos, catalogo-de-reglas]
-fuentes: ["validaciones.py", "app.py", "database.py"]
+fuentes: ["sigma/validaciones.py", "sigma/app.py", "sigma/database.py"]
 actualizado: 2026-10-04
 ---
 

@@ -3,7 +3,7 @@ tipo: decision
 estado: vigente
 fecha: 2026-10-04 (Entregable 5)
 tags: [sdi, lss, salario-minimo, uma]
-fuentes: ["validaciones.py", "exportar_idse.py", "raw/normativa/lss-ley-del-seguro-social.md"]
+fuentes: ["sigma/validaciones.py", "sigma/exportar_idse.py", "raw/normativa/lss-ley-del-seguro-social.md"]
 actualizado: 2026-10-04
 ---
 

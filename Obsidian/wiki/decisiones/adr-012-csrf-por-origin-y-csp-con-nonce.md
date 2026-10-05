@@ -3,7 +3,7 @@ tipo: decision
 estado: vigente
 fecha: 2026-10-04 (Entregable 5)
 tags: [seguridad, csrf, csp, cabeceras]
-fuentes: ["app.py", "templates/base.html"]
+fuentes: ["sigma/app.py", "sigma/templates/base.html"]
 actualizado: 2026-10-04
 ---
 

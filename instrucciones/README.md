@@ -14,8 +14,8 @@ python servidor.py
 ```
 
 La primera línea solo hace falta la primera vez (o cuando cambie
-`requirements.txt`). Para programar se puede usar `python app.py`, que solo se
-ve desde este equipo.
+`requirements.txt`). Para programar se puede usar `python -m sigma`, que solo
+se ve desde este equipo.
 
 ## Verla
 
@@ -40,11 +40,11 @@ Ctrl + C
 ## Otros comandos
 
 ```bash
-# Correr las pruebas automáticas (genera resultados_prueba_concepto.txt)
-python test_prueba_concepto.py
+# Correr las pruebas automáticas (el reporte queda en pruebas/resultados/)
+python pruebas/test_prueba_concepto.py
 
-# Validación en ambiente relevante, unos 3 minutos (genera resultados_ambiente_relevante.*)
-python prueba_ambiente_relevante.py
+# Validación en ambiente relevante, unos 3 minutos (también en pruebas/resultados/)
+python pruebas/prueba_ambiente_relevante.py
 ```
 
 ```bash

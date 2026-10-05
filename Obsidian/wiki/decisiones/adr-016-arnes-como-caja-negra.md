@@ -3,7 +3,7 @@ tipo: decision
 estado: vigente
 fecha: 2026-10-04 (Entregable 5)
 tags: [pruebas, arnes, aislamiento]
-fuentes: ["prueba_ambiente_relevante.py"]
+fuentes: ["pruebas/prueba_ambiente_relevante.py"]
 actualizado: 2026-10-04
 ---
 

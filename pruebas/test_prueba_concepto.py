@@ -7,26 +7,36 @@ Ejecuta los tres bloques descritos en el informe, ahora contra PostgreSQL:
 
 Produce un reporte de texto con los resultados, listo para pegar en la
 sección "Resultados" del informe.
+
+Uso (desde la raíz del repositorio):
+    python pruebas/test_prueba_concepto.py
+
+Todo lo que genera (base de pruebas, lote y reporte) queda en pruebas/resultados/.
 """
 import os
+import sys
 import threading
+
+RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+RESULTADOS = os.path.join(RAIZ, "pruebas", "resultados")
+os.makedirs(RESULTADOS, exist_ok=True)
+# El paquete sigma/ está en la raíz; al correr este archivo directamente,
+# Python solo ve la carpeta pruebas/.
+sys.path.insert(0, RAIZ)
 
 # El arnés trabaja sobre su propia base para que los resultados sean
 # reproducibles y no se mezclen con lo capturado desde la interfaz web.
 # Debe hacerse ANTES de importar database, que lee la configuración al cargarse.
 if not os.environ.get("DATABASE_URL"):
     os.environ.setdefault("SIGMA_DB", "sqlite")
-    os.environ.setdefault(
-        "SQLITE_PATH",
-        os.path.join(os.path.dirname(os.path.abspath(__file__)), "sigma_pruebas.db"),
-    )
+    os.environ.setdefault("SQLITE_PATH", os.path.join(RESULTADOS, "sigma_pruebas.db"))
     if os.path.exists(os.environ["SQLITE_PATH"]):
         os.remove(os.environ["SQLITE_PATH"])
 
-from database import (descripcion_backend, get_conn, init_db,  # noqa: E402
-                      obtener_o_crear_trabajador, registrar_bitacora)
-from exportar_idse import exportar_a_archivo  # noqa: E402
-from validaciones import validar_movimiento  # noqa: E402
+from sigma.database import (descripcion_backend, get_conn, init_db,  # noqa: E402
+                            obtener_o_crear_trabajador, registrar_bitacora)
+from sigma.exportar_idse import exportar_a_archivo  # noqa: E402
+from sigma.validaciones import validar_movimiento  # noqa: E402
 
 REPORTE = []
 
@@ -143,7 +153,7 @@ def bloque_2_exportacion():
         WHERE m.estado = 'Válido' AND m.exportado = FALSE
     """)
     registros = [dict(r) for r in cur.fetchall()]
-    ruta = exportar_a_archivo(registros, "lote_idse_prueba.txt")
+    ruta = exportar_a_archivo(registros, os.path.join(RESULTADOS, "lote_idse_prueba.txt"))
 
     ids = [r["movimiento_id"] for r in registros]
     cur.executemany("UPDATE movimiento SET exportado = TRUE, estado = 'Exportado' WHERE id = %s", [(i,) for i in ids])
@@ -153,7 +163,7 @@ def bloque_2_exportacion():
     conn.close()
 
     log(f"Movimientos válidos exportados: {len(registros)}")
-    log(f"Archivo generado: {ruta}")
+    log(f"Archivo generado: {os.path.relpath(ruta, RAIZ)}")
     log("Contenido del lote (una línea por movimiento, campos separados por '|'):")
     with open(ruta, encoding="utf-8") as f:
         for linea in f:
@@ -264,6 +274,6 @@ if __name__ == "__main__":
     log(f"4) Asociación de cada movimiento a usuario + timestamp en bitácora: CUMPLE (ver bloques 1 y 3)")
     log(f"5) Sin pérdida de datos en captura concurrente: {'CUMPLE' if cumple_b3 else 'REVISAR'}")
 
-    with open("resultados_prueba_concepto.txt", "w", encoding="utf-8") as f:
+    with open(os.path.join(RESULTADOS, "resultados_prueba_concepto.txt"), "w", encoding="utf-8") as f:
         f.write("\n".join(REPORTE))
-    print("\nReporte guardado en resultados_prueba_concepto.txt")
+    print("\nReporte guardado en pruebas/resultados/resultados_prueba_concepto.txt")

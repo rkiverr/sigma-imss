@@ -3,7 +3,7 @@ tipo: decision
 estado: vigente
 fecha: 2026-10-04 (Entregable 5)
 tags: [concurrencia, integridad, unique, carreras]
-fuentes: ["database.py", "app.py", "raw/resultados/e5-arnes-ambiente-relevante-antes.md"]
+fuentes: ["sigma/database.py", "sigma/app.py", "raw/resultados/e5-arnes-ambiente-relevante-antes.md"]
 actualizado: 2026-10-04
 ---
 

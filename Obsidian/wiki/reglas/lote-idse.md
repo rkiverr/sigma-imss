@@ -1,7 +1,7 @@
 ---
 tipo: regla
 tags: [idse, lote, layout, riesgo-1, exportacion]
-fuentes: ["exportar_idse.py", "raw/entregables/e3-trl3-prueba-de-concepto.md", "raw/normativa/racerf-reglamento-afiliacion.md"]
+fuentes: ["sigma/exportar_idse.py", "raw/entregables/e3-trl3-prueba-de-concepto.md", "raw/normativa/racerf-reglamento-afiliacion.md"]
 actualizado: 2026-10-04
 ---
 

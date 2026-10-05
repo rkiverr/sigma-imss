@@ -2,7 +2,7 @@
 tipo: bug
 estado: abierto
 tags: [bugs, pendientes, limitaciones]
-fuentes: ["plazo.py", "raw/normativa/lft-ley-federal-del-trabajo.md", "raw/entregables/e5-trl5-ambiente-relevante.md"]
+fuentes: ["sigma/plazo.py", "raw/normativa/lft-ley-federal-del-trabajo.md", "raw/entregables/e5-trl5-ambiente-relevante.md"]
 actualizado: 2026-10-04
 ---
 

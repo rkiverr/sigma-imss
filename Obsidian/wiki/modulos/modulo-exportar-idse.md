@@ -1,11 +1,11 @@
 ---
 tipo: modulo
 tags: [exportacion, idse, lote, actuador]
-fuentes: ["exportar_idse.py"]
+fuentes: ["sigma/exportar_idse.py"]
 actualizado: 2026-10-04
 ---
 
-# `exportar_idse.py` — lote de texto para el IDSE (el actuador)
+# `sigma/exportar_idse.py` — lote de texto para el IDSE (el actuador)
 
 Tiene 102 líneas. Traduce los movimientos válidos al **archivo de texto plano** que se carga en el IDSE. El
 formato y su riesgo están en [[lote-idse]].
