@@ -47,7 +47,8 @@ prueba en la carpeta desde donde se corriera. Pedro pidió ordenar los archivos 
 **Verificación (2026-10-04).** Arnés del E3: 8/8, los tres bloques CUMPLE. Arnés del E5 completo sobre la nueva
 estructura: 96.9 % de detección, 0 rechazos indebidos, 0 falsos positivos, 0 duplicados y 0 errores 500 en las
 carreras, 0 capturas perdidas tras la caída, 8/8 en seguridad y contraste AA en todos los pares. `--codigo` contra
-la estructura anterior funciona con los dos servidores ([[sesion-2026-10-04-estructura-de-carpetas]]).
+la estructura anterior funciona con los dos servidores ([[sesion-2026-10-04-estructura-de-carpetas]]). Se integró a
+`main` con el merge `fb3a4a8`. El método de verificación quedó en [[verificar-un-cambio-contra-main]].
 
 **Alternativas descartadas.**
 - **Reorganización ligera** (dejar los módulos en la raíz y mover solo los arneses): no cambiaba ningún comando,

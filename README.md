@@ -8,7 +8,9 @@ bitácora de auditoría, en una aplicación cliente-servidor.
 
 - Python 3.9 o superior
 - `pip install -r requirements.txt`
-- PostgreSQL **opcional** (ver "Motor de base de datos")
+- PostgreSQL **opcional** (ver "Motor de base de datos"). Con Python 3.13 o
+  superior, `requirements.txt` no instala `psycopg2-binary`, así que Sigma
+  usa SQLite.
 
 ```bash
 pip install -r requirements.txt
@@ -74,6 +76,7 @@ sigma-imss/
 ├── servidor.py              arranque en producción (waitress)
 ├── requirements.txt
 ├── sigma/                   la aplicación (paquete de Python)
+│   ├── __init__.py
 │   ├── __main__.py          servidor de desarrollo (python -m sigma)
 │   ├── app.py               rutas HTTP, flujo, seguridad por petición, errores
 │   ├── validaciones.py      validación algorítmica y reglas de negocio
@@ -191,6 +194,16 @@ Prueba el sistema completo en condiciones semejantes a las de la empresa (unos
 carreras, carga, volumen, caída del servidor, seguridad en red y contraste.
 Cada bloque corre sobre una copia aislada del sistema y genera
 `pruebas/resultados/resultados_ambiente_relevante.txt` y `.json`.
+
+## Documentación
+
+| Para | Dónde |
+|---|---|
+| Levantar la página en dos minutos | [`instrucciones/README.md`](instrucciones/README.md) |
+| Instalación, PostgreSQL y problemas frecuentes | [`instrucciones/Ejecutar.md`](instrucciones/Ejecutar.md) |
+| Qué hace la página y cómo se usa | [`instrucciones/Instrucciones.md`](instrucciones/Instrucciones.md) |
+| Decisiones de diseño, bugs corregidos y comandos (para programar) | [`CLAUDE.md`](CLAUDE.md) |
+| Contexto completo: entregables, normativa, ADR, pruebas e historial | [`Obsidian/index.md`](Obsidian/index.md) |
 
 ## Notas
 

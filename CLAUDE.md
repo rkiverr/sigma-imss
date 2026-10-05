@@ -23,9 +23,15 @@ como prototipo (TRL 4) y en la Entrega 5 se validó en ambiente relevante
 (TRL 5).
 
 **Ramas.**
-- `main` es la vigente. Desde el 2026-10-04 incluye la Entrega 5: el merge
-  `cffd375` integró los 7 commits de `trl5/ambiente-relevante`.
-- `trl5/ambiente-relevante` sigue publicada porque el informe la cita.
+- `main` es la vigente. Desde el 2026-10-04 incluye la Entrega 5 (el merge
+  `cffd375` integró los 7 commits de `trl5/ambiente-relevante`) y la
+  reorganización en carpetas (merge `fb3a4a8`: la app en `sigma/` y los
+  arneses en `pruebas/`).
+- `trl5/ambiente-relevante` sigue publicada porque el informe la cita. Conserva
+  la estructura anterior, con todo en la raíz, que es la que describe el
+  informe del E5.
+- `mejora/estructura-de-carpetas` es la rama de la reorganización. Se abrió el
+  PR #2, pero Pedro pidió integrarla directo a `main`.
 - `mejora/interfaz-y-validaciones` es la versión de la Entrega 4 (PR #1).
 
 El flujo completo que implementa:
@@ -278,6 +284,11 @@ python pruebas/prueba_ambiente_relevante.py # arnés del E5 (~3 min) → pruebas
 python pruebas/prueba_ambiente_relevante.py --codigo <carpeta> --servidor desarrollo --etiqueta antes
 ```
 
+Para demostrar que un cambio **no** altera el comportamiento (reorganizar,
+renombrar, limpiar), compara contra `main` con el método de
+`Obsidian/wiki/operacion/verificar-un-cambio-contra-main.md`: el arnés en las
+dos versiones, los criterios CA5, el lado a lado por HTTP y Chrome headless.
+
 Variables de entorno: `DATABASE_URL`, `SIGMA_DB`, `SQLITE_PATH`, `SECRET_KEY`,
 `SIGMA_HOST`, `SIGMA_PUERTO`, `SIGMA_HILOS`, `SIGMA_DEBUG`.
 
@@ -303,8 +314,8 @@ exportación, descarga, 404, inyección SQL y XSS. Sin errores en el log.
 
 Arnés de pruebas: **8/8 casos, los tres bloques CUMPLE.**
 
-Reorganización en `sigma/` y `pruebas/` (04/10/2026, PR #2), verificada contra
-`main` con el mismo arnés: 10/10 criterios del TRL 5 en las dos versiones, 0
+Reorganización en `sigma/` y `pruebas/` (04/10/2026, merge `fb3a4a8`),
+verificada contra el `main` anterior con el mismo arnés: 10/10 criterios del TRL 5 en las dos versiones, 0
 diferencias en los resultados funcionales y 18/18 respuestas HTTP idénticas
 (mismo HTML, CSS, JS, mensajes y lote IDSE) sobre una copia de la base real.
 

@@ -72,8 +72,13 @@ No. Todo SQL va con `%s`; el envoltorio de SQLite lo traduce en un solo sentido
 No. Pedro pidió integrarlos directo a `main` (`cffd375`). Queda pendiente avisarle a Gael
 ([[sesion-2026-10-04-entregable-5]]).
 
-**Cuando se acepte el PR #2, ¿la computadora de cada quien se reorganiza sola?**
-No. Al aceptarlo, **GitHub** queda con la estructura nueva, pero cada copia local cambia hasta que se baja:
+**¿Y la reorganización en carpetas?**
+Se abrió el PR #2, pero Pedro pidió integrarla directo a `main` (`fb3a4a8`) sin esperar la revisión. El PR quedó
+cerrado como integrado, porque GitHub no deja borrarlos. También falta avisarle a Gael
+([[sesion-2026-10-04-estructura-de-carpetas]]).
+
+**Ahora que la reorganización está en `main`, ¿la computadora de cada quien se reorganiza sola?**
+No. **GitHub** ya tiene la estructura nueva (merge `fb3a4a8`), pero cada copia local cambia hasta que se baja:
 ```bash
 git switch main
 git pull

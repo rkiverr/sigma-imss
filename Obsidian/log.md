@@ -120,3 +120,15 @@ Bitácora cronológica: solo se agrega al final y lo anterior no se edita.
   se corrigió la de `app.py` y `servidor.py`.
 - Actualizadas: [[sesion-2026-10-04-estructura-de-carpetas]] (PR #2, commits, lo que pasó después), [[rutas-http]],
   [[estrategia-de-pruebas]], [[inicio]] (fila "En revisión") y [[cronologia]].
+
+## [2026-10-04] ingesta | Reorganización integrada a main (`fb3a4a8`) e historial de Git extraído de nuevo
+- Pedro pidió subir todo a `main` y quitar el PR. Merge `--no-ff` de `mejora/estructura-de-carpetas` (`fb3a4a8`).
+  Comprobación sobre `main`: compila, E3 con 8/8 y el servidor responde. El PR #2 quedó cerrado como integrado
+  (GitHub no permite borrar PR).
+- `CLAUDE.md` del repo: ramas al día (§1), apuntador al método de verificación (§5) y §6 con el merge.
+  `README.md`: nota de Python 3.13 y `psycopg2`, `__init__.py` en el árbol y una sección "Documentación".
+- Páginas: [[inicio]] (rama vigente; sin la fila "En revisión"), [[cronologia]] (fila y tabla de ramas),
+  [[sesion-2026-10-04-estructura-de-carpetas]] (integración y pendientes), [[preguntas-frecuentes]] y
+  [[adr-017-paquete-sigma-y-carpeta-de-pruebas]].
+- `raw/historial/git-log.md` se regeneró completo, hasta `fb3a4a8`. No incluye el commit de documentación que
+  lo contiene.

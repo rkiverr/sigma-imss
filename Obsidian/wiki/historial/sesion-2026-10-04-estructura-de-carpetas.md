@@ -15,8 +15,9 @@ el paquete `sigma/`. Preguntó si se recomendaba estructurar las carpetas; se le
 en una rama nueva con PR, sin tocar `main`, para que el equipo decida si se integra.
 
 ## 2. Lo que se hizo
-Rama `mejora/estructura-de-carpetas`, **PR #2** (`github.com/rkiverr/sigma-imss/pull/2`), con dos commits:
-`3269ff1` (la reorganización) y `ac56fc1` (quita un import sin uso y registra la verificación). Se usó `git mv`
+Rama `mejora/estructura-de-carpetas`, **PR #2** (`github.com/rkiverr/sigma-imss/pull/2`), con tres commits:
+`3269ff1` (la reorganización), `ac56fc1` (quita un import sin uso y registra la verificación) y `51a45ec` (el
+método de verificación en el wiki). Se integró a `main` con el merge `fb3a4a8` (§5). Se usó `git mv`
 para conservar el historial de cada archivo:
 
 | Antes | Ahora |
@@ -93,12 +94,18 @@ Las dos versiones, con el mismo arnés, una tras otra:
 - El reporte del E3 ahora dice `Archivo generado: pruebas\resultados\lote_idse_prueba.txt` en lugar de
   `lote_idse_prueba.txt`. La copia de `raw/resultados/` no se toca, porque es de antes.
 
-## 5. Pendientes
-- Que el equipo revise el PR #2 y decida si se integra.
+## 5. Integración a `main`
+Pedro decidió no esperar la revisión: pidió integrar todo a `main` y quitar el PR. Se hizo el merge `fb3a4a8`
+(`--no-ff`, como el del E5), con una comprobación rápida sobre `main` integrado: compila, E3 con 8/8 y el servidor
+responde. Después se pusieron al día `CLAUDE.md`, el `README.md`, este wiki y `raw/historial/git-log.md`, y se
+subió `main`. GitHub no deja borrar un PR: el #2 quedó cerrado como integrado.
+
+## 6. Pendientes
+- Avisarle a Gael que la reorganización ya está en `main`, igual que con el E5.
 - Al integrarlo, en cada copia local:
   - El desarrollo se arranca con `python -m sigma`.
   - Los reportes viejos sueltos en la raíz (`resultados_*`) ya no están en `.gitignore`, así que conviene
     borrarlos.
-- Regenerar `raw/historial/git-log.md` y actualizar [[cronologia]] e [[inicio]] cuando se integre.
+- Decidir si se borra la rama `mejora/estructura-de-carpetas`. Ya está integrada y ningún informe la cita.
 
 Ver también: [[cronologia]] · [[sesion-2026-10-04-entregable-5]] · [[arquitectura-general]]
