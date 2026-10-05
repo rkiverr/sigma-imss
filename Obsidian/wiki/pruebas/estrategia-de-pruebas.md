@@ -1,7 +1,7 @@
 ---
 tipo: prueba
 tags: [pruebas, estrategia, regresion, arnes]
-fuentes: ["test_prueba_concepto.py", "prueba_ambiente_relevante.py"]
+fuentes: ["pruebas/test_prueba_concepto.py", "pruebas/prueba_ambiente_relevante.py"]
 actualizado: 2026-10-04
 ---
 
@@ -15,7 +15,7 @@ y **producen reportes de texto** que alimentan los informes.
 | Nivel | TRL 3 (laboratorio) | TRL 5 (ambiente relevante) |
 | Cómo prueba | Llama a las funciones directamente | **Caja negra por HTTP**, con el servidor como proceso aparte |
 | Datos | 8 casos escritos a mano | Plantilla sintética realista (cientos de trabajadores) |
-| Base | `sigma_pruebas.db` (se borra al empezar) | Una copia aislada por bloque en un directorio temporal |
+| Base | `pruebas/resultados/sigma_pruebas.db` (se borra al empezar) | Una copia aislada por bloque en un directorio temporal |
 | Duración | Unos 2 s | Unos 3 min (todo) |
 | Para qué hoy | **Regresión obligatoria**: debe dar 8/8 | Validación ante cambios grandes; comparar el antes y el después |
 
@@ -31,15 +31,18 @@ y **producen reportes de texto** que alimentan los informes.
 
 ## Rutina mínima después de un cambio
 ```bash
-python -m py_compile *.py
-python test_prueba_concepto.py                       # 8/8
-python prueba_ambiente_relevante.py --bloques B,C,G  # 96.9 %, 0 duplicados, 0 hallazgos
+python -m compileall -q servidor.py sigma pruebas
+python pruebas/test_prueba_concepto.py                       # 8/8
+python pruebas/prueba_ambiente_relevante.py --bloques B,C,G  # 96.9 %, 0 duplicados, 0 hallazgos
 ```
-Después hay que borrar las salidas (`sigma_pruebas.db`, `resultados_*`, `lote_idse_prueba.txt`); todas están en
-`.gitignore`.
+Todas las salidas quedan en `pruebas/resultados/`, que está en `.gitignore`; se puede borrar la carpeta entera.
+
+Si el cambio **no debería alterar el comportamiento** (reorganizar, renombrar, limpiar), además compara contra
+`main`: [[verificar-un-cambio-contra-main]].
 
 ## Lo que no está automatizado
-- Revisar la interfaz a ojo (capturas, temas, móvil).
+- Revisar la interfaz a ojo (capturas, temas, móvil). Sin la extensión de Chrome se puede con Chrome headless
+  ([[verificar-un-cambio-contra-main]], paso 5).
 - PostgreSQL: no hay uno instalado en el equipo de prueba.
 - El envío real al IDSE: depende de la e.firma y del layout oficial ([[lote-idse]]).
 - La lectura del acuse del IMSS: no existe todavía.

@@ -23,16 +23,16 @@ Pedro fue `192.168.0.8` en las pruebas. La primera vez, Windows puede pedir perm
 
 ## Para programar (desarrollo)
 ```bash
-python app.py                  # solo en 127.0.0.1, sin depuración
-$env:SIGMA_DEBUG = "1"; python app.py   # con depuración y recarga (PowerShell)
+python -m sigma                # solo en 127.0.0.1, sin depuración
+$env:SIGMA_DEBUG = "1"; python -m sigma   # con depuración y recarga (PowerShell)
 ```
 Nunca uses esto en la oficina ([[adr-009-servidor-de-produccion-waitress]]).
 
 ## Pruebas
 ```bash
-python test_prueba_concepto.py          # E3, regresión: debe dar 8/8 (~2 s)
-python prueba_ambiente_relevante.py     # E5, todo (~3 min)
-python prueba_ambiente_relevante.py --bloques B,C,G   # rápido: errores, carreras y seguridad
+python pruebas/test_prueba_concepto.py          # E3, regresión: debe dar 8/8 (~2 s)
+python pruebas/prueba_ambiente_relevante.py     # E5, todo (~3 min)
+python pruebas/prueba_ambiente_relevante.py --bloques B,C,G   # rápido: errores, carreras y seguridad
 ```
 Ver [[estrategia-de-pruebas]].
 
@@ -46,7 +46,8 @@ Ver [[estrategia-de-pruebas]].
 |---|---|---|
 | `sigma_imss.db` (+ `-wal`, `-shm`) | Base SQLite de trabajo | No (`.gitignore`) |
 | `exportaciones/lote_idse_*.txt` | Lotes generados | No |
-| `sigma_pruebas.db`, `resultados_*` | Salidas de los arneses | No |
-| `Obsidian/` | Este segundo cerebro | Sí (pendiente de subir) |
+| `pruebas/resultados/` | Salidas de los arneses (bases, lotes y reportes) | No |
+| `sigma/` | El código de la aplicación ([[arquitectura-general]]) | Sí |
+| `Obsidian/` | Este segundo cerebro | Sí |
 
 Ver también: [[configuracion]] · [[problemas-frecuentes]] · [[modulo-servidor]]

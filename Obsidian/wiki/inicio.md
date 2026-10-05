@@ -22,7 +22,8 @@ TRL ([[equipo-y-contexto-academico]]).
 | Nivel de madurez | **TRL 5**: validado en un ambiente que emula a la empresa ([[entregable-5-trl5]]) |
 | Rama vigente | `main` en GitHub (`github.com/rkiverr/sigma-imss`). Incluye el E5 desde el merge `cffd375`, la corrección del calendario (`3afbc9a`) y este segundo cerebro ([[cronologia]]) |
 | Cómo se arranca | `python servidor.py` → `http://localhost:5050` ([[como-arrancar]]) |
-| Pruebas | `python test_prueba_concepto.py` (8/8) y `python prueba_ambiente_relevante.py` ([[resultados-de-pruebas]]) |
+| Pruebas | `python pruebas/test_prueba_concepto.py` (8/8) y `python pruebas/prueba_ambiente_relevante.py` ([[resultados-de-pruebas]]) |
+| En revisión | **PR #2**: la app pasa al paquete `sigma/` y los arneses a `pruebas/`; verificado contra `main` sin diferencias ([[adr-017-paquete-sigma-y-carpeta-de-pruebas]]) |
 | Siguiente nivel | TRL 6: piloto en la oficina con datos reales ([[hoja-de-ruta-trl6]]) |
 
 ## Qué hace, en una línea por paso
@@ -53,14 +54,16 @@ dependencias externas. Ver [[arquitectura-general]].
 | Archivo | Página |
 |---|---|
 | `servidor.py` | [[modulo-servidor]] |
-| `app.py` | [[modulo-app]] |
-| `validaciones.py` | [[modulo-validaciones]] |
-| `plazo.py` | [[modulo-plazo]] |
-| `database.py` | [[modulo-database]] |
-| `exportar_idse.py` | [[modulo-exportar-idse]] |
-| `templates/`, `static/` | [[modulo-interfaz]] |
-| `test_prueba_concepto.py` | [[arnes-prueba-de-concepto]] |
-| `prueba_ambiente_relevante.py` | [[arnes-ambiente-relevante]] |
+| `sigma/app.py` (y `sigma/__main__.py`, el arranque de desarrollo) | [[modulo-app]] |
+| `sigma/validaciones.py` | [[modulo-validaciones]] |
+| `sigma/plazo.py` | [[modulo-plazo]] |
+| `sigma/database.py` | [[modulo-database]] |
+| `sigma/exportar_idse.py` | [[modulo-exportar-idse]] |
+| `sigma/templates/`, `sigma/static/` | [[modulo-interfaz]] |
+| `pruebas/test_prueba_concepto.py` | [[arnes-prueba-de-concepto]] |
+| `pruebas/prueba_ambiente_relevante.py` | [[arnes-ambiente-relevante]] |
+
+Por qué está organizado así: [[adr-017-paquete-sigma-y-carpeta-de-pruebas]].
 
 ## Lo que no se vuelve a discutir
 

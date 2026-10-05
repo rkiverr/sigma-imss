@@ -18,7 +18,7 @@ interfaz pueda señalar exactamente el campo que hay que corregir.
 import re
 from datetime import datetime, date
 
-import plazo
+from . import plazo
 
 # CURP: 4 letras + 6 dígitos (fecha nacimiento) + sexo (H/M) + 5 letras
 #       (entidad y consonantes) + 1 alfanumérico + 1 dígito verificador

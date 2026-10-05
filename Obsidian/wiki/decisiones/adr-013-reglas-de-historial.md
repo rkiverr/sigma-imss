@@ -3,7 +3,7 @@ tipo: decision
 estado: vigente
 fecha: 2026-10-04 (Entregable 5)
 tags: [historial, reglas-de-negocio]
-fuentes: ["app.py", "database.py"]
+fuentes: ["sigma/app.py", "sigma/database.py"]
 actualizado: 2026-10-04
 ---
 

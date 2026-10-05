@@ -11,7 +11,7 @@ datos), suficiente para demostrar la prueba de concepto.
 import os
 from datetime import datetime
 
-from validaciones import limites_sbc
+from .validaciones import limites_sbc
 
 CAMPOS_EXPORTACION = [
     "registro_patronal", "tipo_movimiento", "curp", "nss", "rfc",
@@ -21,8 +21,10 @@ CAMPOS_EXPORTACION = [
 
 SEPARADOR = "|"
 
-# Carpeta donde se depositan los lotes generados.
-DIRECTORIO_SALIDA = os.path.join(os.path.dirname(os.path.abspath(__file__)), "exportaciones")
+# Carpeta donde se depositan los lotes generados: exportaciones/ en la raíz del
+# repositorio (este archivo vive en sigma/).
+DIRECTORIO_SALIDA = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                                 "exportaciones")
 
 
 def _limpiar(valor):

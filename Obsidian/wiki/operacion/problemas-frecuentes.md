@@ -1,7 +1,7 @@
 ---
 tipo: operacion
 tags: [problemas, soporte, troubleshooting]
-fuentes: ["instrucciones/Ejecutar.md", "README.md", "database.py"]
+fuentes: ["instrucciones/Ejecutar.md", "README.md", "sigma/database.py"]
 actualizado: 2026-10-04
 ---
 

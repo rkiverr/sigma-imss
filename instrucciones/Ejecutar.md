@@ -50,8 +50,8 @@ Desde otra computadora de la misma red se entra con la IP de este equipo,
 por ejemplo `http://192.168.0.8:5050`. La primera vez Windows puede preguntar
 si permite el acceso a Python: acepta solo **Redes privadas**.
 
-> `python app.py` sigue existiendo, pero es el servidor de **desarrollo**: solo
-> se ve desde este equipo y no debe usarse en la oficina.
+> `python -m sigma` arranca el servidor de **desarrollo**: solo se ve desde
+> este equipo y no debe usarse en la oficina.
 
 ### 4. Abre la página
 
@@ -103,15 +103,22 @@ createdb sigma_imss
 ## Correr las pruebas automáticas
 
 ```bash
-python test_prueba_concepto.py
+python pruebas/test_prueba_concepto.py
 ```
 
 Ejecuta los tres bloques del "Desarrollo experimental" (validación, exportación
-y concurrencia) y genera **`resultados_prueba_concepto.txt`**, listo para pegar
-en la sección de Resultados del informe.
+y concurrencia) y genera **`pruebas/resultados/resultados_prueba_concepto.txt`**,
+listo para pegar en la sección de Resultados del informe.
 
-Usa su propia base de datos (`sigma_pruebas.db`), que borra al empezar, así que
-no ensucia lo que hayas capturado desde la página web.
+Usa su propia base de datos (`pruebas/resultados/sigma_pruebas.db`), que borra
+al empezar, así que no ensucia lo que hayas capturado desde la página web.
+
+La validación en ambiente relevante de la Entrega 5 tarda unos 3 minutos y deja
+su reporte en la misma carpeta:
+
+```bash
+python pruebas/prueba_ambiente_relevante.py
+```
 
 ---
 
@@ -166,7 +173,7 @@ El navegador guardó una versión vieja del CSS. Recarga forzando:
 
 Pasa en Windows con el sistema en español: `libpq` traduce sus mensajes de error
 con una codificación distinta de UTF-8 y `psycopg2` truena al *leer* el mensaje,
-en lugar de mostrar el error real. Ya está resuelto — `database.py` fuerza
+en lugar de mostrar el error real. Ya está resuelto — `sigma/database.py` fuerza
 `LC_ALL=C` al importarse. Si te vuelve a salir, verás debajo el error verdadero
 (contraseña incorrecta, servidor caído, base inexistente).
 

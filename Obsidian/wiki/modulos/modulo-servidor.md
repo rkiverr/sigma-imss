@@ -1,7 +1,7 @@
 ---
 tipo: modulo
 tags: [servidor, waitress, produccion, despliegue]
-fuentes: ["servidor.py", "app.py"]
+fuentes: ["servidor.py", "sigma/app.py"]
 actualizado: 2026-10-04
 ---
 
@@ -13,7 +13,8 @@ Tiene 40 líneas y es nuevo en el E5. **Así se arranca Sigma en la oficina:**
 python servidor.py
 ```
 
-Hace cuatro cosas:
+Se queda en la raíz del repositorio, fuera del paquete, e importa la aplicación con
+`from sigma.app import app` ([[adr-017-paquete-sigma-y-carpeta-de-pruebas]]). Hace cuatro cosas:
 1. Lee `SIGMA_HOST` (por defecto `0.0.0.0`, es decir, toda la red local), `SIGMA_PUERTO` (5050) y `SIGMA_HILOS`
    (8).
 2. Llama a `init_db()`.

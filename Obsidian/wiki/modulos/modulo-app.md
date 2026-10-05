@@ -1,11 +1,11 @@
 ---
 tipo: modulo
 tags: [app, flask, controlador, rutas, seguridad]
-fuentes: ["app.py"]
+fuentes: ["sigma/app.py"]
 actualizado: 2026-10-04
 ---
 
-# `app.py` — controlador HTTP
+# `sigma/app.py` — controlador HTTP
 
 Tiene 556 líneas. Es el **controlador** del lazo ([[sigma-como-sistema-de-control]]): recibe las peticiones,
 orquesta la validación, la persistencia y la exportación, y responde. Crea la aplicación Flask (`app`), que
@@ -51,8 +51,11 @@ orquesta la validación, la persistencia y la exportación, y responde. Crea la 
 ([[rutas-http]]). **Errores:** `error_404`, `error_403`, `error_base_de_datos` (503) y `error_no_controlado`
 (500).
 
-## Arranque de desarrollo (`if __name__ == "__main__"`)
-- `python app.py` escucha en `SIGMA_HOST` (por defecto **127.0.0.1**) y `SIGMA_PUERTO` (5050).
+## Arranque de desarrollo (`sigma/__main__.py`)
+- `python -m sigma` escucha en `SIGMA_HOST` (por defecto **127.0.0.1**) y `SIGMA_PUERTO` (5050). Hasta la E5
+  era el bloque `if __name__ == "__main__"` de `app.py` y se arrancaba con `python app.py`; pasó a
+  `__main__.py` porque `app.py` usa imports relativos y ya no se ejecuta directo
+  ([[adr-017-paquete-sigma-y-carpeta-de-pruebas]]).
 - `debug` solo se activa con `SIGMA_DEBUG=1`.
 - **No se usa en la oficina**; ahí se arranca con `python servidor.py`
   ([[adr-009-servidor-de-produccion-waitress]]).

@@ -1,7 +1,7 @@
 ---
 tipo: concepto
 tags: [seguridad, owasp, csrf, csp, xss, inyeccion, lfpdppp]
-fuentes: ["app.py", "servidor.py", "templates/base.html", "raw/normativa/lfpdppp-datos-personales.md"]
+fuentes: ["sigma/app.py", "servidor.py", "sigma/templates/base.html", "raw/normativa/lfpdppp-datos-personales.md"]
 actualizado: 2026-10-04
 ---
 

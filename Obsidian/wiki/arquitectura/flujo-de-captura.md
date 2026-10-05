@@ -1,7 +1,7 @@
 ---
 tipo: arquitectura
 tags: [flujo, captura, post-capturar]
-fuentes: ["app.py", "validaciones.py", "database.py"]
+fuentes: ["sigma/app.py", "sigma/validaciones.py", "sigma/database.py"]
 actualizado: 2026-10-04
 ---
 

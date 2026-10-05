@@ -1,7 +1,7 @@
 ---
 tipo: arquitectura
 tags: [base-de-datos, esquema, sql, tablas]
-fuentes: ["database.py"]
+fuentes: ["sigma/database.py"]
 actualizado: 2026-10-04
 ---
 

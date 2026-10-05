@@ -1,22 +1,26 @@
 ---
 tipo: modulo
 tags: [pruebas, arnes, trl5, carga, seguridad, accesibilidad]
-fuentes: ["prueba_ambiente_relevante.py", "raw/resultados/e5-arnes-ambiente-relevante-antes.md", "raw/resultados/e5-arnes-ambiente-relevante-despues.md"]
+fuentes: ["pruebas/prueba_ambiente_relevante.py", "raw/resultados/e5-arnes-ambiente-relevante-antes.md", "raw/resultados/e5-arnes-ambiente-relevante-despues.md"]
 actualizado: 2026-10-04
 ---
 
-# `prueba_ambiente_relevante.py` — arnés del Entregable 5
+# `pruebas/prueba_ambiente_relevante.py` — arnés del Entregable 5
 
 Tiene 1,382 líneas. Prueba **el sistema completo** en condiciones semejantes a las de la empresa
 ([[entregable-5-trl5]]). Usa solo la biblioteca estándar.
 
 ```bash
-python prueba_ambiente_relevante.py                         # todo, con waitress (~3 min)
-python prueba_ambiente_relevante.py --bloques B,C,G         # solo algunos bloques
-python prueba_ambiente_relevante.py --servidor desarrollo   # con el servidor de Flask
-python prueba_ambiente_relevante.py --codigo <carpeta> --servidor desarrollo --etiqueta antes
+python pruebas/prueba_ambiente_relevante.py                         # todo, con waitress (~3 min)
+python pruebas/prueba_ambiente_relevante.py --bloques B,C,G         # solo algunos bloques
+python pruebas/prueba_ambiente_relevante.py --servidor desarrollo   # con el servidor de Flask
+python pruebas/prueba_ambiente_relevante.py --codigo <carpeta> --servidor desarrollo --etiqueta antes
 ```
-Genera `resultados_ambiente_relevante[_etiqueta].txt` y `.json` (en `.gitignore`).
+Genera `pruebas/resultados/resultados_ambiente_relevante[_etiqueta].txt` y `.json` (en `.gitignore`).
+
+`--codigo` acepta las dos estructuras del repositorio: la del paquete `sigma/` y la anterior, con todo en la raíz
+(E3 a E5). `codigo_en_paquete()` decide cómo importar la app en modo desarrollo y dónde leer `estilos.css` para el
+bloque H ([[adr-017-paquete-sigma-y-carpeta-de-pruebas]]).
 
 ## Principios ([[adr-016-arnes-como-caja-negra]])
 - **Caja negra por HTTP**: levanta el servidor como proceso independiente y lo usa como lo haría el navegador.

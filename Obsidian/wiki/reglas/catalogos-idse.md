@@ -1,7 +1,7 @@
 ---
 tipo: regla
 tags: [catalogos, idse, tipo-trabajador, causa-baja]
-fuentes: ["validaciones.py", "raw/entregables/e1-trl1-problematica.md"]
+fuentes: ["sigma/validaciones.py", "raw/entregables/e1-trl1-problematica.md"]
 actualizado: 2026-10-04
 ---
 

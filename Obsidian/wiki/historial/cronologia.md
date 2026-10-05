@@ -30,6 +30,7 @@ Todos los hechos con fecha, en orden. Los hashes salen de `raw/historial/git-log
 | 2026-10-04 | `438b7e6` y `c29ad8f`: `CLAUDE.md` e `instrucciones/Instrucciones.md` al día con el E5 | Pedro con Claude | — |
 | 2026-10-04 | `3afbc9a`: el feriado de transmisión del Ejecutivo pasa al 1 de octubre (LFT reformada en 2024; BUG-01) | Pedro con Claude | [[bugs-corregidos]] |
 | 2026-10-04 | Se agrega este segundo cerebro (`Obsidian/`) con los punteros en `CLAUDE.md` y `README.md`; push a `main` | Pedro con Claude | [[inicio]] |
+| 2026-10-04 | Reorganización en carpetas: la app pasa al paquete `sigma/` y los arneses a `pruebas/`. Rama `mejora/estructura-de-carpetas`, **PR #2**: `3269ff1` y `ac56fc1`. Verificada contra `main` sin diferencias | Pedro con Claude | [[sesion-2026-10-04-estructura-de-carpetas]] · [[adr-017-paquete-sigma-y-carpeta-de-pruebas]] |
 | (pendiente) | TRL 6: demostración en ambiente real | — | [[hoja-de-ruta-trl6]] |
 
 ## Ramas
@@ -38,6 +39,7 @@ Todos los hechos con fecha, en orden. Los hashes salen de `raw/historial/git-log
 | `main` | El commit que agrega `Obsidian/` (después de `3afbc9a`) | **Vigente.** Incluye todo: E5, corrección del calendario y este wiki |
 | `mejora/interfaz-y-validaciones` | `4c79ce4` | Histórica (E4). Ya fusionada por el PR #1 |
 | `trl5/ambiente-relevante` | `b46ad50` | Histórica (E5). Ya fusionada; se conserva porque el informe del E5 la cita por nombre |
+| `mejora/estructura-de-carpetas` | `ac56fc1` | **Abierta**: PR #2 pendiente de revisión ([[adr-017-paquete-sigma-y-carpeta-de-pruebas]]) |
 
 Si cambian las ramas, regenera `raw/historial/git-log.md` y actualiza esta tabla y [[inicio]].
 

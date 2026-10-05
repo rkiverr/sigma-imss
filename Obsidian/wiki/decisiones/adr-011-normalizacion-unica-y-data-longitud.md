@@ -3,7 +3,7 @@ tipo: decision
 estado: vigente
 fecha: 2026-10-04 (Entregable 5)
 tags: [normalizacion, interfaz, captura]
-fuentes: ["validaciones.py", "app.py", "static/js/app.js", "templates/index.html"]
+fuentes: ["sigma/validaciones.py", "sigma/app.py", "sigma/static/js/app.js", "sigma/templates/index.html"]
 actualizado: 2026-10-04
 ---
 

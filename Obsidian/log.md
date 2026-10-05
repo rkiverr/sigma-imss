@@ -91,3 +91,32 @@ Bitácora cronológica: solo se agrega al final y lo anterior no se edita.
   `.gitignore` las carpetas `Obsidian/.obsidian/` y `Obsidian/.trash/` (configuración personal de Obsidian).
 - Se empujó `main` a `github.com/rkiverr/sigma-imss`. El repo es **público**: el texto de los entregables
   (`raw/entregables/`) queda visible, con los nombres del equipo y los datos de la empresa.
+
+## [2026-10-04] sistema | Reorganización del repositorio en carpetas
+- Pedro pidió ordenar archivos y carpetas y aceptó la recomendación: la aplicación pasa al paquete `sigma/`
+  (con `templates/` y `static/`), los arneses a `pruebas/` y sus salidas a `pruebas/resultados/` (ignorada).
+  `python servidor.py` no cambia; `python app.py` pasa a ser `python -m sigma`.
+- Decisión nueva: [[adr-017-paquete-sigma-y-carpeta-de-pruebas]]. Sesión: [[sesion-2026-10-04-estructura-de-carpetas]].
+- Páginas actualizadas: [[inicio]], [[arquitectura-general]] (sección "Estructura de carpetas"), [[como-arrancar]],
+  [[configuracion]], [[guia-para-modificar-el-codigo]], [[mantenimiento-anual]], [[estrategia-de-pruebas]],
+  [[resultados-de-pruebas]], [[rutas-http]], [[decisiones]], [[cronologia]], las páginas de módulos y de arneses,
+  [[adr-009-servidor-de-produccion-waitress]] y el `fuentes:` de 50 páginas, que ahora lleva la ruta real.
+- `Obsidian/CLAUDE.md`: árbol de §2 y mapa de impacto de §5 con las rutas nuevas, y una fila para cambios de
+  estructura. `raw/` no se tocó. `raw/historial/git-log.md` se regenera cuando la rama se integre.
+
+## [2026-10-04] sesion | Verificación de la reorganización contra main
+- Pedro pidió verificar que todo funciona y cumple como antes. Mismo arnés sobre `main` y sobre la rama: 10/10
+  criterios del TRL 5 en las dos y 0 diferencias funcionales; lado a lado con copias de la base real, 18/18
+  respuestas HTTP idénticas; Chrome headless sin errores de consola en los dos temas.
+- Se quitó el import sin uso de `init_db` en `sigma/app.py`.
+- Páginas: [[sesion-2026-10-04-estructura-de-carpetas]] (sección de verificación) y [[resultados-de-pruebas]]
+  (variabilidad del p95). `CLAUDE.md` del repo: §6 "Estado verificado".
+
+## [2026-10-04] sesion | Cierre de la reorganización: PR #2, método de verificación y cómo integrarlo
+- Página nueva [[verificar-un-cambio-contra-main]]: las cinco comprobaciones contra `main`, con los dos scripts ya
+  probados (`criterios_trl5.py` y `verificar_contra_main.py`, que van fuera del repo) y las trampas encontradas.
+- Corrección de la verificación: `/api/validar` recibe JSON. Con JSON, las 18 respuestas siguen idénticas.
+- [[preguntas-frecuentes]]: qué pasa en cada computadora al aceptar el PR #2, y cómo saber que funciona igual;
+  se corrigió la de `app.py` y `servidor.py`.
+- Actualizadas: [[sesion-2026-10-04-estructura-de-carpetas]] (PR #2, commits, lo que pasó después), [[rutas-http]],
+  [[estrategia-de-pruebas]], [[inicio]] (fila "En revisión") y [[cronologia]].

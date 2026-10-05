@@ -1,7 +1,7 @@
 ---
 tipo: arquitectura
 tags: [arquitectura, capas, flask, stack]
-fuentes: ["app.py", "servidor.py", "database.py", "validaciones.py", "exportar_idse.py", "plazo.py", "raw/entregables/e4-trl4-prototipo-integrado.md"]
+fuentes: ["sigma/app.py", "servidor.py", "sigma/database.py", "sigma/validaciones.py", "sigma/exportar_idse.py", "sigma/plazo.py", "raw/entregables/e4-trl4-prototipo-integrado.md"]
 actualizado: 2026-10-04
 ---
 
@@ -49,11 +49,32 @@ flowchart TB
 ## Capas
 | Capa | Qué hace | Archivos | Página |
 |---|---|---|---|
-| Presentación | Formulario, tablero, tabla de movimientos, bitácora; validación en vivo, máscaras, tema claro u oscuro. Funciona **sin JavaScript** y **sin internet** | `templates/`, `static/` | [[modulo-interfaz]] |
+| Presentación | Formulario, tablero, tabla de movimientos, bitácora; validación en vivo, máscaras, tema claro u oscuro. Funciona **sin JavaScript** y **sin internet** | `sigma/templates/`, `sigma/static/` | [[modulo-interfaz]] |
 | Aplicación | Arranque en producción, rutas HTTP, flujo, seguridad por petición, reglas de historial | `servidor.py`, `app.py` | [[modulo-servidor]], [[modulo-app]] |
 | Reglas | Validación de formato, reglas de la LSS, plazo legal | `validaciones.py`, `plazo.py` | [[modulo-validaciones]], [[modulo-plazo]] |
 | Persistencia | Esquema, selección de motor, transacciones, consultas de dominio | `database.py` | [[modulo-database]] |
 | Salida | Traducción al lote de texto del IDSE | `exportar_idse.py` | [[modulo-exportar-idse]] |
+
+## Estructura de carpetas
+La aplicación es el paquete `sigma/`; en la raíz solo quedan el arranque de producción y lo que no es código
+de la aplicación ([[adr-017-paquete-sigma-y-carpeta-de-pruebas]]).
+
+```text
+sigma-imss/
+├── servidor.py              producción (waitress) → python servidor.py
+├── requirements.txt
+├── sigma/                   la aplicación
+│   ├── __main__.py          desarrollo → python -m sigma
+│   ├── app.py  validaciones.py  plazo.py  database.py  exportar_idse.py
+│   ├── templates/
+│   └── static/
+├── pruebas/                 los dos arneses
+│   └── resultados/          todo lo que generan (no se versiona)
+├── instrucciones/           guías para personas
+├── Obsidian/                este segundo cerebro
+├── sigma_imss.db            base de trabajo (no se versiona)
+└── exportaciones/           lotes IDSE (no se versiona)
+```
 
 ## Stack
 - **Python 3.** El equipo de desarrollo usa 3.14.3, dentro del entorno virtual "LittleLemon" que está en el

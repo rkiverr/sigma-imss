@@ -1,7 +1,7 @@
 ---
 tipo: operacion
 tags: [configuracion, variables-de-entorno]
-fuentes: ["servidor.py", "app.py", "database.py", "README.md"]
+fuentes: ["servidor.py", "sigma/app.py", "sigma/database.py", "README.md"]
 actualizado: 2026-10-04
 ---
 
@@ -9,14 +9,14 @@ actualizado: 2026-10-04
 
 | Variable | Dónde se lee | Por defecto | Para qué |
 |---|---|---|---|
-| `SIGMA_HOST` | `servidor.py`, `app.py` | `0.0.0.0` en servidor.py · `127.0.0.1` en app.py | Interfaz de escucha |
-| `SIGMA_PUERTO` | `servidor.py`, `app.py` | `5050` | Puerto |
+| `SIGMA_HOST` | `servidor.py`, `sigma/__main__.py` | `0.0.0.0` en servidor.py · `127.0.0.1` con `python -m sigma` | Interfaz de escucha |
+| `SIGMA_PUERTO` | `servidor.py`, `sigma/__main__.py` | `5050` | Puerto |
 | `SIGMA_HILOS` | `servidor.py` | `8` | Peticiones simultáneas de waitress |
-| `SIGMA_DEBUG` | `app.py` | (apagado) | `1` = depuración en `python app.py` |
+| `SIGMA_DEBUG` | `sigma/__main__.py` | (apagado) | `1` = depuración en `python -m sigma` |
 | `SECRET_KEY` | `app.py` | Aleatoria en cada arranque | Firma de sesiones y *flash*. **Fíjala en la oficina** para que un reinicio no invalide sesiones |
 | `DATABASE_URL` | `database.py` | `postgresql://postgres:postgres@localhost:5432/sigma_imss?client_encoding=UTF8` | PostgreSQL |
 | `SIGMA_DB` | `database.py` | (automático) | `sqlite` o `postgres` para forzar el motor |
-| `SQLITE_PATH` | `database.py` | `sigma_imss.db` junto al código | Archivo SQLite |
+| `SQLITE_PATH` | `database.py` | `sigma_imss.db` en la raíz del repositorio (fuera de `sigma/`) | Archivo SQLite |
 
 **Importante:** `database.py` lee su configuración **al importarse**. Para cambiarla, fíjala antes de arrancar,
 o antes del `import` si es en un script (así lo hace el arnés del E3).

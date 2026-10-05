@@ -25,9 +25,11 @@ pendiente, **sin releer todo el código**.
 
 ```
 sigma-imss/                     ← repositorio (github.com/rkiverr/sigma-imss)
-├── app.py, validaciones.py…    ┐ CÓDIGO: fuente de verdad del comportamiento
-├── templates/, static/         │ (el agente lo cambia solo cuando Pedro lo pide)
-├── README.md, instrucciones/   ┘ documentación para personas
+├── servidor.py                 ┐ CÓDIGO: fuente de verdad del comportamiento
+├── sigma/                      │ la aplicación: app.py, validaciones.py…, templates/, static/
+├── pruebas/                    │ los dos arneses (salidas en pruebas/resultados/, ignorada)
+│                               ┘ (el agente lo cambia solo cuando Pedro lo pide)
+├── README.md, instrucciones/   ← documentación para personas
 ├── CLAUDE.md                   ← memoria corta del repo (la carga Claude Code); apunta aquí
 └── Obsidian/                   ← ESTE segundo cerebro
     ├── CLAUDE.md               ← este archivo: esquema y reglas
@@ -140,13 +142,14 @@ Al terminar una sesión con cambios importantes, crea `wiki/historial/sesion-AAA
 
 | Si cambia… | Actualiza… |
 |---|---|
-| `app.py` | [[modulo-app]], [[rutas-http]], [[flujo-de-captura]], [[seguridad-web]] (si toca seguridad) |
-| `validaciones.py` | [[modulo-validaciones]], [[reglas-de-validacion]] y la regla específica en `reglas/` |
-| `plazo.py` | [[modulo-plazo]], [[plazo-legal]], [[mantenimiento-anual]] |
-| `database.py` | [[modulo-database]], [[modelo-de-datos]], [[doble-motor-de-base-de-datos]] |
-| `exportar_idse.py` | [[modulo-exportar-idse]], [[lote-idse]] |
-| `servidor.py` o la forma de arrancar | [[modulo-servidor]], [[como-arrancar]], [[configuracion]] |
-| `templates/` o `static/` | [[modulo-interfaz]], [[accesibilidad]] |
+| `sigma/app.py` | [[modulo-app]], [[rutas-http]], [[flujo-de-captura]], [[seguridad-web]] (si toca seguridad) |
+| `sigma/validaciones.py` | [[modulo-validaciones]], [[reglas-de-validacion]] y la regla específica en `reglas/` |
+| `sigma/plazo.py` | [[modulo-plazo]], [[plazo-legal]], [[mantenimiento-anual]] |
+| `sigma/database.py` | [[modulo-database]], [[modelo-de-datos]], [[doble-motor-de-base-de-datos]] |
+| `sigma/exportar_idse.py` | [[modulo-exportar-idse]], [[lote-idse]] |
+| `servidor.py`, `sigma/__main__.py` o la forma de arrancar | [[modulo-servidor]], [[como-arrancar]], [[configuracion]] |
+| `sigma/templates/` o `sigma/static/` | [[modulo-interfaz]], [[accesibilidad]] |
+| La estructura de carpetas | [[arquitectura-general]], [[inicio]], [[como-arrancar]] y el árbol de §2 de este archivo |
 | Arneses de prueba o sus resultados | [[arnes-prueba-de-concepto]] o [[arnes-ambiente-relevante]], [[resultados-de-pruebas]] y `raw/resultados/` |
 | Montos de salario mínimo o UMA | [[salario-sdi-y-limites]], [[mantenimiento-anual]] y `raw/normativa/` (archivo nuevo del año) |
 | Nueva entrega TRL | `raw/entregables/`, página en `entregables/`, [[trayectoria-trl]], [[hoja-de-ruta-trl6]] |

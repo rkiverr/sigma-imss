@@ -1,7 +1,7 @@
 ---
 tipo: concepto
 tags: [curp, renapo, digito-verificador, identificadores]
-fuentes: ["validaciones.py", "prueba_ambiente_relevante.py"]
+fuentes: ["sigma/validaciones.py", "pruebas/prueba_ambiente_relevante.py"]
 actualizado: 2026-10-04
 ---
 

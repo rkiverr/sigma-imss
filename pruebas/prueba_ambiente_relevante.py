@@ -24,11 +24,11 @@ Bloques:
 Para no tocar la base de trabajo ni los lotes reales, cada bloque ejecuta una
 COPIA AISLADA del sistema en un directorio temporal, con su propia base SQLite.
 
-Uso:
-  python prueba_ambiente_relevante.py                         # servidor de producción
-  python prueba_ambiente_relevante.py --servidor desarrollo   # servidor de Flask
-  python prueba_ambiente_relevante.py --bloques A,B --etiqueta prueba
-  python prueba_ambiente_relevante.py --codigo ../version_e4 --servidor desarrollo --etiqueta antes
+Uso (desde la raíz del repositorio; los reportes quedan en pruebas/resultados/):
+  python pruebas/prueba_ambiente_relevante.py                         # servidor de producción
+  python pruebas/prueba_ambiente_relevante.py --servidor desarrollo   # servidor de Flask
+  python pruebas/prueba_ambiente_relevante.py --bloques A,B --etiqueta prueba
+  python pruebas/prueba_ambiente_relevante.py --codigo ../version_e4 --servidor desarrollo --etiqueta antes
 """
 import argparse
 import html
@@ -51,8 +51,9 @@ import unicodedata
 import urllib.parse
 from datetime import date, datetime, timedelta
 
-RAIZ = os.path.dirname(os.path.abspath(__file__))
+RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # raíz del repositorio
 CODIGO = RAIZ            # versión del sistema que se prueba (--codigo la cambia)
+SALIDA = os.path.join(RAIZ, "pruebas", "resultados")
 REPORTE = []
 RESULTADOS = {}
 
@@ -262,12 +263,19 @@ def ip_lan():
             return "127.0.0.1"
 
 
+def codigo_en_paquete():
+    """True si la versión que se prueba tiene la aplicación en el paquete sigma/;
+    las de las Entregas 3 a 5 la tenían suelta en la raíz (útil con --codigo)."""
+    return os.path.isfile(os.path.join(CODIGO, "sigma", "__init__.py"))
+
+
 class Servidor:
     """Levanta una copia del sistema en un directorio temporal."""
 
     IGNORAR = staticmethod(shutil.ignore_patterns(".git", "*.db", "*.db-wal", "*.db-shm", "exportaciones",
-                                     "__pycache__", "resultados_*", "instrucciones",
-                                     "prueba_ambiente_relevante.py", "test_prueba_concepto.py"))
+                                     "__pycache__", "resultados_*", "instrucciones", "pruebas",
+                                     "Obsidian", "prueba_ambiente_relevante.py",
+                                     "test_prueba_concepto.py"))
 
     def __init__(self, modo):
         self.modo = modo
@@ -282,11 +290,12 @@ class Servidor:
     def _comando(self):
         if self.modo == "produccion":
             return [sys.executable, "servidor.py"]
-        # Servidor de desarrollo de Flask tal como lo usa app.py (debug activo,
-        # escuchando en todas las interfaces). Solo se apaga el recargador, que
-        # es una comodidad de edición y crea un segundo proceso.
+        # Servidor de desarrollo de Flask tal como lo usaba app.py hasta la E4
+        # (debug activo, escuchando en todas las interfaces). Solo se apaga el
+        # recargador, que es una comodidad de edición y crea un segundo proceso.
+        importar = "from sigma import database, app" if codigo_en_paquete() else "import database, app"
         return [sys.executable, "-c",
-                "import database, app; database.init_db(); "
+                f"{importar}; database.init_db(); "
                 f"app.app.run(host='0.0.0.0', port={self.puerto}, debug=True, use_reloader=False)"]
 
     def iniciar(self):
@@ -1314,7 +1323,8 @@ def bloque_h():
     log("=" * 78)
     log("BLOQUE H — CONTRASTE DE LA PALETA (WCAG 2.1, criterio 1.4.3, mínimo 4.5:1)")
     log("=" * 78)
-    with open(os.path.join(CODIGO, "static", "css", "estilos.css"), encoding="utf-8") as f:
+    carpeta = os.path.join(CODIGO, "sigma") if codigo_en_paquete() else CODIGO
+    with open(os.path.join(carpeta, "static", "css", "estilos.css"), encoding="utf-8") as f:
         css = f.read()
     temas = {"claro": css[css.find(":root {"):css.find("}", css.find(":root {"))]}
     inicio_oscuro = css.find(":root:not([data-tema=\"claro\"])")
@@ -1371,11 +1381,12 @@ def main():
     RESULTADOS["meta"]["duracion_total_s"] = round(time.perf_counter() - inicio, 1)
     log(f"Duración total: {RESULTADOS['meta']['duracion_total_s']} s")
 
-    with open(os.path.join(RAIZ, f"resultados_ambiente_relevante{sufijo}.txt"), "w", encoding="utf-8") as f:
+    os.makedirs(SALIDA, exist_ok=True)
+    with open(os.path.join(SALIDA, f"resultados_ambiente_relevante{sufijo}.txt"), "w", encoding="utf-8") as f:
         f.write("\n".join(REPORTE))
-    with open(os.path.join(RAIZ, f"resultados_ambiente_relevante{sufijo}.json"), "w", encoding="utf-8") as f:
+    with open(os.path.join(SALIDA, f"resultados_ambiente_relevante{sufijo}.json"), "w", encoding="utf-8") as f:
         json.dump(RESULTADOS, f, ensure_ascii=False, indent=2)
-    print(f"\nReporte guardado en resultados_ambiente_relevante{sufijo}.txt y .json")
+    print(f"\nReporte guardado en pruebas/resultados/resultados_ambiente_relevante{sufijo}.txt y .json")
 
 
 if __name__ == "__main__":

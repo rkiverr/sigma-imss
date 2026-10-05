@@ -1,7 +1,7 @@
 ---
 tipo: regla
 tags: [plazo, lss, dias-habiles, multas]
-fuentes: ["plazo.py", "validaciones.py", "raw/normativa/lss-ley-del-seguro-social.md", "raw/normativa/racerf-reglamento-afiliacion.md", "raw/normativa/lft-ley-federal-del-trabajo.md", "raw/normativa/valores-oficiales-2026.md"]
+fuentes: ["sigma/plazo.py", "sigma/validaciones.py", "raw/normativa/lss-ley-del-seguro-social.md", "raw/normativa/racerf-reglamento-afiliacion.md", "raw/normativa/lft-ley-federal-del-trabajo.md", "raw/normativa/valores-oficiales-2026.md"]
 actualizado: 2026-10-04
 ---
 

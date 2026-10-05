@@ -1,7 +1,7 @@
 ---
 tipo: regla
 tags: [sdi, sbc, salario-minimo, uma, lss]
-fuentes: ["validaciones.py", "exportar_idse.py", "raw/normativa/lss-ley-del-seguro-social.md", "raw/normativa/racerf-reglamento-afiliacion.md", "raw/normativa/valores-oficiales-2026.md"]
+fuentes: ["sigma/validaciones.py", "sigma/exportar_idse.py", "raw/normativa/lss-ley-del-seguro-social.md", "raw/normativa/racerf-reglamento-afiliacion.md", "raw/normativa/valores-oficiales-2026.md"]
 actualizado: 2026-10-04
 ---
 

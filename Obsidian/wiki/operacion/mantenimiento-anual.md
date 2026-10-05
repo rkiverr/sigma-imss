@@ -1,7 +1,7 @@
 ---
 tipo: operacion
 tags: [mantenimiento, salario-minimo, uma, dias-inhabiles, anual]
-fuentes: ["validaciones.py", "plazo.py", "raw/normativa/valores-oficiales-2026.md", "raw/normativa/lft-ley-federal-del-trabajo.md"]
+fuentes: ["sigma/validaciones.py", "sigma/plazo.py", "raw/normativa/valores-oficiales-2026.md", "raw/normativa/lft-ley-federal-del-trabajo.md"]
 actualizado: 2026-10-04
 ---
 
@@ -25,7 +25,8 @@ Es el riesgo R-08 de [[riesgos]].
 2. Si el año no está en la tabla, `limites_sbc()` usa **el más reciente** sin avisar. Por eso hay que
    actualizarla a tiempo.
 3. Guarda la fuente oficial en `Obsidian/raw/normativa/valores-oficiales-<año>.md` como archivo **nuevo**.
-4. Corre las pruebas: `python test_prueba_concepto.py` (8/8) y `python prueba_ambiente_relevante.py --bloques B`.
+4. Corre las pruebas: `python pruebas/test_prueba_concepto.py` (8/8) y
+   `python pruebas/prueba_ambiente_relevante.py --bloques B`.
 5. Actualiza [[salario-sdi-y-limites]] y el log.
 
 ## Valores vigentes hoy

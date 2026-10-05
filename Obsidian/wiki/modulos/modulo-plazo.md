@@ -1,11 +1,11 @@
 ---
 tipo: modulo
 tags: [plazo, dias-habiles, lss, lft]
-fuentes: ["plazo.py", "raw/normativa/lss-ley-del-seguro-social.md", "raw/normativa/lft-ley-federal-del-trabajo.md"]
+fuentes: ["sigma/plazo.py", "raw/normativa/lss-ley-del-seguro-social.md", "raw/normativa/lft-ley-federal-del-trabajo.md"]
 actualizado: 2026-10-04
 ---
 
-# `plazo.py` — plazo legal de cinco días hábiles
+# `sigma/plazo.py` — plazo legal de cinco días hábiles
 
 Tiene 101 líneas y es nuevo en el E5. Calcula si un movimiento está **en plazo, por vencer o vencido** según el
 art. 15, fr. I, de la LSS. La regla de negocio completa está en [[plazo-legal]]. La lógica se portó de la versión

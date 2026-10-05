@@ -4,14 +4,15 @@ Sistema Sigma — prototipo validado en ambiente relevante (Entrega 5, TRL 5).
 Interfaz cliente (aplicación web) + lógica de servidor (validación,
 persistencia y exportación) para el sistema de altas y bajas IMSS/IDSE.
 
-Arquitectura cliente-servidor:
+Arquitectura cliente-servidor (paquete sigma/):
     templates/ + static/   capa de presentación
     app.py                 controlador HTTP y reglas de flujo
     validaciones.py        validación algorítmica
     plazo.py               plazo legal de cinco días hábiles
     database.py            persistencia relacional (PostgreSQL o SQLite)
     exportar_idse.py       abstracción de datos hacia el formato IDSE
-    servidor.py            arranque en modo producción (waitress)
+    __main__.py            servidor de desarrollo (python -m sigma)
+    ../servidor.py         arranque en modo producción (waitress)
 """
 import os
 import secrets
@@ -21,16 +22,15 @@ from urllib.parse import urlparse
 from flask import (Flask, abort, flash, g, jsonify, redirect, render_template,
                    request, send_file, url_for)
 
-import exportar_idse
-import plazo
-from database import (ERRORES_DE_INTEGRIDAD, ErrorBaseDeDatos, conexion,
-                      conflicto_de_identidad, descripcion_backend,
-                      estadisticas, estado_afiliatorio, init_db,
-                      movimiento_duplicado, obtener_o_crear_trabajador,
-                      obtener_patron_id, registrar_bitacora)
-from validaciones import (CAUSAS_BAJA, ORDEN_CAMPOS, TIPO_ALTA, TIPO_BAJA,
-                          TIPOS_JORNADA, TIPOS_SALARIO, TIPOS_TRABAJADOR,
-                          normalizar_datos, validar_campos)
+from . import exportar_idse, plazo
+from .database import (ERRORES_DE_INTEGRIDAD, ErrorBaseDeDatos, conexion,
+                       conflicto_de_identidad, descripcion_backend,
+                       estadisticas, estado_afiliatorio,
+                       movimiento_duplicado, obtener_o_crear_trabajador,
+                       obtener_patron_id, registrar_bitacora)
+from .validaciones import (CAUSAS_BAJA, ORDEN_CAMPOS, TIPO_ALTA, TIPO_BAJA,
+                           TIPOS_JORNADA, TIPOS_SALARIO, TIPOS_TRABAJADOR,
+                           normalizar_datos, validar_campos)
 
 app = Flask(__name__)
 # En producción debe fijarse con la variable de entorno; en desarrollo se
@@ -539,18 +539,3 @@ def error_no_controlado(error):
         "error.html", codigo=500, titulo="Ocurrió un error en el servidor",
         detalle=str(error) if app.debug else
         "El movimiento no se guardó. Revisa la consola del servidor para el detalle técnico."), 500
-
-
-if __name__ == "__main__":
-    # Servidor de desarrollo, solo para programar. En la oficina se arranca con
-    # servidor.py (waitress). El modo debug publica una consola de depuración y
-    # el detalle de los errores, por eso solo se activa a petición expresa y,
-    # salvo que se indique otra cosa, escuchando únicamente en este equipo.
-    depurar = os.environ.get("SIGMA_DEBUG") == "1"
-    host = os.environ.get("SIGMA_HOST", "127.0.0.1")
-    puerto = int(os.environ.get("SIGMA_PUERTO", "5050"))
-    init_db()
-    print(f"[sigma] Motor de datos: {descripcion_backend()}")
-    print(f"[sigma] Servidor de DESARROLLO en http://{host}:{puerto} "
-          f"(debug {'activo' if depurar else 'apagado'}). Para la oficina usa: python servidor.py")
-    app.run(debug=depurar, host=host, port=puerto)

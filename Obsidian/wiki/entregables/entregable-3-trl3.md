@@ -1,7 +1,7 @@
 ---
 tipo: entregable
 tags: [trl3, prueba-de-concepto, regex, flask]
-fuentes: ["raw/entregables/e3-trl3-prueba-de-concepto.md", "test_prueba_concepto.py"]
+fuentes: ["raw/entregables/e3-trl3-prueba-de-concepto.md", "pruebas/test_prueba_concepto.py"]
 actualizado: 2026-10-04
 ---
 

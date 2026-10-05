@@ -1,7 +1,7 @@
 ---
 tipo: consulta
 tags: [preguntas, faq, dudas-resueltas]
-fuentes: ["database.py", "app.py", "templates/base.html", "raw/historial/git-log.md"]
+fuentes: ["sigma/database.py", "sigma/app.py", "sigma/templates/base.html", "raw/historial/git-log.md"]
 actualizado: 2026-10-04
 ---
 
@@ -54,8 +54,9 @@ Es una sola. "Your branches" y "Active branches" son dos vistas de la misma list
 Porque el informe del E5 la cita por nombre. Se dejó en GitHub para que la cita no quede rota ([[cronologia]]).
 
 **¿Arranco con `app.py` o con `servidor.py`?**
-- Para usarlo en la red de la oficina: **`servidor.py`** (waitress).
-- `app.py` es solo para desarrollo: escucha en `127.0.0.1` y depura solo con `SIGMA_DEBUG=1`.
+- Para usarlo en la red de la oficina: **`python servidor.py`** (waitress).
+- El servidor de desarrollo escucha en `127.0.0.1` y depura solo con `SIGMA_DEBUG=1`. Con la estructura de
+  `sigma/` (PR #2) se arranca con **`python -m sigma`**; antes era `python app.py`.
 
 Ver [[como-arrancar]] y [[adr-009-servidor-de-produccion-waitress]].
 
@@ -70,6 +71,26 @@ No. Todo SQL va con `%s`; el envoltorio de SQLite lo traduce en un solo sentido
 **¿Los cambios del E5 pasaron por un PR?**
 No. Pedro pidió integrarlos directo a `main` (`cffd375`). Queda pendiente avisarle a Gael
 ([[sesion-2026-10-04-entregable-5]]).
+
+**Cuando se acepte el PR #2, ¿la computadora de cada quien se reorganiza sola?**
+No. Al aceptarlo, **GitHub** queda con la estructura nueva, pero cada copia local cambia hasta que se baja:
+```bash
+git switch main
+git pull
+```
+- Git mueve solo los archivos a `sigma/` y `pruebas/` y conserva su historial.
+- Antes: detener Sigma y hacer commit o `git stash` de los cambios sin guardar. Si sale "Permission denied" al
+  mover una carpeta, cerrar VS Code y repetir el `git pull`.
+- `sigma_imss.db` y `exportaciones/` se quedan donde estaban: no se pierde lo capturado.
+- Los reportes viejos sueltos en la raíz (`resultados_*`) ya no están en `.gitignore` y aparecen en `git status`;
+  se pueden borrar.
+- Para programar, `python app.py` pasa a ser `python -m sigma`.
+
+Ver [[adr-017-paquete-sigma-y-carpeta-de-pruebas]].
+
+**¿Cómo sé que la reorganización funciona igual que antes?**
+Se comparó contra `main` con el mismo arnés: 10/10 criterios en las dos versiones, 0 diferencias funcionales y
+18/18 respuestas HTTP idénticas. El método se puede repetir: [[verificar-un-cambio-contra-main]].
 
 ## Sobre la clasificación del sistema
 **¿Sigma es de lazo abierto o de lazo cerrado?**

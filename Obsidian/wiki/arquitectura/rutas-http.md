@@ -1,7 +1,7 @@
 ---
 tipo: arquitectura
 tags: [rutas, api, http, flask]
-fuentes: ["app.py"]
+fuentes: ["sigma/app.py"]
 actualizado: 2026-10-04
 ---
 
@@ -15,7 +15,7 @@ Todas están en `app.py` ([[modulo-app]]). Puerto **5050**.
 | `/capturar` | POST | `capturar()` | Valida y guarda un movimiento ([[flujo-de-captura]]) | 302 a `/` si se guardó; **422** con el formulario y los errores; 403 si el origen es ajeno |
 | `/exportar` | POST | `exportar()` | Genera el lote IDSE con los pendientes y los marca como Exportado ([[lote-idse]]) | 302 a `/` (con *flash* de éxito o de error) |
 | `/descargar-lote` | GET | `descargar_lote()` | Descarga el lote más reciente (por fecha de modificación) | archivo `text/plain`, o 302 con aviso si no hay ninguno |
-| `/api/validar` | POST (JSON) | `api_validar()` | Validación en vivo: normaliza y llama a `validar_campos()` | 200 `{"valido": bool, "errores": {campo: msg}, "avisos": {campo: msg}}` |
+| `/api/validar` | POST (JSON) | `api_validar()` | Validación en vivo: normaliza y llama a `validar_campos()`. Lee el cuerpo con `get_json()`: si llega como formulario, no ve ningún dato y responde que todo es obligatorio | 200 `{"valido": bool, "errores": {campo: msg}, "avisos": {campo: msg}}` |
 | `/api/movimiento/<int:id>` | GET | `api_movimiento()` | Detalle de un movimiento y su bitácora (para el diálogo de la tabla) | 200 JSON; **404** si no existe o si `id > FOLIO_MAXIMO` (2³¹−1) |
 
 ## Parámetros de `GET /`
@@ -44,7 +44,7 @@ Campos:
 | 503 | `ErrorBaseDeDatos`: no se pudo abrir la base | "Base de datos no disponible", con el detalle y una ayuda para PostgreSQL |
 | 500 | Cualquier otra excepción | Mensaje genérico. El detalle técnico **solo** aparece con `app.debug`, que en producción nunca está activo |
 
-Todas usan `templates/error.html`.
+Todas usan `sigma/templates/error.html`.
 
 ## Lo que corre en cada petición
 - `before_request` → `preparar_peticion()`:

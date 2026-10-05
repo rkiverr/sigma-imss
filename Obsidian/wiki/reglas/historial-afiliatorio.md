@@ -1,7 +1,7 @@
 ---
 tipo: regla
 tags: [historial, alta, baja, reingreso, maquina-de-estados]
-fuentes: ["app.py", "database.py", "raw/entregables/e1-trl1-problematica.md"]
+fuentes: ["sigma/app.py", "sigma/database.py", "raw/entregables/e1-trl1-problematica.md"]
 actualizado: 2026-10-04
 ---
 

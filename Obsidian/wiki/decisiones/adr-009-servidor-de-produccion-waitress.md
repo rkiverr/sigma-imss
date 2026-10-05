@@ -3,7 +3,7 @@ tipo: decision
 estado: vigente
 fecha: 2026-10-04 (Entregable 5)
 tags: [servidor, waitress, seguridad, despliegue]
-fuentes: ["servidor.py", "app.py", "raw/resultados/e5-arnes-ambiente-relevante-antes.md"]
+fuentes: ["servidor.py", "sigma/app.py", "raw/resultados/e5-arnes-ambiente-relevante-antes.md"]
 actualizado: 2026-10-04
 ---
 
@@ -19,7 +19,8 @@ En el bloque G del E5, desde la IP de la red local:
 - Nuevo `servidor.py` con **waitress** (`threads=8`, `ident="Sigma"`, host y puerto por variables de entorno).
   Es lo que se usa en la oficina.
 - `python app.py` queda **solo para desarrollo**: escucha en **127.0.0.1** y activa `debug` solo con
-  **`SIGMA_DEBUG=1`**.
+  **`SIGMA_DEBUG=1`**. Desde [[adr-017-paquete-sigma-y-carpeta-de-pruebas]] ese arranque es `python -m sigma`;
+  la decisión no cambia.
 
 **Por qué waitress.** Es WSGI de producción, **funciona en Windows sin compilar** (gunicorn no corre en Windows)
 y es puro Python.

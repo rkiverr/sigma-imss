@@ -3,7 +3,7 @@ tipo: decision
 estado: vigente
 fecha: 2026-09-10 (Entregable 4)
 tags: [base-de-datos, postgresql, sqlite]
-fuentes: ["database.py", "CLAUDE.md"]
+fuentes: ["sigma/database.py", "CLAUDE.md"]
 actualizado: 2026-10-04
 ---
 

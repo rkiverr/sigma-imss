@@ -1,7 +1,7 @@
 ---
 tipo: concepto
 tags: [normalizacion, mascaras, captura, data-longitud]
-fuentes: ["validaciones.py", "app.py", "static/js/app.js", "templates/index.html"]
+fuentes: ["sigma/validaciones.py", "sigma/app.py", "sigma/static/js/app.js", "sigma/templates/index.html"]
 actualizado: 2026-10-04
 ---
 

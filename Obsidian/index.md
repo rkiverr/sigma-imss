@@ -35,15 +35,15 @@ la bitácora en [[log]].
 - [[sigma-como-sistema-de-control]]: el lazo cerrado con sus dos lazos (interno y externo).
 
 ## Módulos (código)
-- [[modulo-app]]: `app.py`, el controlador HTTP con CSRF, CSP y manejo de errores.
-- [[modulo-validaciones]]: `validaciones.py`, el comparador de reglas.
-- [[modulo-database]]: `database.py`, persistencia y selección de motor.
-- [[modulo-exportar-idse]]: `exportar_idse.py`, el lote de texto (actuador).
-- [[modulo-plazo]]: `plazo.py`, los 5 días hábiles.
+- [[modulo-app]]: `sigma/app.py`, el controlador HTTP con CSRF, CSP y manejo de errores.
+- [[modulo-validaciones]]: `sigma/validaciones.py`, el comparador de reglas.
+- [[modulo-database]]: `sigma/database.py`, persistencia y selección de motor.
+- [[modulo-exportar-idse]]: `sigma/exportar_idse.py`, el lote de texto (actuador).
+- [[modulo-plazo]]: `sigma/plazo.py`, los 5 días hábiles.
 - [[modulo-servidor]]: `servidor.py`, arranque en producción con waitress.
-- [[modulo-interfaz]]: `templates/` y `static/`.
-- [[arnes-prueba-de-concepto]]: `test_prueba_concepto.py` (E3), regresión de 8 casos.
-- [[arnes-ambiente-relevante]]: `prueba_ambiente_relevante.py` (E5), bloques A–H.
+- [[modulo-interfaz]]: `sigma/templates/` y `sigma/static/`.
+- [[arnes-prueba-de-concepto]]: `pruebas/test_prueba_concepto.py` (E3), regresión de 8 casos.
+- [[arnes-ambiente-relevante]]: `pruebas/prueba_ambiente_relevante.py` (E5), bloques A–H.
 
 ## Reglas de negocio
 - [[reglas-de-validacion]]: las 30 reglas, con su tipo (error o aviso) y su lugar en el código.
@@ -83,6 +83,7 @@ la bitácora en [[log]].
 - [[adr-014-limites-legales-del-sdi]]: límites del art. 28 LSS.
 - [[adr-015-lazo-cerrado]]: la clasificación vigente del sistema.
 - [[adr-016-arnes-como-caja-negra]]: el arnés del E5 prueba por HTTP.
+- [[adr-017-paquete-sigma-y-carpeta-de-pruebas]]: la app es el paquete `sigma/` y los arneses viven en `pruebas/`.
 
 ## Operación
 - [[como-arrancar]]: instalar, arrancar en desarrollo y en producción.
@@ -90,6 +91,7 @@ la bitácora en [[log]].
 - [[mantenimiento-anual]]: salario mínimo, UMA y días inhábiles que caducan cada año.
 - [[problemas-frecuentes]]: errores comunes al arrancar y cómo resolverlos.
 - [[guia-para-modificar-el-codigo]]: reglas y rutina para no romper nada.
+- [[verificar-un-cambio-contra-main]]: demostrar que un cambio funciona igual que `main` (arnés en las dos versiones, lado a lado por HTTP y Chrome headless).
 - [[como-se-hizo-el-entregable-5]]: receta completa del informe (python-docx, Mermaid, capturas y Word por COM).
 
 ## Pruebas
@@ -104,6 +106,7 @@ la bitácora en [[log]].
 - [[cronologia]]: todos los hechos con fecha, commits y ramas.
 - [[sesion-2026-09-10-rediseno-y-entregable-4]]: rediseño, PR #1 y Entregable 4.
 - [[sesion-2026-10-04-entregable-5]]: Entregable 5, merge a `main` y creación de este wiki.
+- [[sesion-2026-10-04-estructura-de-carpetas]]: reorganización del repo en `sigma/` y `pruebas/`.
 
 ## Consultas
 - [[preguntas-frecuentes]]: usuarios semilla, insignia del patrón, punto verde, base local, ramas, etc.

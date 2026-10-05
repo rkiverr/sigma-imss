@@ -71,6 +71,11 @@ En las 60 capturas limpias hubo **0 falsos positivos** en las dos versiones.
 Con 20 usuarios, la **captura más lenta** tardó 3.3 s antes y 6.0 s después, por la espera de escritura de SQLite.
 El p95 no se afecta, pero es una razón para migrar a PostgreSQL. La memoria del servidor fue de 43–72 MB.
 
+**Variabilidad entre corridas.** El p95 con 20 usuarios depende de la carga de la máquina. El mismo día, más
+tarde, el código de `main` dio 182.6 y 175.2 ms, y el reorganizado en carpetas, 190.8, 218.4 y 145.8 ms, sin
+errores en ninguno ([[sesion-2026-10-04-estructura-de-carpetas]]). Los 120.0 ms son los de la corrida del informe. Para comparar dos
+versiones, córrelas una tras otra en la misma sesión.
+
 ## Bloque E: volumen
 | Movimientos | Tablero p95 (antes → después) | Búsqueda p95 | Lote de 510 | Tamaño de la base |
 |---|---|---|---|---|

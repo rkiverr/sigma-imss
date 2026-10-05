@@ -1,7 +1,7 @@
 ---
 tipo: operacion
 tags: [entregables, python-docx, mermaid, word-com, metodo, e6]
-fuentes: ["raw/entregables/e5-trl5-ambiente-relevante.md", "prueba_ambiente_relevante.py"]
+fuentes: ["raw/entregables/e5-trl5-ambiente-relevante.md", "pruebas/prueba_ambiente_relevante.py"]
 actualizado: 2026-10-04
 ---
 

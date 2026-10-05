@@ -1,11 +1,11 @@
 ---
 tipo: modulo
 tags: [interfaz, templates, javascript, css, accesibilidad, tema]
-fuentes: ["templates/base.html", "templates/index.html", "templates/error.html", "static/js/app.js", "static/css/estilos.css"]
+fuentes: ["sigma/templates/base.html", "sigma/templates/index.html", "sigma/templates/error.html", "sigma/static/js/app.js", "sigma/static/css/estilos.css"]
 actualizado: 2026-10-04
 ---
 
-# Interfaz: `templates/` y `static/`
+# Interfaz: `sigma/templates/` y `sigma/static/`
 
 HTML, CSS y JS **propios**, sin CDN ni frameworks ([[adr-006-frontend-sin-dependencias]]). Todo es
 **progresivo**: sin JavaScript, el formulario se envía igual y el servidor valida igual.
@@ -33,7 +33,7 @@ HTML, CSS y JS **propios**, sin CDN ni frameworks ([[adr-006-frontend-sin-depend
 - Si el servidor rechaza (422), la página vuelve con un **resumen de errores** arriba y los valores intactos.
 - Los catálogos se arman desde `validaciones.py`, pasando por `CATALOGOS` de `app.py`.
 
-## `static/js/app.js`
+## `sigma/static/js/app.js`
 | Función | Qué hace |
 |---|---|
 | `iniciarTema`, `aplicarTema`, `temaEfectivo` | Tema claro u oscuro con 3 estados. Solo se guarda en `localStorage` si el usuario lo elige |
@@ -47,7 +47,7 @@ HTML, CSS y JS **propios**, sin CDN ni frameworks ([[adr-006-frontend-sin-depend
 | `iniciarFiltros` | Los filtros se envían al cambiar; la búsqueda, a los 480 ms de dejar de escribir |
 | `iniciarDetalle` | Al dar clic o Enter en una fila, carga `/api/movimiento/<id>` y lo muestra en el diálogo, escapando el texto |
 
-## `static/css/estilos.css` (851 líneas)
+## `sigma/static/css/estilos.css` (851 líneas)
 - Los colores son variables CSS, declaradas **tres veces**:
   1. `:root`, el tema claro.
   2. `@media (prefers-color-scheme: dark) :root:not([data-tema="claro"])`.

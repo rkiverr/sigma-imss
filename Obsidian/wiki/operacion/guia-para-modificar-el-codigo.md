@@ -1,7 +1,7 @@
 ---
 tipo: operacion
 tags: [desarrollo, trampas, checklist, git]
-fuentes: ["CLAUDE.md", "app.py", "database.py", "validaciones.py", "prueba_ambiente_relevante.py"]
+fuentes: ["CLAUDE.md", "sigma/app.py", "sigma/database.py", "sigma/validaciones.py", "pruebas/prueba_ambiente_relevante.py"]
 actualizado: 2026-10-04
 ---
 
@@ -40,10 +40,9 @@ Checklist para cualquier sesión, humana o de Claude, que vaya a cambiar Sigma.
 | La forma de arrancar | README, `instrucciones/`, `CLAUDE.md` del repo, [[como-arrancar]] |
 
 ## Después de tocar
-1. `python -m py_compile *.py`.
-2. `python test_prueba_concepto.py`: debe dar **8/8**. Después borra `sigma_pruebas.db`,
-   `resultados_prueba_concepto.txt` y `lote_idse_prueba.txt`.
-3. `python prueba_ambiente_relevante.py --bloques B,C,G`: deben salir 96.9 %, 0 duplicados y 0 hallazgos.
+1. `python -m compileall -q servidor.py sigma pruebas`.
+2. `python pruebas/test_prueba_concepto.py`: debe dar **8/8**. Sus salidas quedan en `pruebas/resultados/`.
+3. `python pruebas/prueba_ambiente_relevante.py --bloques B,C,G`: deben salir 96.9 %, 0 duplicados y 0 hallazgos.
 4. Revisa la página a mano con `python servidor.py`.
 5. **Actualiza la documentación**: README, `instrucciones/` (sobre todo `Instrucciones.md`), `CLAUDE.md` del repo
    y **este segundo cerebro** (mapa de impacto en `Obsidian/CLAUDE.md`).
