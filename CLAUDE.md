@@ -303,6 +303,11 @@ exportación, descarga, 404, inyección SQL y XSS. Sin errores en el log.
 
 Arnés de pruebas: **8/8 casos, los tres bloques CUMPLE.**
 
+Reorganización en `sigma/` y `pruebas/` (04/10/2026, PR #2), verificada contra
+`main` con el mismo arnés: 10/10 criterios del TRL 5 en las dos versiones, 0
+diferencias en los resultados funcionales y 18/18 respuestas HTTP idénticas
+(mismo HTML, CSS, JS, mensajes y lote IDSE) sobre una copia de la base real.
+
 Arnés de ambiente relevante (04/10/2026, waitress, misma máquina; "antes" =
 código del commit 4c79ce4 con el servidor de desarrollo):
 

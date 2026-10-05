@@ -103,3 +103,11 @@ Bitácora cronológica: solo se agrega al final y lo anterior no se edita.
   [[adr-009-servidor-de-produccion-waitress]] y el `fuentes:` de 50 páginas, que ahora lleva la ruta real.
 - `Obsidian/CLAUDE.md`: árbol de §2 y mapa de impacto de §5 con las rutas nuevas, y una fila para cambios de
   estructura. `raw/` no se tocó. `raw/historial/git-log.md` se regenera cuando la rama se integre.
+
+## [2026-10-04] sesion | Verificación de la reorganización contra main
+- Pedro pidió verificar que todo funciona y cumple como antes. Mismo arnés sobre `main` y sobre la rama: 10/10
+  criterios del TRL 5 en las dos y 0 diferencias funcionales; lado a lado con copias de la base real, 18/18
+  respuestas HTTP idénticas; Chrome headless sin errores de consola en los dos temas.
+- Se quitó el import sin uso de `init_db` en `sigma/app.py`.
+- Páginas: [[sesion-2026-10-04-estructura-de-carpetas]] (sección de verificación) y [[resultados-de-pruebas]]
+  (variabilidad del p95). `CLAUDE.md` del repo: §6 "Estado verificado".

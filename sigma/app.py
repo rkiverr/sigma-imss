@@ -25,7 +25,7 @@ from flask import (Flask, abort, flash, g, jsonify, redirect, render_template,
 from . import exportar_idse, plazo
 from .database import (ERRORES_DE_INTEGRIDAD, ErrorBaseDeDatos, conexion,
                        conflicto_de_identidad, descripcion_backend,
-                       estadisticas, estado_afiliatorio, init_db,
+                       estadisticas, estado_afiliatorio,
                        movimiento_duplicado, obtener_o_crear_trabajador,
                        obtener_patron_id, registrar_bitacora)
 from .validaciones import (CAUSAS_BAJA, ORDEN_CAMPOS, TIPO_ALTA, TIPO_BAJA,

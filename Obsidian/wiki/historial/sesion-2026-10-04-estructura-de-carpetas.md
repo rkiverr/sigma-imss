@@ -49,6 +49,31 @@ La decisión completa, con alternativas, está en [[adr-017-paquete-sigma-y-carp
 - **`--codigo` con la estructura anterior** (copia de `main`): funciona con `--servidor desarrollo` (bloques G y H)
   y con `produccion` (G). En modo desarrollo, el arnés del paquete también arranca bien.
 
+### Verificación contra `main` (pedida por Pedro después del PR)
+Las dos versiones, con el mismo arnés, una tras otra:
+
+| Prueba | `main` | Rama |
+|---|---|---|
+| Criterios CA5-1 a CA5-9 (arnés del E5 completo) | 9/9 | 9/9 |
+| CA5-10 (arnés del E3) | 8/8 | 8/8 |
+| Diferencias en resultados funcionales (cada caso de B, carreras, seguridad, contraste, volumen, caída) | — | **0** |
+| p95 de captura con 20 usuarios (solo referencia) | 175.2 ms | 145.8 ms |
+
+- **Lado a lado:** las dos versiones con waitress, cada una sobre una copia de `sigma_imss.db`, con las mismas 18
+  peticiones (pantalla, filtros, CSS, JS, 404, detalle, validación en vivo, captura con errores, captura válida,
+  duplicado, CSRF, exportar, descargar, `/console`). **18/18 respuestas idénticas**, una vez normalizados el
+  nonce, las horas y el `ETag` (waitress lo calcula con la fecha del archivo). El lote IDSE salió igual y en
+  `exportaciones/` junto a `servidor.py`.
+- **Git:** plantillas, CSS, JS y `plazo.py` se movieron sin cambiar un byte (similitud 100 %). En `app.py`,
+  `validaciones.py`, `database.py` y `exportar_idse.py` solo cambiaron imports, rutas y comentarios, y
+  `__main__.py` tiene exactamente el arranque que estaba al final de `app.py`.
+- **Navegador (Chrome headless):** la página se dibuja completa en los dos temas con los datos reales, `app.js`
+  corre (cambia el `title` del botón de tema) y la consola no tiene errores ni bloqueos de la CSP.
+- **Corrección:** quedaba `init_db` importado en `app.py` sin usarse (solo lo usaba el arranque que pasó a
+  `__main__.py`). Se quitó.
+- En el bloque 3 del E3 cambia entre corridas qué capturista recibe el id 3 y cuál el 4. Es propio de la prueba,
+  que lanza los dos hilos a la vez; con `main` también varía (6 corridas: 3 y 3).
+
 ## 4. Hallazgos
 - **Windows no dejó renombrar `static/`** con `git mv` ("Permission denied"): VS Code tenía la carpeta abierta. Se
   movieron los dos archivos uno por uno. `templates/` sí se pudo mover entera.
