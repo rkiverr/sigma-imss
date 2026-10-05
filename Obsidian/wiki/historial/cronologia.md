@@ -39,7 +39,7 @@ Todos los hechos con fecha, en orden. Los hashes salen de `raw/historial/git-log
 | `main` | El commit de documentación que sigue al merge `fb3a4a8` | **Vigente.** Incluye todo: E5, corrección del calendario, este wiki y la reorganización en carpetas |
 | `mejora/interfaz-y-validaciones` | `4c79ce4` | Histórica (E4). Ya fusionada por el PR #1 |
 | `trl5/ambiente-relevante` | `b46ad50` | Histórica (E5). Ya fusionada; se conserva porque el informe del E5 la cita por nombre |
-| `mejora/estructura-de-carpetas` | `51a45ec` | Histórica. Integrada a `main` con `fb3a4a8`; el PR #2 quedó cerrado ([[adr-017-paquete-sigma-y-carpeta-de-pruebas]]) |
+| `mejora/estructura-de-carpetas` | `51a45ec` | **Borrada** el 2026-10-04, después de integrarse a `main` con `fb3a4a8`. El PR #2 conserva sus commits ([[adr-017-paquete-sigma-y-carpeta-de-pruebas]]) |
 
 Si cambian las ramas, regenera `raw/historial/git-log.md` y actualiza esta tabla y [[inicio]].
 

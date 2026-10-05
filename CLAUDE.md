@@ -30,8 +30,9 @@ como prototipo (TRL 4) y en la Entrega 5 se validó en ambiente relevante
 - `trl5/ambiente-relevante` sigue publicada porque el informe la cita. Conserva
   la estructura anterior, con todo en la raíz, que es la que describe el
   informe del E5.
-- `mejora/estructura-de-carpetas` es la rama de la reorganización. Se abrió el
-  PR #2, pero Pedro pidió integrarla directo a `main`.
+- La rama de la reorganización (`mejora/estructura-de-carpetas`, PR #2) se
+  integró directo a `main` a petición de Pedro y después se borró. La página
+  del PR #2 conserva sus commits.
 - `mejora/interfaz-y-validaciones` es la versión de la Entrega 4 (PR #1).
 
 El flujo completo que implementa:

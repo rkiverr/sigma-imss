@@ -132,3 +132,11 @@ Bitácora cronológica: solo se agrega al final y lo anterior no se edita.
   [[adr-017-paquete-sigma-y-carpeta-de-pruebas]].
 - `raw/historial/git-log.md` se regeneró completo, hasta `fb3a4a8`. No incluye el commit de documentación que
   lo contiene.
+
+## [2026-10-04] sistema | Limpieza final: se borra la rama de la reorganización
+- Pedro preguntó si el repo quedó listo y dejó la limpieza a criterio del agente. Se borró
+  `mejora/estructura-de-carpetas` en GitHub y en local (`git branch -d`: estaba integrada en `fb3a4a8`). La página
+  del PR #2 conserva los commits.
+- Se borraron los reportes locales de las verificaciones (`pruebas/resultados/`, ignorada por Git).
+- Páginas: [[cronologia]] (tabla de ramas) y [[sesion-2026-10-04-estructura-de-carpetas]] (pendientes).
+  `CLAUDE.md` del repo §1. `raw/historial/git-log.md` se extrajo de nuevo con las ramas actuales.

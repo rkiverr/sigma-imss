@@ -12,13 +12,11 @@ nota: Volcado del historial de Git (sin correos de los autores). NO editar; se r
 ## Ramas al momento de extraer
 
 ```text
-* main                                          fb3a4a8 [origin/main: ahead 4] Integra la reorganización en carpetas: la app en sigma/ y los arneses en pruebas/
-  mejora/estructura-de-carpetas                 51a45ec [origin/mejora/estructura-de-carpetas] Obsidian: método para verificar un cambio contra main y cierre del PR #2
+* main                                          e6b405b [origin/main] Documentación al día con la reorganización integrada a main
   mejora/interfaz-y-validaciones                4c79ce4 [origin/mejora/interfaz-y-validaciones] Rediseña la interfaz y refuerza la validación y la persistencia
   trl5/ambiente-relevante                       b46ad50 Registra en CLAUDE.md los resultados del arnés de ambiente relevante
   remotes/origin/HEAD                           -> origin/main
-  remotes/origin/main                           d80bac6 Agrega el segundo cerebro del proyecto (Obsidian/)
-  remotes/origin/mejora/estructura-de-carpetas  51a45ec Obsidian: método para verificar un cambio contra main y cierre del PR #2
+  remotes/origin/main                           e6b405b Documentación al día con la reorganización integrada a main
   remotes/origin/mejora/interfaz-y-validaciones 4c79ce4 Rediseña la interfaz y refuerza la validación y la persistencia
   remotes/origin/trl5/ambiente-relevante        b46ad50 Registra en CLAUDE.md los resultados del arnés de ambiente relevante
 ```
@@ -26,13 +24,14 @@ nota: Volcado del historial de Git (sin correos de los autores). NO editar; se r
 ## Grafo
 
 ```text
-*   fb3a4a8 (HEAD -> main) Integra la reorganización en carpetas: la app en sigma/ y los arneses en pruebas/
+* e6b405b (HEAD -> main, origin/main, origin/HEAD) Documentación al día con la reorganización integrada a main
+*   fb3a4a8 Integra la reorganización en carpetas: la app en sigma/ y los arneses en pruebas/
 |\  
-| * 51a45ec (origin/mejora/estructura-de-carpetas, mejora/estructura-de-carpetas) Obsidian: método para verificar un cambio contra main y cierre del PR #2
+| * 51a45ec Obsidian: método para verificar un cambio contra main y cierre del PR #2
 | * ac56fc1 Quita un import sin uso y registra la verificación contra main
 | * 3269ff1 Organiza el repositorio: la app en el paquete sigma/ y los arneses en pruebas/
 |/  
-* d80bac6 (origin/main, origin/HEAD) Agrega el segundo cerebro del proyecto (Obsidian/)
+* d80bac6 Agrega el segundo cerebro del proyecto (Obsidian/)
 * 3afbc9a Plazo: el feriado de transmisión del Ejecutivo es el 1 de octubre
 * c29ad8f Instrucciones: actualiza la guía de uso con los cambios de la Entrega 5
 * 438b7e6 CLAUDE.md: indica que main ya incluye la Entrega 5
@@ -56,6 +55,40 @@ nota: Volcado del historial de Git (sin correos de los autores). NO editar; se r
 ```
 
 ## Commits (del más reciente al más antiguo)
+
+### e6b405b — Documentación al día con la reorganización integrada a main
+
+- **Autor:** Pedro Luna
+- **Fecha:** 2026-10-04 18:36:06 -0600
+- **Commit:** `e6b405bca64aa41a6d2685489747b22cbd07e55f`
+- **Padres:** fb3a4a8
+
+```text
+Documentación al día con la reorganización integrada a main
+
+- CLAUDE.md: ramas (§1) con el merge fb3a4a8 y la rama de la
+  reorganización; en §5, cómo verificar que un cambio no altera el
+  comportamiento; §6 con el merge.
+- README.md: aviso de que con Python 3.13+ no se instala psycopg2 (SQLite),
+  sigma/__init__.py en el árbol y una sección "Documentación" con las guías.
+- Obsidian/: inicio, cronología, sesión, preguntas frecuentes, ADR-017 y
+  log al día; raw/historial/git-log.md extraído de nuevo hasta fb3a4a8.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+```
+
+```text
+ CLAUDE.md                                          |  21 +-
+ Obsidian/log.md                                    |  12 +
+ Obsidian/raw/historial/git-log.md                  | 444 ++++++++++++++++++++-
+ Obsidian/wiki/consultas/preguntas-frecuentes.md    |   9 +-
+ .../adr-017-paquete-sigma-y-carpeta-de-pruebas.md  |   3 +-
+ Obsidian/wiki/historial/cronologia.md              |   6 +-
+ .../sesion-2026-10-04-estructura-de-carpetas.md    |  17 +-
+ Obsidian/wiki/inicio.md                            |   3 +-
+ README.md                                          |  15 +-
+ 9 files changed, 507 insertions(+), 23 deletions(-)
+```
 
 ### fb3a4a8 — Integra la reorganización en carpetas: la app en sigma/ y los arneses en pruebas/
 

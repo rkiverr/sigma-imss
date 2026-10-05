@@ -106,6 +106,8 @@ subió `main`. GitHub no deja borrar un PR: el #2 quedó cerrado como integrado.
   - El desarrollo se arranca con `python -m sigma`.
   - Los reportes viejos sueltos en la raíz (`resultados_*`) ya no están en `.gitignore`, así que conviene
     borrarlos.
-- Decidir si se borra la rama `mejora/estructura-de-carpetas`. Ya está integrada y ningún informe la cita.
+- ~~Decidir si se borra la rama~~: Pedro dejó la decisión al agente. Se borró en GitHub y en local, porque ya
+  estaba integrada, ningún informe la cita y la página del PR #2 conserva los commits. También se borraron los
+  reportes de las verificaciones en `pruebas/resultados/`; sus cifras están en esta página.
 
 Ver también: [[cronologia]] · [[sesion-2026-10-04-entregable-5]] · [[arquitectura-general]]
