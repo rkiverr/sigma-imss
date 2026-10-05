@@ -23,6 +23,7 @@ TRL ([[equipo-y-contexto-academico]]).
 | Rama vigente | `main` en GitHub (`github.com/rkiverr/sigma-imss`). Incluye el E5 desde el merge `cffd375`, la corrección del calendario (`3afbc9a`) y este segundo cerebro ([[cronologia]]) |
 | Cómo se arranca | `python servidor.py` → `http://localhost:5050` ([[como-arrancar]]) |
 | Pruebas | `python pruebas/test_prueba_concepto.py` (8/8) y `python pruebas/prueba_ambiente_relevante.py` ([[resultados-de-pruebas]]) |
+| En revisión | **PR #2**: la app pasa al paquete `sigma/` y los arneses a `pruebas/`; verificado contra `main` sin diferencias ([[adr-017-paquete-sigma-y-carpeta-de-pruebas]]) |
 | Siguiente nivel | TRL 6: piloto en la oficina con datos reales ([[hoja-de-ruta-trl6]]) |
 
 ## Qué hace, en una línea por paso

@@ -37,8 +37,12 @@ python pruebas/prueba_ambiente_relevante.py --bloques B,C,G  # 96.9 %, 0 duplica
 ```
 Todas las salidas quedan en `pruebas/resultados/`, que está en `.gitignore`; se puede borrar la carpeta entera.
 
+Si el cambio **no debería alterar el comportamiento** (reorganizar, renombrar, limpiar), además compara contra
+`main`: [[verificar-un-cambio-contra-main]].
+
 ## Lo que no está automatizado
-- Revisar la interfaz a ojo (capturas, temas, móvil).
+- Revisar la interfaz a ojo (capturas, temas, móvil). Sin la extensión de Chrome se puede con Chrome headless
+  ([[verificar-un-cambio-contra-main]], paso 5).
 - PostgreSQL: no hay uno instalado en el equipo de prueba.
 - El envío real al IDSE: depende de la e.firma y del layout oficial ([[lote-idse]]).
 - La lectura del acuse del IMSS: no existe todavía.

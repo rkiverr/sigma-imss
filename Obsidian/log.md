@@ -111,3 +111,12 @@ Bitácora cronológica: solo se agrega al final y lo anterior no se edita.
 - Se quitó el import sin uso de `init_db` en `sigma/app.py`.
 - Páginas: [[sesion-2026-10-04-estructura-de-carpetas]] (sección de verificación) y [[resultados-de-pruebas]]
   (variabilidad del p95). `CLAUDE.md` del repo: §6 "Estado verificado".
+
+## [2026-10-04] sesion | Cierre de la reorganización: PR #2, método de verificación y cómo integrarlo
+- Página nueva [[verificar-un-cambio-contra-main]]: las cinco comprobaciones contra `main`, con los dos scripts ya
+  probados (`criterios_trl5.py` y `verificar_contra_main.py`, que van fuera del repo) y las trampas encontradas.
+- Corrección de la verificación: `/api/validar` recibe JSON. Con JSON, las 18 respuestas siguen idénticas.
+- [[preguntas-frecuentes]]: qué pasa en cada computadora al aceptar el PR #2, y cómo saber que funciona igual;
+  se corrigió la de `app.py` y `servidor.py`.
+- Actualizadas: [[sesion-2026-10-04-estructura-de-carpetas]] (PR #2, commits, lo que pasó después), [[rutas-http]],
+  [[estrategia-de-pruebas]], [[inicio]] (fila "En revisión") y [[cronologia]].

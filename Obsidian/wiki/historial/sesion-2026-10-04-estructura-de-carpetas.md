@@ -15,7 +15,9 @@ el paquete `sigma/`. Preguntó si se recomendaba estructurar las carpetas; se le
 en una rama nueva con PR, sin tocar `main`, para que el equipo decida si se integra.
 
 ## 2. Lo que se hizo
-Rama `mejora/estructura-de-carpetas`. Con `git mv` para conservar el historial de cada archivo:
+Rama `mejora/estructura-de-carpetas`, **PR #2** (`github.com/rkiverr/sigma-imss/pull/2`), con dos commits:
+`3269ff1` (la reorganización) y `ac56fc1` (quita un import sin uso y registra la verificación). Se usó `git mv`
+para conservar el historial de cada archivo:
 
 | Antes | Ahora |
 |---|---|
@@ -50,6 +52,7 @@ La decisión completa, con alternativas, está en [[adr-017-paquete-sigma-y-carp
   y con `produccion` (G). En modo desarrollo, el arnés del paquete también arranca bien.
 
 ### Verificación contra `main` (pedida por Pedro después del PR)
+El método completo, con los scripts, quedó en [[verificar-un-cambio-contra-main]].
 Las dos versiones, con el mismo arnés, una tras otra:
 
 | Prueba | `main` | Rama |
@@ -60,7 +63,8 @@ Las dos versiones, con el mismo arnés, una tras otra:
 | p95 de captura con 20 usuarios (solo referencia) | 175.2 ms | 145.8 ms |
 
 - **Lado a lado:** las dos versiones con waitress, cada una sobre una copia de `sigma_imss.db`, con las mismas 18
-  peticiones (pantalla, filtros, CSS, JS, 404, detalle, validación en vivo, captura con errores, captura válida,
+  peticiones. En la primera corrida, las dos de `/api/validar` se mandaron como formulario y solo compararon el caso
+  sin datos (esa ruta recibe JSON); se repitió con JSON y siguieron saliendo idénticas (pantalla, filtros, CSS, JS, 404, detalle, validación en vivo, captura con errores, captura válida,
   duplicado, CSRF, exportar, descargar, `/console`). **18/18 respuestas idénticas**, una vez normalizados el
   nonce, las horas y el `ETag` (waitress lo calcula con la fecha del archivo). El lote IDSE salió igual y en
   `exportaciones/` junto a `servidor.py`.
@@ -74,6 +78,12 @@ Las dos versiones, con el mismo arnés, una tras otra:
 - En el bloque 3 del E3 cambia entre corridas qué capturista recibe el id 3 y cuál el 4. Es propio de la prueba,
   que lanza los dos hilos a la vez; con `main` también varía (6 corridas: 3 y 3).
 
+### Después de la verificación
+- Pedro preguntó si, al aceptar el PR, la computadora de su compañero se reorganiza sola. Respuesta: GitHub sí;
+  cada copia local necesita `git switch main` y `git pull` ([[preguntas-frecuentes]]).
+- Se levantó Sigma con `python servidor.py` sobre la base real para que Pedro la viera, y se detuvo a petición suya.
+- La extensión de Chrome no estaba conectada; la revisión visual se hizo con Chrome headless.
+
 ## 4. Hallazgos
 - **Windows no dejó renombrar `static/`** con `git mv` ("Permission denied"): VS Code tenía la carpeta abierta. Se
   movieron los dos archivos uno por uno. `templates/` sí se pudo mover entera.
@@ -84,7 +94,7 @@ Las dos versiones, con el mismo arnés, una tras otra:
   `lote_idse_prueba.txt`. La copia de `raw/resultados/` no se toca, porque es de antes.
 
 ## 5. Pendientes
-- Que el equipo revise el PR y decida si se integra.
+- Que el equipo revise el PR #2 y decida si se integra.
 - Al integrarlo, en cada copia local:
   - El desarrollo se arranca con `python -m sigma`.
   - Los reportes viejos sueltos en la raíz (`resultados_*`) ya no están en `.gitignore`, así que conviene

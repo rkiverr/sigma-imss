@@ -91,6 +91,7 @@ la bitácora en [[log]].
 - [[mantenimiento-anual]]: salario mínimo, UMA y días inhábiles que caducan cada año.
 - [[problemas-frecuentes]]: errores comunes al arrancar y cómo resolverlos.
 - [[guia-para-modificar-el-codigo]]: reglas y rutina para no romper nada.
+- [[verificar-un-cambio-contra-main]]: demostrar que un cambio funciona igual que `main` (arnés en las dos versiones, lado a lado por HTTP y Chrome headless).
 - [[como-se-hizo-el-entregable-5]]: receta completa del informe (python-docx, Mermaid, capturas y Word por COM).
 
 ## Pruebas
