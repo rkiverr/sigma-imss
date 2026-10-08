@@ -71,8 +71,9 @@ Trabajo de Pedro con Claude Code.
 - **La copia del escritorio quedó en la rama `trl6/correcciones`.** Antes de usarla hay que correr
   `python -m sigma.usuarios contrasena admin.rrhh` (y `captura.obra1`). La base existente se migra sola al
   arrancar, con un respaldo previo.
-- Publicar la rama si se quiere que el maestro vea los commits, e integrarla a `main` después de revisarla.
-  Avisar a Gael.
+- El maestro solo recibe el documento, así que la rama no tiene que publicarse para él. Publicarla e
+  integrarla a `main` es cosa del equipo, si Pedro lo pide.
+- Pedro da Sigma por terminado para la materia: HTTPS, el lote de prueba en el IDSE y PostgreSQL no se harán.
 - Planeado para el piloto: HTTPS (P-11), servidor PostgreSQL (P-14), lote de prueba en el IDSE y guía real de la
   subdelegación ([[hoja-de-ruta-trl6]]).
 

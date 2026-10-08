@@ -116,8 +116,9 @@ El método base es [[como-se-hizo-el-entregable-5]]. Lo nuevo:
 
 ## Pendientes antes de entregarlo
 - Que Pedro revise el documento y lo suba.
-- **Publicar la rama** (`git push -u origin trl6/correcciones`) si se quiere que el maestro vea los commits que
-  cita el informe. El informe dice que la rama todavía no se integra a `main`.
-- Integrarla a `main` cuando el equipo la revise. Avisar a Gael.
+- Nada del repo: el maestro **solo recibe el documento**; el repo es del equipo. Publicar la rama o
+  integrarla a `main` es para coordinarse con el equipo, y solo si Pedro lo pide.
+- Pedro da Sigma por **terminado para la materia** (2026-10-07). Lo de [[hoja-de-ruta-trl6]] queda como
+  trabajo planeado, sin fecha.
 
 Anterior: [[entregable-5-trl5]] · Hub: [[entregables-trl]] · Siguiente: [[hoja-de-ruta-trl6]]

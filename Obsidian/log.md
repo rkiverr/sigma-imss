@@ -173,3 +173,8 @@ Bitácora cronológica: solo se agrega al final y lo anterior no se edita.
 - `Obsidian/CLAUDE.md` §2: `pruebas/` con los arneses de E3, E5 y E6, y `raw/entregables/` con E1–E6.
 - §5: filas para `sigma/usuarios.py` y `sigma/respaldo.py`, y [[arnes-integracion]] en la fila de arneses.
 - `index.md`: páginas nuevas, ADR-018 a ADR-021 y las fuentes crudas del E6.
+
+## [2026-10-07] sesion | Sigma terminado para la materia; el maestro solo recibe el documento
+- Pedro aclaró que el repo es del equipo, que el maestro solo recibe el informe y que Sigma ya está completo para
+  la materia. Los pendientes de [[hoja-de-ruta-trl6]] quedan como trabajo planeado, sin fecha.
+- Páginas: [[entregable-6-trl6]] y [[sesion-2026-10-07-correcciones-trl6]] (pendientes al día).
