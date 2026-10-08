@@ -205,3 +205,9 @@ Bitácora cronológica: solo se agrega al final y lo anterior no se edita.
 - A pedido de Pedro: números de las métricas de 32 a 42 px, cuadros con más relleno y barra superior con logo,
   insignias y botones más grandes. En pantallas anchas la barra no baja de renglón.
 - Verificado con capturas (1920, 1366 y móvil), bloque H del E5 14/14 y E3 8/8. Página: [[modulo-interfaz]].
+
+## [2026-10-08] sesion | Login con letras más grandes
+- A pedido de Pedro: todo el texto del inicio de sesión más grande (tarjeta de 1200 px, campos de 56 px, lema de
+  33 px y recuadro de accesos de prueba a 15.5 px).
+- Verificado con capturas (1920, 1366, tableta y 500 px), bloque H del E5 14/14, E3 8/8 y E6 F 23/23.
+- Página: [[modulo-interfaz]].

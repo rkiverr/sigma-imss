@@ -825,7 +825,7 @@ dialog::backdrop { background: rgba(8, 16, 12, .55); backdrop-filter: blur(2px);
 }
 
 .acceso {
-  width: min(1040px, 100%);
+  width: min(1200px, 100%);
   display: grid;
   grid-template-columns: 1.05fr 1fr;
   background: var(--superficie);
@@ -841,7 +841,7 @@ dialog::backdrop { background: rgba(8, 16, 12, .55); backdrop-filter: blur(2px);
   display: flex;
   flex-direction: column;
   gap: 22px;
-  padding: 40px 42px;
+  padding: 48px 50px;
   background: var(--login-panel);
   color: var(--login-texto);
   overflow: hidden;
@@ -873,83 +873,85 @@ dialog::backdrop { background: rgba(8, 16, 12, .55); backdrop-filter: blur(2px);
 
 .acceso-marca-encabezado { display: flex; align-items: center; gap: 12px; }
 .acceso-logo {
-  width: 46px; height: 46px;
+  width: 54px; height: 54px;
   flex-shrink: 0;
   display: grid;
   place-items: center;
   border-radius: 13px;
   background: rgba(255, 255, 255, .14);
   border: 1px solid var(--login-panel-borde);
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 700;
 }
 .acceso-antetitulo {
   margin: 0;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   letter-spacing: .08em;
   text-transform: uppercase;
   color: var(--login-texto-suave);
 }
 .acceso-lema {
-  font-size: 27px;
+  font-size: 33px;
   font-weight: 700;
   line-height: 1.22;
   letter-spacing: -.02em;
-  max-width: 20ch;
+  max-width: 22ch;
 }
 
 /* El lema y las ventajas se centran juntos en el espacio que deja el logo. */
 .acceso-lema { margin-top: auto; }
-.ventajas { list-style: none; margin: 4px 0 auto; padding: 0; display: grid; gap: 16px; }
-.ventajas li { display: grid; grid-template-columns: 38px 1fr; gap: 13px; align-items: start; }
+.ventajas { list-style: none; margin: 4px 0 auto; padding: 0; display: grid; gap: 20px; }
+.ventajas li { display: grid; grid-template-columns: 46px 1fr; gap: 16px; align-items: start; }
 .ventaja-icono {
-  width: 38px; height: 38px;
+  width: 46px; height: 46px;
   display: grid;
   place-items: center;
   border-radius: 11px;
   background: rgba(255, 255, 255, .1);
   border: 1px solid var(--login-panel-borde);
 }
-.ventaja-icono svg { width: 18px; height: 18px; }
-.ventajas strong { display: block; font-size: 14.5px; font-weight: 650; }
-.ventajas li > div > span { display: block; font-size: 13px; line-height: 1.45; color: var(--login-texto-suave); }
+.ventaja-icono svg { width: 22px; height: 22px; }
+.ventajas strong { display: block; font-size: 17px; font-weight: 650; }
+.ventajas li > div > span { display: block; font-size: 15.5px; line-height: 1.45; color: var(--login-texto-suave); }
 
 .acceso-formulario {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 18px;
-  padding: 40px 42px;
+  gap: 20px;
+  padding: 48px 50px;
 }
-.acceso-titulos h2 { font-size: 24px; font-weight: 700; letter-spacing: -.02em; }
-.acceso-titulos p { margin: 6px 0 0; font-size: 14px; color: var(--texto-suave); }
+.acceso-titulos h2 { font-size: 31px; font-weight: 700; letter-spacing: -.02em; }
+.acceso-titulos p { margin: 8px 0 0; font-size: 17px; color: var(--texto-suave); }
 .acceso-formulario .resumen-errores,
-.acceso-formulario .aviso-montos { margin: 0; }
+.acceso-formulario .aviso-montos { margin: 0; font-size: 15.5px; }
+.acceso-formulario .resumen-errores { font-size: 16.5px; }
+.acceso-formulario .campo label { font-size: 17px; }
 
-.formulario-login { display: flex; flex-direction: column; gap: 16px; }
+.formulario-login { display: flex; flex-direction: column; gap: 20px; }
 
 .campo-icono { position: relative; }
 .campo-icono > svg {
   position: absolute;
-  left: 13px;
+  left: 16px;
   top: 50%;
   transform: translateY(-50%);
-  width: 18px; height: 18px;
+  width: 21px; height: 21px;
   color: var(--texto-tenue);
   pointer-events: none;
   transition: color var(--transicion);
 }
 .campo-icono:focus-within > svg { color: var(--acento); }
-.campo-icono input { height: 46px; padding-left: 42px; font-size: 15px; }
-.campo-icono input[name="contrasena"] { padding-right: 48px; }
+.campo-icono input { height: 56px; padding-left: 50px; font-size: 17px; }
+.campo-icono input[name="contrasena"] { padding-right: 56px; }
 
 .ver-contrasena {
   position: absolute;
   right: 6px;
   top: 50%;
   transform: translateY(-50%);
-  width: 34px; height: 34px;
+  width: 40px; height: 40px;
   display: grid;
   place-items: center;
   border: 0;
@@ -960,20 +962,20 @@ dialog::backdrop { background: rgba(8, 16, 12, .55); backdrop-filter: blur(2px);
   transition: background var(--transicion), color var(--transicion);
 }
 .ver-contrasena:hover { background: var(--superficie-2); color: var(--texto); }
-.ver-contrasena svg { width: 18px; height: 18px; }
+.ver-contrasena svg { width: 21px; height: 21px; }
 .ver-contrasena .icono-ojo-cerrado,
 .ver-contrasena[aria-pressed="true"] .icono-ojo { display: none; }
 .ver-contrasena[aria-pressed="true"] .icono-ojo-cerrado { display: block; }
 
-.boton-bloque { width: 100%; margin-top: 4px; padding: 13px 18px; font-size: 15px; }
+.boton-bloque { width: 100%; margin-top: 4px; padding: 16px 18px; font-size: 18px; }
 .boton-bloque svg { transition: transform var(--transicion); }
 .boton-bloque:hover svg { transform: translateX(3px); }
 
-.acceso-ayuda { margin: -6px 0 0; text-align: center; font-size: 12.8px; color: var(--texto-tenue); }
+.acceso-ayuda { margin: -6px 0 0; text-align: center; font-size: 15px; color: var(--texto-tenue); }
 
 /* Acceso de prueba (temporal, se quita junto con su bloque en login.html). */
 .credenciales-prueba {
-  padding: 14px 16px;
+  padding: 18px 20px;
   border: 1px dashed var(--borde-fuerte);
   border-radius: 14px;
   background: var(--superficie-2);
@@ -987,19 +989,19 @@ dialog::backdrop { background: rgba(8, 16, 12, .55); backdrop-filter: blur(2px);
 }
 .credenciales-encabezado p {
   margin: 0;
-  font-size: 11.5px;
+  font-size: 13.5px;
   font-weight: 650;
   letter-spacing: .07em;
   text-transform: uppercase;
   color: var(--texto-suave);
 }
 .etiqueta-temporal {
-  padding: 2px 9px;
+  padding: 3px 11px;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--aviso) 30%, transparent);
   background: var(--aviso-fondo);
   color: var(--aviso);
-  font-size: 11.5px;
+  font-size: 13.5px;
   font-weight: 650;
 }
 .credenciales-prueba ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
@@ -1007,28 +1009,29 @@ dialog::backdrop { background: rgba(8, 16, 12, .55); backdrop-filter: blur(2px);
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 9px 12px;
+  padding: 12px 15px;
   border: 1px solid var(--borde);
   border-radius: 10px;
   background: var(--superficie);
 }
 .credencial-datos { flex: 1; min-width: 0; }
-.credencial-rol { display: block; font-size: 12.5px; font-weight: 600; }
+.credencial-rol { display: block; font-size: 15.5px; font-weight: 600; }
 .credenciales-prueba dl { display: flex; flex-wrap: wrap; gap: 2px 14px; margin: 3px 0 0; }
 .credenciales-prueba dl div { display: flex; align-items: baseline; gap: 6px; }
-.credenciales-prueba dt { font-size: 11.5px; color: var(--texto-tenue); }
+.credenciales-prueba dt { font-size: 14px; color: var(--texto-tenue); }
 .credenciales-prueba dd { margin: 0; }
-.credenciales-prueba code { font-family: var(--mono); font-size: 12.5px; color: var(--texto); white-space: nowrap; }
+.credenciales-prueba code { font-family: var(--mono); font-size: 15.5px; color: var(--texto); white-space: nowrap; }
 
 /* Los botones que solo sirven con JavaScript empiezan ocultos; las clases de
    botón definen "display", así que el atributo hidden necesita su propia regla. */
 .ver-contrasena[hidden],
 .credenciales-prueba [hidden] { display: none; }
+.credenciales-prueba .boton-chico { padding: 9px 18px; font-size: 15.5px; }
 
 @media (max-width: 860px) {
-  .acceso { grid-template-columns: 1fr; max-width: 560px; }
+  .acceso { grid-template-columns: 1fr; max-width: 640px; }
   .acceso-marca { padding: 30px 28px; gap: 18px; }
-  .acceso-lema { font-size: 22px; max-width: none; }
+  .acceso-lema { font-size: 27px; max-width: none; }
   .ventajas { grid-template-columns: 1fr 1fr; margin-top: 4px; }
   .acceso-formulario { padding: 32px 28px; }
 }
@@ -1038,7 +1041,7 @@ dialog::backdrop { background: rgba(8, 16, 12, .55); backdrop-filter: blur(2px);
   .acceso { border-radius: 18px; }
   .acceso-marca { padding: 24px 20px; }
   .acceso-marca::after { font-size: 200px; right: 0; bottom: -40px; }
-  .acceso-lema { font-size: 19px; }
+  .acceso-lema { font-size: 23px; }
   .ventajas { display: none; }
   .acceso-formulario { padding: 26px 20px; }
   .credenciales-prueba { padding: 12px; }

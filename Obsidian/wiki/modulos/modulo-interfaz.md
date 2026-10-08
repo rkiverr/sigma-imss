@@ -128,5 +128,11 @@ HTML, CSS y JS **propios**, sin CDN ni frameworks ([[adr-006-frontend-sin-depend
     "Salir" y de tema de 46 px de alto con letra de 15.5.
   - Con la barra más alta, en pantallas ≥ 941 px se queda en un solo renglón (`flex-wrap: nowrap`): la
     insignia del patrón cede espacio con puntos suspensivos. Debajo de ese ancho se parte como antes.
+- Cuarto ajuste, a pedido de Pedro: todo el texto del **login** más grande.
+  - Tarjeta de 1040 a 1200 px y relleno de 48/50 px.
+  - Lema de 33 px, ventajas de 17/15.5, título "Iniciar sesión" de 31 y etiquetas de 17.
+  - Campos de 56 px de alto con letra de 17; botón "Entrar" de 18.
+  - Recuadro temporal: rol de 15.5, usuario y contraseña de 15.5 en monoespaciada y botón "Usar" de 15.5.
+  - Con eso la tarjeta mide unos 860 px de alto y la página se desplaza en ventanas bajas.
 
 Ver también: [[accesibilidad]] · [[normalizacion-de-datos]] · [[arquitectura-general]]
