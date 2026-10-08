@@ -118,12 +118,17 @@ def abrir_sesion(conn, usuario):
     """
     Token de sesión del usuario. Varias PC pueden usar la misma cuenta a la vez,
     así que se reutiliza el vigente; solo se crea uno si no hay.
+
+    Se crea en la base con "WHERE sesion_token IS NULL" y se vuelve a leer: si dos
+    PC entran a la vez con la misma cuenta, la segunda recibe el token de la
+    primera. Antes cada una escribía el suyo y la primera quedaba fuera de la
+    sesión sin saberlo (lo reveló la prueba de caída del arnés del E5).
     """
-    if usuario.get("sesion_token"):
-        return usuario["sesion_token"]
-    token = secrets.token_hex(16)
     cur = conn.cursor()
-    cur.execute("UPDATE usuario SET sesion_token = %s WHERE id = %s", (token, usuario["id"]))
+    cur.execute("UPDATE usuario SET sesion_token = %s WHERE id = %s AND sesion_token IS NULL",
+                (secrets.token_hex(16), usuario["id"]))
+    cur.execute("SELECT sesion_token FROM usuario WHERE id = %s", (usuario["id"],))
+    token = cur.fetchone()["sesion_token"]
     cur.close()
     return token
 

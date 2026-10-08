@@ -442,7 +442,7 @@ class Metricas:
         return resumen_tiempos(datos)
 
     def errores(self):
-        return sum(1 for _, e, _ in self.registros if e == 0 or e >= 500)
+        return sum(1 for _, e, _ in self.registros if e in (0, 401) or e >= 500)
 
     def anotar_error(self, respuesta):
         with self.candado:
@@ -552,9 +552,14 @@ class Cliente:
                 self.cerrar()
                 respuesta = Respuesta(0, {}, str(exc).encode(), time.perf_counter() - inicio)
                 break
+        # Con sesión, una redirección al inicio de sesión NO es una captura guardada: la sesión se
+        # perdió. Se marca como 401 para que ningún bloque la cuente como éxito.
+        if (self.sesion and not self._iniciando and respuesta.estado in (302, 303) and ruta != "/logout"
+                and (respuesta.ubicacion or "").endswith("/login")):
+            respuesta.estado = 401
         if self.metricas is not None:
             self.metricas.agregar(etiqueta or ruta.split("?")[0], respuesta.estado, respuesta.segundos)
-            if respuesta.estado == 0 or respuesta.estado >= 500:
+            if respuesta.estado in (0, 401) or respuesta.estado >= 500:
                 self.metricas.anotar_error(respuesta)
         return respuesta
 
