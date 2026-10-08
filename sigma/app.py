@@ -532,8 +532,9 @@ def exportar():
             registrar_bitacora(conn, usuario_id, registro["movimiento_id"], "Incluido en lote IDSE",
                                archivos[registro["tipo_movimiento"]])
         resumen = "; ".join(
-            f"{sum(1 for r in registros if r['tipo_movimiento'] == tipo)} "
-            f"{exportar_idse.NOMBRES_TIPO[tipo]} en {archivo}" for tipo, archivo in archivos.items())
+            f"{exportar_idse.NOMBRES_TIPO[tipo]}: "
+            f"{sum(1 for r in registros if r['tipo_movimiento'] == tipo)} en {archivo}"
+            for tipo, archivo in archivos.items())
         registrar_bitacora(conn, usuario_id, None, "Exportación de lote IDSE",
                            f"{len(registros)} movimiento(s): {resumen}")
 
