@@ -115,5 +115,11 @@ HTML, CSS y JS **propios**, sin CDN ni frameworks ([[adr-006-frontend-sin-depend
   - el título del encabezado usa `flex: 1 1 320px`.
 - El login conserva sus tamaños propios; solo hereda la base de 16 px y las etiquetas de 14.
 - Se verificó con capturas en 1920 y 1366 px y en móvil; el bloque H del E5 sigue en 14/14 y el E3 en 8/8.
+- Segundo ajuste, el mismo día, porque Pedro pidió un poco más:
+  - `body`: 17 px; títulos de tarjeta: 20; descripciones: 16; etiquetas: 15; `.ayuda` ("Se registrará a nombre
+    de…", "Formato IDSE…"): 14.5.
+  - Las leyendas de sección (`.grupo-campos legend`: Identificación del trabajador, Movimiento, Condiciones de
+    contratación y Motivo de la baja) quedan en **negritas** (700), de 14 px y color `--texto-suave`.
+  - El aviso de pendientes en línea de `index.html` sube a 16 px.
 
 Ver también: [[accesibilidad]] · [[normalizacion-de-datos]] · [[arquitectura-general]]

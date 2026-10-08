@@ -142,7 +142,7 @@ body {
   background-repeat: no-repeat;
   color: var(--texto);
   font-family: var(--sans);
-  font-size: 16px;
+  font-size: 17px;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
 }
@@ -304,8 +304,8 @@ h1, h2, h3 { margin: 0; line-height: 1.25; letter-spacing: -.012em; }
   gap: 14px;
   flex-wrap: wrap;
 }
-.tarjeta-encabezado h2 { font-size: 18px; font-weight: 650; }
-.tarjeta-encabezado p { margin: 3px 0 0; font-size: 14.5px; color: var(--texto-suave); }
+.tarjeta-encabezado h2 { font-size: 20px; font-weight: 650; }
+.tarjeta-encabezado p { margin: 3px 0 0; font-size: 16px; color: var(--texto-suave); }
 .tarjeta-cuerpo { padding: 22px; }
 
 .columnas {
@@ -382,12 +382,12 @@ h1, h2, h3 { margin: 0; line-height: 1.25; letter-spacing: -.012em; }
 
 .grupo-campos legend {
   padding: 0;
-  font-size: 12.5px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 700;
   letter-spacing: .07em;
   text-transform: uppercase;
-  color: var(--texto-tenue);
-  margin-bottom: 13px;
+  color: var(--texto-suave);
+  margin-bottom: 14px;
 }
 
 .rejilla {
@@ -403,7 +403,7 @@ h1, h2, h3 { margin: 0; line-height: 1.25; letter-spacing: -.012em; }
 .campo { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 
 .campo label {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 550;
   color: var(--texto-suave);
   display: flex;
@@ -471,7 +471,7 @@ select {
 .campo[data-estado="ok"] input,
 .campo[data-estado="ok"] select { border-color: color-mix(in srgb, var(--exito) 55%, var(--borde)); }
 
-.ayuda { font-size: 13px; color: var(--texto-tenue); }
+.ayuda { font-size: 14.5px; color: var(--texto-tenue); }
 
 .acciones {
   margin-top: 20px;
@@ -1091,7 +1091,7 @@ dialog::backdrop { background: rgba(8, 16, 12, .55); backdrop-filter: blur(2px);
 }
 
 @media (max-width: 720px) {
-  body { font-size: 15.5px; }
+  body { font-size: 16px; }
   .barra-interior { padding: 10px 16px; gap: 10px; }
   .marca p { display: none; }
   /* En móvil la barra se reserva para la marca y el interruptor de tema.

@@ -193,3 +193,10 @@ Bitácora cronológica: solo se agrega al final y lo anterior no se edita.
   de 1180 a 1360 px y diálogo de 560 a 640 px. Los filtros de la tabla quedan en un renglón.
 - Verificado con capturas (1920, 1366 y móvil, claro y oscuro), bloque H del E5 14/14 y E3 8/8.
 - Página: [[modulo-interfaz]].
+
+## [2026-10-08] sesion | Segundo ajuste de letras: texto normal, leyendas en negritas y ayudas
+- A pedido de Pedro:
+  - texto base de 17 px; títulos de tarjeta de 20 y sus descripciones de 16; etiquetas de 15;
+  - textos de ayuda de 14.5;
+  - leyendas de sección en negritas, de 14 px.
+- Verificado con capturas, bloque H del E5 14/14 y E3 8/8. Página: [[modulo-interfaz]].
