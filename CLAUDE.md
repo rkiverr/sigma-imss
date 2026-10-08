@@ -25,10 +25,12 @@ IDSE con la estructura oficial, inicio de sesión con roles y respaldo
 automático.
 
 **Ramas.**
-- `trl6/correcciones` (**solo local**, sin publicar a petición de Pedro): las
-  correcciones del TRL 6 sobre `main`. Cuando Pedro lo indique se integra a
-  `main` y se sube.
-- `main` es la publicada. Desde el 2026-10-04 incluye la Entrega 5 (el merge
+- `main` es la publicada y es la vigente. Desde el 2026-10-08 incluye el TRL 6 (avance
+  rápido hasta `7fffd1c`): lote IDSE oficial, inicio de sesión con roles, respaldo
+  automático y rediseño del login. `trl6/correcciones` ya está integrada.
+  Después de hacer `git pull`, cada copia debe fijar contraseñas con
+  `python -m sigma.usuarios contrasena <usuario>`.
+- Desde el 2026-10-04 incluye la Entrega 5 (el merge
   `cffd375` integró los 7 commits de `trl5/ambiente-relevante`) y la
   reorganización en carpetas (merge `fb3a4a8`: la app en `sigma/` y los
   arneses en `pruebas/`).

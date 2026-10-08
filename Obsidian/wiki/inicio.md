@@ -20,7 +20,7 @@ TRL ([[equipo-y-contexto-academico]]).
 | | |
 |---|---|
 | Nivel de madurez | **TRL 6**: sistema completo integrado y demostrado en ambiente relevante; 9 de 10 criterios ([[entregable-6-trl6]]) |
-| Rama de trabajo | **`trl6/correcciones`, solo local** (no publicada ni integrada): lote oficial de 168 posiciones, inicio de sesión con roles, respaldo automático y arnés del E6. **La copia del escritorio está en esta rama** ([[sesion-2026-10-07-correcciones-trl6]]) |
+| Rama de trabajo | `main` (la copia del escritorio). El 2026-10-08 se le integró `trl6/correcciones` (avance rápido, `7fffd1c`): lote oficial de 168 posiciones, inicio de sesión con roles, respaldo automático, rediseño del login y arnés del E6 ([[sesion-2026-10-07-correcciones-trl6]]) |
 | Rama publicada | `main` en GitHub (`github.com/rkiverr/sigma-imss`). Incluye el E5 desde el merge `cffd375`, la corrección del calendario (`3afbc9a`), este segundo cerebro y la reorganización en `sigma/` y `pruebas/` (merge `fb3a4a8`, [[adr-017-paquete-sigma-y-carpeta-de-pruebas]]) ([[cronologia]]) |
 | Cómo se arranca | `python servidor.py` → `http://localhost:5050`. En la rama del E6, antes: `python -m sigma.usuarios contrasena admin.rrhh` ([[como-arrancar]]) |
 | Pruebas | `python pruebas/test_prueba_concepto.py` (8/8), `python pruebas/prueba_ambiente_relevante.py` y, en la rama del E6, `python pruebas/prueba_integracion.py` ([[resultados-de-pruebas]]) |
@@ -90,7 +90,6 @@ Las decisiones de diseño y sus porqués están en [[decisiones]]. Las cinco má
 
 ## Pendientes principales
 
-- Publicar la rama `trl6/correcciones` e integrarla a `main` cuando Pedro lo decida.
 - **HTTPS** en la red local: el único criterio del TRL 6 que no se cumple (P-11, [[hoja-de-ruta-trl6]]).
 - Un lote de prueba en el IDSE para confirmar codificación, CRLF y Ñ ([[lote-idse]]); servidor PostgreSQL (P-14).
 - Cargar cada año los días inhábiles del IMSS y las jornadas electorales ([[mantenimiento-anual]]). No hay bugs

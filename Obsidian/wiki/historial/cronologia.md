@@ -42,7 +42,7 @@ Todos los hechos con fecha, en orden. Los hashes salen de `raw/historial/git-log
 | Rama | Punta | Estado |
 |---|---|---|
 | `main` | `7f43596` | **Publicada.** Incluye E5, corrección del calendario, este wiki y la reorganización en carpetas |
-| `trl6/correcciones` | `8914883` y el commit de documentación que le sigue | **Solo local** (decisión de Pedro, 2026-10-07): correcciones del E6. La copia del escritorio está aquí |
+| `trl6/correcciones` | `7fffd1c` | **Integrada a `main`** el 2026-10-08 (avance rápido). Ya no tiene commits propios |
 | `mejora/interfaz-y-validaciones` | `4c79ce4` | Histórica (E4). Ya fusionada por el PR #1 |
 | `trl5/ambiente-relevante` | `b46ad50` | Histórica (E5). Ya fusionada; se conserva porque el informe del E5 la cita por nombre |
 | `mejora/estructura-de-carpetas` | `51a45ec` | **Borrada** el 2026-10-04, después de integrarse a `main` con `fb3a4a8`. El PR #2 conserva sus commits ([[adr-017-paquete-sigma-y-carpeta-de-pruebas]]) |

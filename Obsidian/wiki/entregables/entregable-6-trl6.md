@@ -14,8 +14,8 @@ actualizado: 2026-10-07
 
 **Estado:** redactado el 2026-10-07; falta subirlo a la plataforma (fecha por confirmar).
 
-**Código:** rama `trl6/correcciones`, con 6 commits sobre `main`. Es **solo local**: no se ha publicado ni
-integrado a `main`, porque Pedro lo decidió así.
+**Código:** rama `trl6/correcciones`, con 6 commits de código sobre `main`. El 2026-10-08 se integró a
+`main` con avance rápido y se publicó en GitHub (`7fffd1c`) para que el equipo la descargue.
 
 ## Lo que pedía el maestro
 "Demostrar la tecnología en un **ambiente relevante**, con **integración de sus principales componentes**". Son 12

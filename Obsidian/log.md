@@ -211,3 +211,10 @@ Bitácora cronológica: solo se agrega al final y lo anterior no se edita.
   33 px y recuadro de accesos de prueba a 15.5 px).
 - Verificado con capturas (1920, 1366, tableta y 500 px), bloque H del E5 14/14, E3 8/8 y E6 F 23/23.
 - Página: [[modulo-interfaz]].
+
+## [2026-10-08] sistema | TRL 6 publicado en main
+- Pedro pidió subirlo para que el equipo lo descargue. `main` avanzó con `--ff-only` de `7f43596` a `7fffd1c`
+  (13 commits) y se subió con un push normal. Antes: E3 8/8 y E6 F 23/23, S 1 de 14 (S-03).
+- Pedro decidió dejar el recuadro de accesos de prueba en `login.html` aunque el repo es público.
+- Cada compañero debe fijar contraseñas con `python -m sigma.usuarios contrasena <usuario>`; su base se migra sola.
+- Páginas: [[inicio]], [[cronologia]], [[entregable-6-trl6]] y [[hoja-de-ruta-trl6]].

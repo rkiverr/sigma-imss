@@ -26,7 +26,7 @@ rama local `trl6/correcciones` los bloqueantes que dejó el E5 ([[entregable-6-t
 3. **Datos reales de la empresa:** registro patronal, guía de la subdelegación, usuarios y contraseñas.
 4. **Aviso de privacidad** a los trabajadores (LFPDPPP, arts. 14–15) y medidas físicas: servidor en un área
    restringida, disco cifrado y respaldos en otro disco (art. 18).
-5. **Publicar la rama** `trl6/correcciones` (está solo en la PC de Pedro) cuando Pedro lo decida.
+5. ~~Publicar la rama~~ Hecho el 2026-10-08: `trl6/correcciones` está en `main` y en GitHub.
 
 ## Mejoras planeadas
 6. **PostgreSQL** en la PC servidor: con 20 usuarios sin pausa, SQLite serializa las escrituras.
