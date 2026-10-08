@@ -200,3 +200,8 @@ Bitácora cronológica: solo se agrega al final y lo anterior no se edita.
   - textos de ayuda de 14.5;
   - leyendas de sección en negritas, de 14 px.
 - Verificado con capturas, bloque H del E5 14/14 y E3 8/8. Página: [[modulo-interfaz]].
+
+## [2026-10-08] sesion | Cuadros de métricas y barra superior más grandes
+- A pedido de Pedro: números de las métricas de 32 a 42 px, cuadros con más relleno y barra superior con logo,
+  insignias y botones más grandes. En pantallas anchas la barra no baja de renglón.
+- Verificado con capturas (1920, 1366 y móvil), bloque H del E5 14/14 y E3 8/8. Página: [[modulo-interfaz]].

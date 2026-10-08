@@ -121,5 +121,12 @@ HTML, CSS y JS **propios**, sin CDN ni frameworks ([[adr-006-frontend-sin-depend
   - Las leyendas de sección (`.grupo-campos legend`: Identificación del trabajador, Movimiento, Condiciones de
     contratación y Motivo de la baja) quedan en **negritas** (700), de 14 px y color `--texto-suave`.
   - El aviso de pendientes en línea de `index.html` sube a 16 px.
+- Tercer ajuste, a pedido de Pedro: cuadros de métricas y barra superior más grandes.
+  - Métricas: relleno 20/22/20/26, nombre de 15.5 px, **número de 42 px** (34 en móvil), nota de 14.5 y
+    columnas mínimas de 200 px.
+  - Barra: logo de 48 px, nombre de 22 y subtítulo de 15, insignias de 15 px con más relleno y botones
+    "Salir" y de tema de 46 px de alto con letra de 15.5.
+  - Con la barra más alta, en pantallas ≥ 941 px se queda en un solo renglón (`flex-wrap: nowrap`): la
+    insignia del patrón cede espacio con puntos suspensivos. Debajo de ese ancho se parte como antes.
 
 Ver también: [[accesibilidad]] · [[normalizacion-de-datos]] · [[arquitectura-general]]

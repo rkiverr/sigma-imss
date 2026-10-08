@@ -194,10 +194,10 @@ h1, h2, h3 { margin: 0; line-height: 1.25; letter-spacing: -.012em; }
 .barra-interior {
   max-width: 1360px;
   margin: 0 auto;
-  padding: 12px 24px;
+  padding: 16px 24px;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 18px;
   flex-wrap: wrap;
 }
 
@@ -205,7 +205,7 @@ h1, h2, h3 { margin: 0; line-height: 1.25; letter-spacing: -.012em; }
 .marca > div { min-width: 0; }
 
 .marca-logo {
-  width: 42px; height: 42px;
+  width: 48px; height: 48px;
   flex-shrink: 0;
   display: grid;
   place-items: center;
@@ -213,29 +213,40 @@ h1, h2, h3 { margin: 0; line-height: 1.25; letter-spacing: -.012em; }
   background: linear-gradient(140deg, var(--acento), var(--acento-fuerte));
   color: var(--acento-texto);
   font-weight: 700;
-  font-size: 21px;
+  font-size: 24px;
   letter-spacing: -.02em;
 }
 
-.marca h1 { font-size: 19px; font-weight: 650; }
-.marca p { margin: 0; font-size: 13.5px; color: var(--texto-suave); }
+.marca h1 { font-size: 22px; font-weight: 650; }
+.marca p { margin: 0; font-size: 15px; color: var(--texto-suave); }
 
 .insignia {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 11px;
+  padding: 8px 14px;
   border-radius: 999px;
   border: 1px solid var(--borde);
   background: var(--superficie-2);
   color: var(--texto-suave);
-  font-size: 13.5px;
+  font-size: 15px;
   white-space: nowrap;
   min-width: 0;
   /* Sin esto, el texto largo del patrón ensancha la barra y provoca
      desplazamiento horizontal en pantallas angostas. */
   max-width: 100%;
   overflow: hidden;
+}
+/* En pantallas anchas la barra se queda en un solo renglón: la insignia del patrón
+   cede espacio con puntos suspensivos antes de que el botón de tema baje de línea. */
+@media (min-width: 941px) {
+  .barra-interior { flex-wrap: nowrap; }
+  .marca, .sesion, .tema, .insignia-motor { flex-shrink: 0; }
+  .barra-interior > .insignia:not(.insignia-motor) {
+    display: block;
+    flex: 0 1 auto;
+    text-overflow: ellipsis;
+  }
 }
 .insignia .punto {
   width: 7px; height: 7px;
@@ -251,19 +262,19 @@ h1, h2, h3 { margin: 0; line-height: 1.25; letter-spacing: -.012em; }
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  height: 40px;
-  padding: 0 13px;
+  height: 46px;
+  padding: 0 18px;
   border: 1px solid var(--borde);
   border-radius: 999px;
   background: var(--superficie-2);
   color: var(--texto);
   font: inherit;
-  font-size: 14px;
+  font-size: 15.5px;
   cursor: pointer;
   transition: background var(--transicion), border-color var(--transicion);
 }
 .tema:hover { background: var(--superficie-3); border-color: var(--borde-fuerte); }
-.tema svg { width: 16px; height: 16px; }
+.tema svg { width: 18px; height: 18px; }
 /* Por defecto (tema claro) se ve el sol y la palabra "Claro". */
 .tema .icono-luna,
 .tema .etiqueta-oscuro { display: none; }
@@ -322,15 +333,15 @@ h1, h2, h3 { margin: 0; line-height: 1.25; letter-spacing: -.012em; }
    -------------------------------------------------------------------------- */
 .metricas {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
 }
 
 .metrica {
   background: var(--superficie);
   border: 1px solid var(--borde);
   border-radius: var(--radio);
-  padding: 15px 17px 15px 20px;
+  padding: 20px 22px 20px 26px;
   box-shadow: var(--sombra);
   position: relative;
   overflow: hidden;
@@ -342,7 +353,7 @@ h1, h2, h3 { margin: 0; line-height: 1.25; letter-spacing: -.012em; }
   content: "";
   position: absolute;
   inset: 0 auto 0 0;
-  width: 4px;
+  width: 5px;
   background: var(--color-metrica, var(--acento));
 }
 /* Velo del mismo color, muy tenue, para que el cuadro no sea blanco plano. */
@@ -357,22 +368,22 @@ h1, h2, h3 { margin: 0; line-height: 1.25; letter-spacing: -.012em; }
 .metrica dt, .metrica dd { position: relative; }
 .metrica dd { color: var(--color-metrica, var(--texto)); }
 .metrica dt {
-  font-size: 13.5px;
+  font-size: 15.5px;
   color: var(--texto-suave);
-  margin: 0 0 6px;
+  margin: 0 0 8px;
   display: flex;
   align-items: center;
   gap: 6px;
 }
 .metrica dd {
   margin: 0;
-  font-size: 32px;
+  font-size: 42px;
   font-weight: 650;
   letter-spacing: -.02em;
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
 }
-.metrica .nota { font-size: 13px; color: var(--texto-tenue); font-weight: 400; }
+.metrica .nota { font-size: 14.5px; color: var(--texto-tenue); font-weight: 400; }
 
 /* --------------------------------------------------------------------------
    Formulario
@@ -1101,7 +1112,7 @@ dialog::backdrop { background: rgba(8, 16, 12, .55); backdrop-filter: blur(2px);
   .tarjeta-cuerpo, .tarjeta-encabezado { padding-left: 16px; padding-right: 16px; }
   .rejilla { grid-template-columns: repeat(2, 1fr); }
   .col-2, .col-3, .col-4, .col-6 { grid-column: span 2; }
-  .metrica dd { font-size: 26px; }
+  .metrica dd { font-size: 34px; }
   .acciones .boton { flex: 1 1 100%; }
   .acciones .separador { margin-left: 0; }
   .paginacion { justify-content: center; }
