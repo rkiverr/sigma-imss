@@ -96,12 +96,25 @@
           <fieldset class="grupo-campos">
             <legend>Identificación del trabajador</legend>
             <div class="rejilla">
-              <div class="campo col-6" data-campo="nombre_completo" {{- estado('nombre_completo') }}>
-                <label for="nombre_completo">Nombre completo <span class="requerido" aria-hidden="true">*</span></label>
-                <input id="nombre_completo" name="nombre_completo" autocomplete="off" required
-                       placeholder="Apellido paterno · Apellido materno · Nombre(s)"
-                       value="{{ form.get('nombre_completo', '') }}">
-                {{ mensaje('nombre_completo') }}
+              <div class="campo col-2" data-campo="apellido_paterno" {{- estado('apellido_paterno') }}>
+                <label for="apellido_paterno">Apellido paterno <span class="requerido" aria-hidden="true">*</span></label>
+                <input id="apellido_paterno" name="apellido_paterno" autocomplete="off" required
+                       maxlength="27" placeholder="Rivera" value="{{ form.get('apellido_paterno', '') }}">
+                {{ mensaje('apellido_paterno') }}
+              </div>
+
+              <div class="campo col-2" data-campo="apellido_materno" {{- estado('apellido_materno') }}>
+                <label for="apellido_materno">Apellido materno</label>
+                <input id="apellido_materno" name="apellido_materno" autocomplete="off"
+                       maxlength="27" placeholder="Diego" value="{{ form.get('apellido_materno', '') }}">
+                {{ mensaje('apellido_materno') }}
+              </div>
+
+              <div class="campo col-2" data-campo="nombres" {{- estado('nombres') }}>
+                <label for="nombres">Nombre(s) <span class="requerido" aria-hidden="true">*</span></label>
+                <input id="nombres" name="nombres" autocomplete="off" required
+                       maxlength="27" placeholder="Gael Antonio" value="{{ form.get('nombres', '') }}">
+                {{ mensaje('nombres') }}
               </div>
 
               <div class="campo col-2" data-campo="curp" {{- estado('curp') }}>
@@ -204,6 +217,16 @@
                 {{ mensaje('sdi') }}
                 <span class="ayuda">Pesos por día, con hasta dos decimales</span>
               </div>
+
+              <div class="campo col-3" data-campo="umf" {{- estado('umf') }}>
+                <label for="umf">Unidad de medicina familiar
+                  <span class="requerido" data-requerido-en="08" aria-hidden="true">*</span>
+                  <span class="contador">0/3</span></label>
+                <input id="umf" name="umf" class="mono" data-longitud="3" inputmode="numeric"
+                       autocomplete="off" placeholder="035" value="{{ form.get('umf', '') }}">
+                {{ mensaje('umf') }}
+                <span class="ayuda">Clínica de adscripción (constancia de vigencia)</span>
+              </div>
             </div>
           </fieldset>
 
@@ -224,16 +247,8 @@
           </fieldset>
 
           <div class="acciones">
-            <div class="campo" data-campo="usuario_id" {{- estado('usuario_id') }}
-                 style="flex: 1 1 220px; max-width: 300px">
-              <label for="usuario_id">Usuario que captura</label>
-              <select id="usuario_id" name="usuario_id">
-                {% for u in usuarios %}
-                  <option value="{{ u.id }}">{{ u.nombre }} — {{ u.rol }}</option>
-                {% endfor %}
-              </select>
-              {{ mensaje('usuario_id') }}
-            </div>
+            <p class="ayuda" style="flex: 1 1 220px; margin: 0">
+              Se registrará a nombre de <strong>{{ usuario_actual.nombre }}</strong>.</p>
             <button type="button" class="boton boton-tenue separador" id="boton-limpiar">Limpiar</button>
             <button type="submit" class="boton" id="boton-capturar">Capturar movimiento</button>
           </div>
@@ -248,8 +263,8 @@
         <div class="tarjeta-encabezado">
           <div>
             <h2 id="titulo-exportar">Exportación a IDSE</h2>
-            <p>Genera el archivo de texto plano con los movimientos válidos que
-               todavía no se han enviado.</p>
+            <p>Genera los archivos del IDSE (altas y bajas por separado, 168 posiciones por
+               registro) con los movimientos válidos que todavía no se han enviado.</p>
           </div>
         </div>
         <div class="tarjeta-cuerpo">
@@ -261,15 +276,11 @@
               No hay movimientos pendientes. Captura al menos uno para generar un lote.
             {% endif %}
           </p>
+          {% if aviso_montos %}
+          <p class="aviso-montos" role="note">{{ aviso_montos }}</p>
+          {% endif %}
+          {% if es_admin %}
           <form action="{{ url_for('exportar') }}" method="post">
-            <div class="campo" style="margin-bottom: 14px">
-              <label for="usuario_exporta">Usuario responsable</label>
-              <select id="usuario_exporta" name="usuario_id">
-                {% for u in usuarios %}
-                  <option value="{{ u.id }}">{{ u.nombre }} — {{ u.rol }}</option>
-                {% endfor %}
-              </select>
-            </div>
             <div style="display: flex; gap: 10px; flex-wrap: wrap">
               <button type="submit" class="boton boton-secundario" style="flex: 1"
                       {% if not stats.pendientes %}disabled{% endif %}>
@@ -280,17 +291,26 @@
                 </svg>
                 Generar lote
               </button>
-              {% if lote_disponible %}
-              <a class="boton boton-tenue" href="{{ url_for('descargar_lote') }}">
+            </div>
+            {% if lote_altas or lote_bajas %}
+            <div class="descargas">
+              <span>Último lote:</span>
+              {% for tipo, hay, etiqueta in [("altas", lote_altas, "Altas (08)"), ("bajas", lote_bajas, "Bajas (02)")] if hay %}
+              <a class="boton boton-tenue boton-chico" href="{{ url_for('descargar_lote', tipo=tipo) }}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
                 </svg>
-                Descargar
+                {{ etiqueta }}
               </a>
-              {% endif %}
+              {% endfor %}
             </div>
+            {% endif %}
           </form>
+          {% else %}
+          <p class="ayuda" style="margin: 0">Solo el personal de administración genera y descarga los
+             lotes IDSE (uno de altas y otro de bajas, con la estructura oficial del IMSS).</p>
+          {% endif %}
         </div>
       </section>
 

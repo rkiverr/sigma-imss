@@ -779,6 +779,31 @@ dialog::backdrop { background: rgba(8, 16, 12, .55); backdrop-filter: blur(2px);
 .pie p { margin: 3px 0; }
 
 /* --------------------------------------------------------------------------
+   Sesión (TRL 6): usuario en la barra, inicio de sesión y avisos del panel
+   -------------------------------------------------------------------------- */
+.sesion { display: flex; align-items: center; gap: 8px; margin: 0; min-width: 0; }
+.pagina-login { max-width: 440px; margin: 0 auto; padding: 72px 24px; }
+.formulario-login { display: flex; flex-direction: column; gap: 14px; }
+.formulario-login .boton { align-self: flex-start; }
+.aviso-montos {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--aviso-fondo);
+  color: var(--aviso);
+  font-size: 12.8px;
+}
+.descargas {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  font-size: 12.5px;
+  color: var(--texto-suave);
+}
+
+/* --------------------------------------------------------------------------
    Página de error
    -------------------------------------------------------------------------- */
 .pagina-error {

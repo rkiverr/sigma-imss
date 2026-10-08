@@ -124,8 +124,13 @@
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(datosDelFormulario())
     })
-      .then(function (respuesta) { return respuesta.json(); })
+      .then(function (respuesta) {
+        // La sesión venció (por ejemplo, tras horas sin uso): de vuelta al inicio de sesión.
+        if (respuesta.status === 401) { window.location.href = "/login"; return null; }
+        return respuesta.json();
+      })
       .then(function (resultado) {
+        if (!resultado) return true;
         formulario.querySelectorAll(".campo[data-campo]").forEach(function (contenedor) {
           var nombre = contenedor.getAttribute("data-campo");
           if (!mostrarTodo && !tocados.has(nombre)) return;
@@ -167,7 +172,7 @@
   }
 
   function aplicarMascaras() {
-    var soloDigitos = ["nss", "fecha_movimiento"];
+    var soloDigitos = ["nss", "fecha_movimiento", "umf"];
     var mayusculas = ["curp", "rfc"];
 
     soloDigitos.forEach(function (nombre) {
@@ -194,12 +199,13 @@
       });
     });
 
-    var nombreCompleto = formulario.elements.nombre_completo;
-    if (nombreCompleto) {
-      nombreCompleto.addEventListener("blur", function () {
-        nombreCompleto.value = nombreCompleto.value.replace(/\s+/g, " ").trim();
+    ["apellido_paterno", "apellido_materno", "nombres"].forEach(function (nombre) {
+      var control = formulario.elements[nombre];
+      if (!control) return;
+      control.addEventListener("blur", function () {
+        control.value = control.value.replace(/\s+/g, " ").trim();
       });
-    }
+    });
   }
 
   function actualizarContador(nombre) {
@@ -322,7 +328,7 @@
         });
         var calendario = document.getElementById("selector-fecha");
         if (calendario) calendario.value = "";
-        formulario.elements.nombre_completo.focus();
+        formulario.elements.apellido_paterno.focus();
       });
     }
 
@@ -394,7 +400,9 @@
         })
         .then(function (m) {
           var html = '<dl class="definiciones">'
-            + fila("Trabajador", m.nombre_completo)
+            + fila("Apellido paterno", m.apellido_paterno)
+            + fila("Apellido materno", m.apellido_materno)
+            + fila("Nombre(s)", m.nombres)
             + fila("CURP", m.curp, true)
             + fila("NSS", m.nss, true)
             + fila("RFC", m.rfc, true)
@@ -405,6 +413,7 @@
             + fila("Tipo de salario", m.tipo_salario_etiqueta || m.tipo_salario)
             + fila("Tipo de jornada", m.tipo_jornada_etiqueta || m.tipo_jornada)
             + fila("Salario diario integrado", m.sdi)
+            + fila("Unidad de medicina familiar", m.umf, true)
             + fila("Causa de baja", m.causa_baja_etiqueta || m.causa_baja)
             + fila("Registro patronal", m.registro_patronal, true)
             + fila("Razón social", m.razon_social)

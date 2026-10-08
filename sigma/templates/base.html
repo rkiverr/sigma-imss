@@ -37,6 +37,15 @@
 
     {% block insignias %}{% endblock %}
 
+    {% if usuario_actual %}
+    <form class="sesion" action="{{ url_for('logout') }}" method="post">
+      <span class="insignia" title="Sesión iniciada como {{ usuario_actual.nombre }} ({{ usuario_actual.rol }})">
+        {{ usuario_actual.nombre }} · {{ usuario_actual.rol }}
+      </span>
+      <button type="submit" class="tema" title="Cerrar la sesión">Salir</button>
+    </form>
+    {% endif %}
+
     <button type="button" id="interruptor-tema" class="tema" aria-pressed="false"
             title="Cambiar de tema">
       <svg class="icono-sol" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -57,8 +66,8 @@
 {% block contenido %}{% endblock %}
 
 <footer class="pie">
-  <p>Sigma — prototipo validado en ambiente relevante (TRL 5) para la automatización de altas y bajas ante el IMSS.</p>
-  <p>La estructura del archivo IDSE debe confirmarse contra el layout oficial vigente antes de usarse en producción.</p>
+  <p>Sigma — sistema integrado y demostrado en ambiente relevante (TRL 6) para la automatización de altas y bajas ante el IMSS.</p>
+  <p>El lote sigue la estructura oficial de 168 posiciones del IMSS; antes de operar se confirma con un lote de prueba en el IDSE.</p>
 </footer>
 
 <div class="notificaciones" role="status" aria-live="polite">

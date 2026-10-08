@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block titulo %}Iniciar sesión — Sigma{% endblock %}
+
+{% block contenido %}
+<main class="pagina-login" id="contenido">
+  <section class="tarjeta" aria-labelledby="titulo-login">
+    <div class="tarjeta-encabezado">
+      <div>
+        <h2 id="titulo-login">Iniciar sesión</h2>
+        <p>Cada captura y cada lote quedan en la bitácora a nombre de quien inició sesión.</p>
+      </div>
+    </div>
+    <div class="tarjeta-cuerpo">
+      {% if error %}
+      <div class="resumen-errores" role="alert"><strong>{{ error }}</strong></div>
+      {% endif %}
+      {% if sin_contrasenas %}
+      <p class="aviso-montos" role="note">Ningún usuario tiene contraseña todavía. En el equipo
+        servidor, asígnala con <code>python -m sigma.usuarios contrasena admin.rrhh</code>.</p>
+      {% endif %}
+      <form action="{{ url_for('login') }}" method="post" class="formulario-login">
+        <div class="campo">
+          <label for="usuario">Usuario</label>
+          <input id="usuario" name="usuario" autocomplete="username" required autofocus
+                 value="{{ nombre }}">
+        </div>
+        <div class="campo">
+          <label for="contrasena">Contraseña</label>
+          <input id="contrasena" name="contrasena" type="password" autocomplete="current-password"
+                 required>
+        </div>
+        <button type="submit" class="boton">Entrar</button>
+      </form>
+    </div>
+  </section>
+</main>
+{% endblock %}

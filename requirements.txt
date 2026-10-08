@@ -3,6 +3,8 @@ Flask>=3.0
 # Servidor WSGI de producción (python servidor.py). Funciona en Windows.
 waitress>=3.0
 
-# Opcional: solo se necesita para usar PostgreSQL. Si no esta instalado,
-# la aplicacion cae automaticamente a SQLite y funciona igual.
-psycopg2-binary>=2.9; python_version < "3.13"
+# Controlador de PostgreSQL. Si no hay servidor PostgreSQL disponible, la
+# aplicacion cae automaticamente a SQLite y funciona igual. Desde la 2.9.11
+# hay paquete para Python 3.14 (el marcador "python_version < 3.13" que habia
+# aqui impedia instalarlo en Python 3.13 y 3.14).
+psycopg2-binary>=2.9.11

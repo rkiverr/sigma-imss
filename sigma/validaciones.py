@@ -8,14 +8,17 @@ afiliatorio:
   * Formato de CURP, NSS, RFC, fecha y tipo de movimiento.
   * Fecha de nacimiento embebida en la CURP realmente existente.
   * Coherencia entre CURP y RFC (mismas iniciales y misma fecha).
-  * Reglas por tipo de movimiento (SDI obligatorio en altas, causa en bajas).
+  * Reglas por tipo de movimiento (SDI y UMF obligatorios en altas, causa en bajas).
   * Límites legales del salario base de cotización (art. 28 LSS).
   * Plazo de cinco días hábiles para presentar el movimiento (art. 15 LSS).
+  * Nombre separado en apellido paterno, materno y nombre(s), como lo pide la
+    estructura oficial del IMSS, y su concordancia con las iniciales de la CURP.
 
 La función principal devuelve los errores indexados por campo, para que la
 interfaz pueda señalar exactamente el campo que hay que corregir.
 """
 import re
+import unicodedata
 from datetime import datetime, date
 
 from . import plazo
@@ -50,11 +53,18 @@ TIPOS_SALARIO = {
     "1": "1 — Variable",
     "2": "2 — Mixto",
 }
+# "Semana o jornada reducida" de la estructura oficial de movimientos del IMSS
+# (posición 118): 0 es la jornada normal; 1 a 5, los días que se trabajan en una
+# semana reducida; 6, la jornada reducida. Hasta la Entrega 5 Sigma usaba 1 para
+# la jornada normal, que el IMSS lee como "un día a la semana".
 TIPOS_JORNADA = {
-    "1": "1 — Jornada normal (semana completa)",
-    "2": "2 — Jornada reducida",
-    "3": "3 — Semana reducida",
-    "4": "4 — Jornada y semana reducidas",
+    "0": "0 — Jornada normal",
+    "1": "1 — Semana reducida: un día",
+    "2": "2 — Semana reducida: dos días",
+    "3": "3 — Semana reducida: tres días",
+    "4": "4 — Semana reducida: cuatro días",
+    "5": "5 — Semana reducida: cinco días",
+    "6": "6 — Jornada reducida",
 }
 CAUSAS_BAJA = {
     "1": "1 — Término de contrato",
@@ -84,7 +94,21 @@ SDI_MAXIMO = 10000.0
 # Nombres: letras (con acentos y ñ), espacios, punto, guion y apóstrofo.
 NOMBRE_REGEX = re.compile(r"^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ][A-Za-zÁÉÍÓÚÜÑáéíóúüñ .'\-]*$")
 
+# El IMSS recibe el nombre en tres campos de 27 posiciones cada uno.
+CAMPOS_NOMBRE = ("apellido_paterno", "apellido_materno", "nombres")
+LONGITUD_NOMBRE = 27
+
+# Unidad de medicina familiar (clínica de adscripción): 3 dígitos en el alta.
+UMF_REGEX = re.compile(r"^\d{3}$")
+
 ALFABETO_CURP = "0123456789ABCDEFGHIJKLMNÑOPQRSTUVWXYZ"
+
+# Reglas de RENAPO para las cuatro primeras letras de la CURP: se omiten las
+# partículas de los apellidos y, en un nombre compuesto que empieza con José o
+# María, se usa el segundo nombre.
+PARTICULAS = {"DA", "DAS", "DE", "DEL", "DER", "DI", "DIE", "DD", "EL", "LA", "LOS", "LAS",
+              "LE", "LES", "MAC", "MC", "VAN", "VON", "Y"}
+NOMBRES_COMUNES = {"JOSE", "J", "J.", "MARIA", "MA", "MA."}
 
 # Ventana razonable para una fecha de movimiento, en días.
 DIAS_ANTIGUEDAD_MAXIMA = 365 * 5
@@ -103,8 +127,18 @@ def normalizar_datos(datos):
     """
     limpio = {campo: str(valor if valor is not None else "").strip()
               for campo, valor in datos.items()}
-    if "nombre_completo" in limpio:
-        limpio["nombre_completo"] = re.sub(r"\s+", " ", limpio["nombre_completo"])
+    for campo in CAMPOS_NOMBRE + ("nombre_completo",):
+        if campo in limpio:
+            limpio[campo] = re.sub(r"\s+", " ", limpio[campo])
+    # El nombre completo se deriva de los tres campos que pide el IMSS; se
+    # conserva para la tabla, la búsqueda y la bitácora.
+    if any(campo in limpio for campo in CAMPOS_NOMBRE):
+        limpio["nombre_completo"] = " ".join(
+            limpio.get(campo, "") for campo in CAMPOS_NOMBRE if limpio.get(campo))
+    if "umf" in limpio:
+        limpio["umf"] = re.sub(r"\D", "", limpio["umf"])
+        if 0 < len(limpio["umf"]) < 3:
+            limpio["umf"] = limpio["umf"].zfill(3)
     for campo in ("curp", "rfc"):
         if campo in limpio:
             limpio[campo] = re.sub(r"[\s\-.]", "", limpio[campo]).upper()
@@ -131,6 +165,20 @@ def limites_sbc(fecha_ddmmaaaa=None):
     anio_uma = fecha.year if fecha.month >= 2 else fecha.year - 1
     anio_uma = min(max(anio_uma, min(UMA_DIARIA)), max(UMA_DIARIA))
     return SALARIO_MINIMO_GENERAL[anio_sm], round(UMA_DIARIA[anio_uma] * VECES_UMA_TOPE, 2)
+
+
+def aviso_montos_sin_cargar(anio):
+    """
+    Los montos legales cambian cada año (salario mínimo en enero, UMA en
+    febrero). Si el año todavía no está en las tablas, limites_sbc() usa el
+    más reciente; aquí se avisa para que nadie lo pase por alto. Los montos
+    nuevos no se suponen: se cargan cuando se publican.
+    """
+    ultimo = max(SALARIO_MINIMO_GENERAL)
+    if anio > ultimo:
+        return (f"Los montos legales de {anio} (salario mínimo y UMA) todavía no están cargados en "
+                f"Sigma; se usaron los de {ultimo}. Hay que actualizarlos en validaciones.py.")
+    return None
 
 
 # --------------------------------------------------------------------------
@@ -301,10 +349,15 @@ def validar_sdi(valor, obligatorio, fecha=None):
     if monto > SDI_MAXIMO:
         return False, (f"El salario diario integrado ({monto:,.2f}) parece un error de captura: "
                        "revisa el punto decimal."), None
+    avisos = []
     if monto > tope:
-        return True, None, (f"El salario diario integrado rebasa el tope de 25 UMA ({tope:,.2f}); "
-                            "ante el IMSS se cotizará con el tope (art. 28 LSS).")
-    return True, None, None
+        avisos.append(f"El salario diario integrado rebasa el tope de 25 UMA ({tope:,.2f}); "
+                      "ante el IMSS se cotizará con el tope (art. 28 LSS).")
+    if FECHA_REGEX.match(str(fecha or "")):
+        sin_montos = aviso_montos_sin_cargar(int(str(fecha)[4:8]))
+        if sin_montos:
+            avisos.append(sin_montos)
+    return True, None, " ".join(avisos) or None
 
 
 def validar_coherencia_curp_rfc(curp, rfc):
@@ -321,6 +374,97 @@ def validar_coherencia_curp_rfc(curp, rfc):
         return False, "Las primeras 4 letras del RFC no coinciden con las de la CURP."
     if rfc[-9:-3] != curp[4:10]:
         return False, "La fecha de nacimiento del RFC no coincide con la de la CURP."
+    return True, None
+
+
+def validar_nombre(datos):
+    """
+    El IMSS recibe el apellido paterno, el materno y el nombre(s) por separado,
+    en 27 posiciones cada uno. El paterno y el nombre son obligatorios; el
+    materno puede faltar (personas con un solo apellido). Devuelve los errores
+    indexados por campo.
+    """
+    errores = {}
+    etiquetas = {"apellido_paterno": "El apellido paterno", "apellido_materno": "El apellido materno",
+                 "nombres": "El nombre"}
+    for campo in CAMPOS_NOMBRE:
+        valor = (datos.get(campo) or "").strip()
+        if not valor:
+            if campo != "apellido_materno":
+                errores[campo] = f"{etiquetas[campo]} del trabajador es obligatorio."
+            continue
+        if not NOMBRE_REGEX.match(valor):
+            errores[campo] = (f"{etiquetas[campo]} solo admite letras, espacios, punto, guion y "
+                              "apóstrofo: revisa si se tecleó un número o un símbolo "
+                              "(por ejemplo, un cero en lugar de la letra O).")
+        elif len(valor) > LONGITUD_NOMBRE:
+            errores[campo] = (f"{etiquetas[campo]} tiene {len(valor)} caracteres; el IMSS admite "
+                              f"{LONGITUD_NOMBRE} como máximo. Usa la forma abreviada que aparece en "
+                              "la constancia del IMSS.")
+    return errores
+
+
+def _sin_acentos(texto):
+    texto = (texto or "").upper().replace("Ñ", "X")
+    return "".join(c for c in unicodedata.normalize("NFD", texto)
+                   if unicodedata.category(c) != "Mn")
+
+
+def _palabra_clave(texto, particulas=PARTICULAS):
+    palabras = [p for p in re.split(r"[\s\-]+", _sin_acentos(texto)) if p and p not in particulas]
+    return palabras[0] if palabras else ""
+
+
+def _nombre_clave(nombres):
+    palabras = [p for p in re.split(r"[\s\-]+", _sin_acentos(nombres)) if p and p not in PARTICULAS]
+    if len(palabras) > 1 and palabras[0] in NOMBRES_COMUNES:
+        return palabras[1]
+    return palabras[0] if palabras else ""
+
+
+def iniciales_curp(paterno, materno, nombres):
+    """
+    Las cuatro primeras letras de la CURP según RENAPO: inicial y primera vocal
+    interna del apellido paterno, inicial del materno (X si no tiene) e inicial
+    del nombre. Devuelve "" si falta el paterno o el nombre.
+    """
+    pat, mat, nom = _palabra_clave(paterno), _palabra_clave(materno), _nombre_clave(nombres)
+    if not pat or not nom:
+        return ""
+    vocal = next((c for c in pat[1:] if c in "AEIOU"), "X")
+    return pat[0] + vocal + (mat[0] if mat else "X") + nom[0]
+
+
+def verificar_iniciales_curp(curp, paterno, materno, nombres):
+    """
+    AVISO cuando las iniciales de la CURP no corresponden al nombre capturado:
+    suele ser un apellido en el campo equivocado, una letra mal tecleada en la
+    CURP o la CURP de otra persona. Las palabras altisonantes llevan una X en la
+    segunda posición (regla de RENAPO), así que esa variante también se acepta.
+    """
+    curp = (curp or "").strip().upper()
+    if not CURP_REGEX.match(curp):
+        return True, None
+    esperado = iniciales_curp(paterno, materno, nombres)
+    if not esperado:
+        return True, None
+    capturado = curp[:4].replace("Ñ", "X")
+    if capturado in (esperado, esperado[0] + "X" + esperado[2:]):
+        return True, None
+    return False, (f"Las iniciales de la CURP ({curp[:4]}) no corresponden al nombre capturado "
+                   f"(se esperaba {esperado}): revisa que cada apellido esté en su campo y que la "
+                   "CURP sea la del trabajador.")
+
+
+def validar_umf(valor, obligatorio):
+    valor = (valor or "").strip()
+    if not valor:
+        if obligatorio:
+            return False, ("Falta la unidad de medicina familiar (UMF): el IMSS la pide en cada alta. "
+                           "Está en la constancia de vigencia o en el carnet del trabajador.")
+        return True, None
+    if not UMF_REGEX.match(valor) or valor == "000":
+        return False, "La unidad de medicina familiar es un número de 1 a 3 dígitos (por ejemplo 035)."
     return True, None
 
 
@@ -353,15 +497,7 @@ def validar_campos(datos):
     es_alta = tipo == TIPO_ALTA
     es_baja = tipo == TIPO_BAJA
 
-    nombre = (datos.get("nombre_completo") or "").strip()
-    if not nombre:
-        errores["nombre_completo"] = "El nombre completo del trabajador es obligatorio."
-    elif len(nombre) < 5:
-        errores["nombre_completo"] = "El nombre completo parece incompleto (mínimo 5 caracteres)."
-    elif not NOMBRE_REGEX.match(nombre):
-        errores["nombre_completo"] = ("El nombre solo admite letras, espacios, punto, guion y "
-                                      "apóstrofo: revisa si se tecleó un número o un símbolo "
-                                      "(por ejemplo, un cero en lugar de la letra O).")
+    errores.update(validar_nombre(datos))
 
     for campo, validador in (("curp", validar_curp), ("nss", validar_nss),
                              ("rfc", validar_rfc), ("fecha_movimiento", validar_fecha),
@@ -397,6 +533,10 @@ def validar_campos(datos):
     if not ok:
         errores["tipo_jornada"] = mensaje
 
+    ok, mensaje = validar_umf(datos.get("umf"), obligatorio=es_alta)
+    if not ok:
+        errores["umf"] = mensaje
+
     ok, mensaje = validar_catalogo(datos.get("causa_baja"), CAUSAS_BAJA,
                                    "La causa de baja", obligatorio=es_baja)
     if not ok:
@@ -406,9 +546,17 @@ def validar_campos(datos):
 
     # Avisos: no bloquean, solo advierten al capturista.
     if "curp" not in errores:
+        avisos_curp = []
         ok, mensaje = verificar_digito_curp(datos.get("curp"))
         if not ok:
-            avisos["curp"] = mensaje
+            avisos_curp.append(mensaje)
+        if not any(campo in errores for campo in CAMPOS_NOMBRE):
+            ok, mensaje = verificar_iniciales_curp(datos.get("curp"), datos.get("apellido_paterno"),
+                                                   datos.get("apellido_materno"), datos.get("nombres"))
+            if not ok:
+                avisos_curp.append(mensaje)
+        if avisos_curp:
+            avisos["curp"] = " ".join(avisos_curp)
 
     if "nss" not in errores:
         ok, mensaje = verificar_digito_nss(datos.get("nss"))
@@ -446,8 +594,8 @@ def verificar_plazo(fecha_movimiento, hoy=None):
 # Orden en el que se listan los errores, para que el resumen siga el orden
 # visual del formulario.
 ORDEN_CAMPOS = [
-    "nombre_completo", "curp", "nss", "rfc", "tipo_movimiento", "fecha_movimiento",
-    "tipo_trabajador", "tipo_salario", "tipo_jornada", "sdi", "causa_baja",
+    "apellido_paterno", "apellido_materno", "nombres", "curp", "nss", "rfc", "tipo_movimiento",
+    "fecha_movimiento", "tipo_trabajador", "tipo_salario", "tipo_jornada", "sdi", "umf", "causa_baja",
 ]
 
 

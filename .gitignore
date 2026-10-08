@@ -13,3 +13,6 @@ pruebas/resultados/
 # Configuración personal de Obsidian (se crea al abrir la bóveda)
 Obsidian/.obsidian/
 Obsidian/.trash/
+# Respaldos automáticos de la base y clave de sesión generada (TRL 6)
+respaldos/
+.clave_sesion

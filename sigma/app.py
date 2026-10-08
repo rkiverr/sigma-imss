@@ -1,41 +1,77 @@
 """
-Sistema Sigma — prototipo validado en ambiente relevante (Entrega 5, TRL 5).
+Sistema Sigma — sistema integrado y demostrado en ambiente relevante (Entrega 6, TRL 6).
 
 Interfaz cliente (aplicación web) + lógica de servidor (validación,
 persistencia y exportación) para el sistema de altas y bajas IMSS/IDSE.
 
 Arquitectura cliente-servidor (paquete sigma/):
     templates/ + static/   capa de presentación
-    app.py                 controlador HTTP y reglas de flujo
+    app.py                 controlador HTTP, sesión y reglas de flujo
     validaciones.py        validación algorítmica
     plazo.py               plazo legal de cinco días hábiles
     database.py            persistencia relacional (PostgreSQL o SQLite)
-    exportar_idse.py       abstracción de datos hacia el formato IDSE
+    exportar_idse.py       lote IDSE con la estructura oficial de 168 posiciones
+    usuarios.py            contraseñas, inicio de sesión y consola de usuarios
+    respaldo.py            respaldo y restauración de la base
     __main__.py            servidor de desarrollo (python -m sigma)
     ../servidor.py         arranque en modo producción (waitress)
 """
 import os
 import secrets
-from datetime import datetime
+from datetime import date, datetime, timedelta
+from functools import wraps
 from urllib.parse import urlparse
 
 from flask import (Flask, abort, flash, g, jsonify, redirect, render_template,
-                   request, send_file, url_for)
+                   request, send_file, session, url_for)
+from werkzeug.exceptions import Forbidden, HTTPException
 
-from . import exportar_idse, plazo
-from .database import (ERRORES_DE_INTEGRIDAD, ErrorBaseDeDatos, conexion,
+from . import exportar_idse, plazo, usuarios
+from .database import (ERRORES_DE_INTEGRIDAD, RAIZ, ErrorBaseDeDatos, conexion,
                        conflicto_de_identidad, descripcion_backend,
                        estadisticas, estado_afiliatorio,
                        movimiento_duplicado, obtener_o_crear_trabajador,
                        obtener_patron_id, registrar_bitacora)
 from .validaciones import (CAUSAS_BAJA, ORDEN_CAMPOS, TIPO_ALTA, TIPO_BAJA,
                            TIPOS_JORNADA, TIPOS_SALARIO, TIPOS_TRABAJADOR,
-                           normalizar_datos, validar_campos)
+                           aviso_montos_sin_cargar, normalizar_datos, validar_campos)
+
+
+def _clave_de_sesion():
+    """
+    Clave con la que se firma la cookie de sesión. Si no viene en SECRET_KEY,
+    se genera una vez y se guarda en .clave_sesion (fuera de Git), para que
+    reiniciar el servidor no cierre las sesiones ni pierda los mensajes.
+    """
+    if os.environ.get("SECRET_KEY"):
+        return os.environ["SECRET_KEY"]
+    ruta = os.path.join(RAIZ, ".clave_sesion")
+    try:
+        with open(ruta, encoding="utf-8") as archivo:
+            clave = archivo.read().strip()
+        if clave:
+            return clave
+    except OSError:
+        pass
+    clave = secrets.token_hex(32)
+    try:
+        with open(ruta, "w", encoding="utf-8") as archivo:
+            archivo.write(clave)
+    except OSError:
+        pass  # sin permiso de escritura: la clave vive mientras dure el proceso
+    return clave
+
 
 app = Flask(__name__)
-# En producción debe fijarse con la variable de entorno; en desarrollo se
-# genera una clave efímera para no dejar un secreto fijo en el repositorio.
-app.secret_key = os.environ.get("SECRET_KEY") or secrets.token_hex(32)
+app.secret_key = _clave_de_sesion()
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    PERMANENT_SESSION_LIFETIME=timedelta(hours=float(os.environ.get("SIGMA_SESION_HORAS", "10"))),
+    # Un formulario de captura pesa menos de 1 KB; el límite evita que una sola
+    # petición enorme ocupe al servidor.
+    MAX_CONTENT_LENGTH=int(os.environ.get("SIGMA_MAX_PETICION_KB", "1024")) * 1024,
+)
 
 MOVIMIENTOS_POR_PAGINA = 25
 
@@ -46,8 +82,8 @@ FOLIO_MAXIMO = 2 ** 31 - 1
 ETIQUETAS_TIPO = {TIPO_ALTA: "Alta / Reingreso", TIPO_BAJA: "Baja"}
 
 CAMPOS_FORMULARIO = [
-    "nombre_completo", "curp", "nss", "rfc", "tipo_movimiento", "fecha_movimiento",
-    "tipo_trabajador", "tipo_salario", "tipo_jornada", "sdi", "causa_baja",
+    "apellido_paterno", "apellido_materno", "nombres", "curp", "nss", "rfc", "tipo_movimiento",
+    "fecha_movimiento", "tipo_trabajador", "tipo_salario", "tipo_jornada", "sdi", "umf", "causa_baja",
 ]
 
 CATALOGOS = {
@@ -56,6 +92,9 @@ CATALOGOS = {
     "tipo_jornada": TIPOS_JORNADA,
     "causa_baja": CAUSAS_BAJA,
 }
+
+# Rutas que se pueden abrir sin haber iniciado sesión.
+RUTAS_PUBLICAS = {"login", "static"}
 
 
 # --------------------------------------------------------------------------
@@ -144,22 +183,6 @@ def _validar_historial(conn, datos):
     return {}, {}
 
 
-def _usuario_valido(conn, valor):
-    """
-    Convierte el usuario recibido del formulario a un id existente.
-    Devuelve None si el valor es inválido, en lugar de reventar con ValueError.
-    """
-    try:
-        usuario_id = int(valor)
-    except (TypeError, ValueError):
-        return None
-    cur = conn.cursor()
-    cur.execute("SELECT id FROM usuario WHERE id = %s", (usuario_id,))
-    fila = cur.fetchone()
-    cur.close()
-    return fila["id"] if fila else None
-
-
 def _consultar_movimientos(conn, filtros):
     """Lista de movimientos aplicando los filtros de la interfaz, ya paginada."""
     condiciones = []
@@ -188,7 +211,7 @@ def _consultar_movimientos(conn, filtros):
     cur.execute(
         """SELECT m.id, t.nombre_completo, t.curp, t.nss, t.rfc, m.tipo_movimiento,
                   m.fecha_movimiento, m.estado, m.sdi, m.causa_baja, m.creado_en,
-                  m.tipo_trabajador, m.tipo_salario, m.tipo_jornada
+                  m.tipo_trabajador, m.tipo_salario, m.tipo_jornada, m.umf
            FROM movimiento m JOIN trabajador t ON t.id = m.trabajador_id"""
         + where + " ORDER BY m.id DESC LIMIT %s OFFSET %s",
         tuple(parametros) + (MOVIMIENTOS_POR_PAGINA, offset),
@@ -205,9 +228,6 @@ def _contexto(conn, filtros, form=None, errores=None, avisos=None):
     movimientos, total, pagina, paginas = _consultar_movimientos(conn, filtros)
 
     cur = conn.cursor()
-    cur.execute("SELECT id, nombre, rol FROM usuario ORDER BY id")
-    usuarios = [dict(fila) for fila in cur.fetchall()]
-
     cur.execute(
         """SELECT b.timestamp, u.nombre AS usuario, b.accion, b.detalle, b.movimiento_id
            FROM bitacora b JOIN usuario u ON u.id = b.usuario_id
@@ -227,7 +247,6 @@ def _contexto(conn, filtros, form=None, errores=None, avisos=None):
         "total_movimientos": total,
         "pagina": pagina,
         "paginas": paginas,
-        "usuarios": usuarios,
         "bitacora": bitacora,
         "patron": patron,
         "stats": estadisticas(conn),
@@ -239,7 +258,10 @@ def _contexto(conn, filtros, form=None, errores=None, avisos=None):
         "catalogos": CATALOGOS,
         "orden_campos": ORDEN_CAMPOS,
         "motor": descripcion_backend(),
-        "lote_disponible": exportar_idse.ultimo_lote() is not None,
+        "es_admin": g.usuario["rol"] == "administrador",
+        "lote_altas": exportar_idse.ultimo_lote("altas") is not None,
+        "lote_bajas": exportar_idse.ultimo_lote("bajas") is not None,
+        "aviso_montos": aviso_montos_sin_cargar(date.today().year),
     }
 
 
@@ -266,6 +288,7 @@ def preparar_peticion():
     # Nonce de un solo uso para el único script en línea (el del tema), de modo
     # que la política de contenido pueda prohibir cualquier otro.
     g.csp_nonce = secrets.token_urlsafe(16)
+    g.usuario = None
 
     # Un formulario solo se acepta si lo envió una página de Sigma. Los
     # navegadores ponen el sitio de origen en Origin (o en Referer); si otro
@@ -275,10 +298,43 @@ def preparar_peticion():
         if origen and urlparse(origen).netloc != request.host:
             abort(403)
 
+    # Las direcciones que no existen responden 404 aunque no haya sesión.
+    if request.endpoint is None or request.endpoint == "static":
+        return None
+
+    usuario_id = session.get("usuario_id")
+    if usuario_id:
+        with conexion() as conn:
+            usuario = usuarios.por_id(conn, usuario_id)
+        # La cookie solo vale si su token coincide con el de la base (ver usuarios.abrir_sesion).
+        if (usuario and usuario["activo"] and usuario["sesion_token"]
+                and secrets.compare_digest(session.get("token") or "", usuario["sesion_token"])):
+            g.usuario = usuario
+        else:
+            session.clear()
+
+    if g.usuario is None and request.endpoint not in RUTAS_PUBLICAS:
+        if request.path.startswith("/api/"):
+            return jsonify({"error": "La sesión terminó. Vuelve a iniciar sesión."}), 401
+        return redirect(url_for("login"))
+    return None
+
+
+def requiere_rol(rol):
+    """Restringe una vista a un rol; los demás reciben 403 con la explicación."""
+    def decorador(vista):
+        @wraps(vista)
+        def envoltura(*args, **kwargs):
+            if g.usuario is None or g.usuario["rol"] != rol:
+                abort(403, "Solo el personal de administración puede generar y descargar lotes IDSE.")
+            return vista(*args, **kwargs)
+        return envoltura
+    return decorador
+
 
 @app.context_processor
 def variables_de_plantilla():
-    return {"csp_nonce": getattr(g, "csp_nonce", "")}
+    return {"csp_nonce": getattr(g, "csp_nonce", ""), "usuario_actual": getattr(g, "usuario", None)}
 
 
 @app.after_request
@@ -297,6 +353,47 @@ def cabeceras_de_seguridad(respuesta):
 
 
 # --------------------------------------------------------------------------
+# Sesión
+# --------------------------------------------------------------------------
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if g.usuario is not None:
+        return redirect(url_for("index"))
+    nombre = ""
+    error = None
+    estado = 200
+    if request.method == "POST":
+        nombre = (request.form.get("usuario") or "").strip()
+        with conexion(commit=True) as conn:
+            usuario, error = usuarios.autenticar(conn, nombre, request.form.get("contrasena") or "")
+            token = usuarios.abrir_sesion(conn, usuario) if usuario else None
+        if usuario:
+            # Una sesión nueva en cada inicio evita reutilizar una cookie anterior.
+            session.clear()
+            session.permanent = True
+            session["usuario_id"] = usuario["id"]
+            session["token"] = token
+            return redirect(url_for("index"))
+        estado = 401
+    with conexion() as conn:
+        sin_contrasenas = not usuarios.hay_contrasenas(conn)
+    return render_template("login.html", error=error, nombre=nombre,
+                           sin_contrasenas=sin_contrasenas), estado
+
+
+@app.route("/logout", methods=["POST"])
+def logout():
+    with conexion(commit=True) as conn:
+        registrar_bitacora(conn, g.usuario["id"], None, "Cierre de sesión", "")
+        # Con sesiones en cookie, borrar la cookie no basta: el token de la base
+        # se elimina para que una copia de la cookie tampoco siga sirviendo.
+        usuarios.cerrar_sesiones(conn, g.usuario["id"])
+    session.clear()
+    flash("Sesión cerrada.", "success")
+    return redirect(url_for("login"))
+
+
+# --------------------------------------------------------------------------
 # Vistas
 # --------------------------------------------------------------------------
 @app.route("/")
@@ -309,12 +406,9 @@ def index():
 def capturar():
     datos = _leer_formulario()
     errores, avisos = validar_campos(datos)
+    usuario_id = g.usuario["id"]
 
     with conexion(commit=True) as conn:
-        usuario_id = _usuario_valido(conn, request.form.get("usuario_id"))
-        if usuario_id is None:
-            errores["usuario_id"] = "Selecciona un usuario válido para atribuir la captura."
-
         # Reglas que dependen del estado de la base y solo tienen sentido si
         # los identificadores ya pasaron la validación de formato.
         if not errores.get("curp") and not errores.get("nss"):
@@ -349,9 +443,8 @@ def capturar():
                     "volver a capturarlo.")
 
         if errores:
-            if usuario_id is not None:
-                registrar_bitacora(conn, usuario_id, None, "Intento de captura rechazado",
-                                   " | ".join(errores.values()))
+            registrar_bitacora(conn, usuario_id, None, "Intento de captura rechazado",
+                               " | ".join(errores.values()))
             filtros = _filtros_de_peticion()
             contexto = _contexto(conn, filtros, form=datos, errores=errores, avisos=avisos)
             return render_template("index.html", **contexto), 422
@@ -371,18 +464,20 @@ def _guardar_movimiento(conn, datos, usuario_id):
     """Inserta trabajador (si es nuevo), movimiento y asiento de bitácora."""
     patron_id = obtener_patron_id(conn)
     trabajador_id = obtener_o_crear_trabajador(
-        conn, datos["nombre_completo"], datos["curp"], datos["nss"], datos["rfc"])
+        conn, datos["nombre_completo"], datos["curp"], datos["nss"], datos["rfc"],
+        datos["apellido_paterno"], datos["apellido_materno"], datos["nombres"])
 
     cur = conn.cursor()
     cur.execute(
         """INSERT INTO movimiento (trabajador_id, patron_id, tipo_movimiento, fecha_movimiento,
-               tipo_trabajador, tipo_salario, tipo_jornada, sdi, causa_baja, estado,
+               tipo_trabajador, tipo_salario, tipo_jornada, sdi, causa_baja, umf, estado,
                exportado, creado_en)
-           VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 'Válido', FALSE, %s)
+           VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'Válido', FALSE, %s)
            RETURNING id""",
         (trabajador_id, patron_id, datos["tipo_movimiento"], datos["fecha_movimiento"],
          datos["tipo_trabajador"], datos["tipo_salario"], datos["tipo_jornada"],
          datos["sdi"], datos["causa_baja"],
+         datos["umf"] if datos["tipo_movimiento"] == TIPO_ALTA else "",
          datetime.now().isoformat(sep=" ", timespec="seconds")),
     )
     movimiento_id = cur.fetchone()["id"]
@@ -396,48 +491,71 @@ def _guardar_movimiento(conn, datos, usuario_id):
 
 
 @app.route("/exportar", methods=["POST"])
+@requiere_rol("administrador")
 def exportar():
+    usuario_id = g.usuario["id"]
     with conexion(commit=True) as conn:
-        usuario_id = _usuario_valido(conn, request.form.get("usuario_id"))
-        if usuario_id is None:
-            flash("Selecciona un usuario válido antes de generar el lote.", "error")
-            return redirect(url_for("index"))
-
         cur = conn.cursor()
         cur.execute(
-            """SELECT m.id AS movimiento_id, p.registro_patronal, m.tipo_movimiento,
-                      t.curp, t.nss, t.rfc, m.fecha_movimiento, m.tipo_trabajador,
-                      m.tipo_salario, m.tipo_jornada, m.sdi, m.causa_baja
+            """SELECT m.id AS movimiento_id, p.registro_patronal, p.guia, m.tipo_movimiento,
+                      t.id AS trabajador_id, t.curp, t.nss, t.rfc, t.apellido_paterno,
+                      t.apellido_materno, t.nombres, m.fecha_movimiento, m.tipo_trabajador,
+                      m.tipo_salario, m.tipo_jornada, m.sdi, m.causa_baja, m.umf
                FROM movimiento m
                JOIN trabajador t ON t.id = m.trabajador_id
                JOIN patron p ON p.id = m.patron_id
                WHERE m.estado = 'Válido' AND m.exportado = FALSE
                ORDER BY m.id"""
         )
-        registros = [dict(fila) for fila in cur.fetchall()]
+        pendientes = [dict(fila) for fila in cur.fetchall()]
+        # Movimientos de bases anteriores al TRL 6 que no traen apellidos o UMF:
+        # no se pueden escribir en la estructura oficial y se quedan pendientes.
+        incompletos = [r for r in pendientes if exportar_idse.faltantes(r)]
+        registros = [r for r in pendientes if not exportar_idse.faltantes(r)]
 
         if not registros:
             cur.close()
-            flash("No hay movimientos válidos pendientes de exportar.", "error")
+            if incompletos:
+                flash(_mensaje_incompletos(incompletos), "error")
+            else:
+                flash("No hay movimientos válidos pendientes de exportar.", "error")
             return redirect(url_for("index"))
 
-        ruta = exportar_idse.exportar_lote(registros)
-
+        rutas = exportar_idse.exportar_lote(registros)
         cur.executemany(
             "UPDATE movimiento SET exportado = TRUE, estado = 'Exportado' WHERE id = %s",
             [(registro["movimiento_id"],) for registro in registros],
         )
         cur.close()
+        archivos = {tipo: os.path.basename(ruta) for tipo, ruta in rutas.items()}
+        for registro in registros:
+            registrar_bitacora(conn, usuario_id, registro["movimiento_id"], "Incluido en lote IDSE",
+                               archivos[registro["tipo_movimiento"]])
+        resumen = "; ".join(
+            f"{sum(1 for r in registros if r['tipo_movimiento'] == tipo)} "
+            f"{exportar_idse.NOMBRES_TIPO[tipo]} en {archivo}" for tipo, archivo in archivos.items())
         registrar_bitacora(conn, usuario_id, None, "Exportación de lote IDSE",
-                           f"{len(registros)} movimiento(s) en {os.path.basename(ruta)}")
+                           f"{len(registros)} movimiento(s): {resumen}")
 
-    flash(f"Lote IDSE generado con {len(registros)} movimiento(s): {os.path.basename(ruta)}", "success")
+    mensaje = f"Lote IDSE generado con {len(registros)} movimiento(s): {resumen}."
+    if incompletos:
+        flash(mensaje + " " + _mensaje_incompletos(incompletos), "warning")
+    else:
+        flash(mensaje, "success")
     return redirect(url_for("index"))
 
 
+def _mensaje_incompletos(incompletos):
+    folios = ", ".join(f"#{r['movimiento_id']}" for r in incompletos)
+    return (f"No se exportaron {len(incompletos)} movimiento(s) capturados antes del TRL 6 ({folios}) "
+            "porque les faltan apellidos separados o la UMF que pide el IMSS.")
+
+
 @app.route("/descargar-lote")
+@requiere_rol("administrador")
 def descargar_lote():
-    ruta = exportar_idse.ultimo_lote()
+    tipo = request.args.get("tipo")
+    ruta = exportar_idse.ultimo_lote(tipo if tipo in ("altas", "bajas") else None)
     if not ruta or not os.path.isfile(ruta):
         flash("Todavía no se ha generado ningún lote IDSE para descargar.", "error")
         return redirect(url_for("index"))
@@ -467,10 +585,10 @@ def api_movimiento(movimiento_id):
     with conexion() as conn:
         cur = conn.cursor()
         cur.execute(
-            """SELECT m.id, t.nombre_completo, t.curp, t.nss, t.rfc, p.registro_patronal,
-                      p.razon_social, m.tipo_movimiento, m.fecha_movimiento, m.estado,
-                      m.tipo_trabajador, m.tipo_salario, m.tipo_jornada, m.sdi,
-                      m.causa_baja, m.creado_en
+            """SELECT m.id, t.nombre_completo, t.apellido_paterno, t.apellido_materno, t.nombres,
+                      t.curp, t.nss, t.rfc, p.registro_patronal, p.razon_social,
+                      m.tipo_movimiento, m.fecha_movimiento, m.estado, m.tipo_trabajador,
+                      m.tipo_salario, m.tipo_jornada, m.sdi, m.causa_baja, m.umf, m.creado_en
                FROM movimiento m
                JOIN trabajador t ON t.id = m.trabajador_id
                JOIN patron p ON p.id = m.patron_id
@@ -506,6 +624,18 @@ def api_movimiento(movimiento_id):
 # --------------------------------------------------------------------------
 # Manejo de errores
 # --------------------------------------------------------------------------
+MENSAJES_HTTP = {
+    400: ("Solicitud no válida", "El navegador envió datos que Sigma no pudo leer. Vuelve al inicio "
+                                 "e inténtalo de nuevo."),
+    405: ("Esta dirección no se abre así", "Las capturas y los lotes se envían con los botones de la "
+                                           "pantalla principal; abrir esta dirección directamente no "
+                                           "guarda ni cambia nada."),
+    413: ("La solicitud es demasiado grande", "Sigma acepta envíos de hasta "
+                                              f"{app.config['MAX_CONTENT_LENGTH'] // 1024} KB. Un "
+                                              "formulario de captura normal pesa menos de 1 KB."),
+}
+
+
 @app.errorhandler(404)
 def error_404(_error):
     return render_template("error.html", codigo=404, titulo="Página no encontrada",
@@ -513,7 +643,11 @@ def error_404(_error):
 
 
 @app.errorhandler(403)
-def error_403(_error):
+def error_403(error):
+    descripcion = getattr(error, "description", "")
+    if descripcion and descripcion != Forbidden.description:
+        return render_template("error.html", codigo=403, titulo="Acceso restringido",
+                               detalle=descripcion), 403
     return render_template("error.html", codigo=403, titulo="Solicitud rechazada",
                            detalle="La captura no se envió desde una página de Sigma, así que no "
                                    "se guardó. Vuelve al inicio y captura desde el formulario."), 403
@@ -525,15 +659,25 @@ def error_base_de_datos(error):
                            detalle=str(error)), 503
 
 
+def error_http(error):
+    """Cualquier otro error HTTP (405, 413, 400…) conserva su código y su explicación."""
+    codigo = error.code or 500
+    titulo, detalle = MENSAJES_HTTP.get(codigo, (error.name, "La solicitud no se pudo atender."))
+    if request.path.startswith("/api/"):
+        return jsonify({"error": titulo}), codigo
+    return render_template("error.html", codigo=codigo, titulo=titulo, detalle=detalle), codigo
+
+
 @app.errorhandler(Exception)
 def error_no_controlado(error):
     if isinstance(error, ErrorBaseDeDatos):
         return error_base_de_datos(error)
-    codigo = getattr(error, "code", 500)
-    if codigo == 404:
-        return error_404(error)
-    if codigo == 403:
-        return error_403(error)
+    if isinstance(error, HTTPException):
+        if error.code == 404:
+            return error_404(error)
+        if error.code == 403:
+            return error_403(error)
+        return error_http(error)
     app.logger.exception("Error no controlado")
     return render_template(
         "error.html", codigo=500, titulo="Ocurrió un error en el servidor",
