@@ -552,6 +552,26 @@ def bloque_s(modo):
         seg("S-13", "Reutilizar una cookie copiada después de cerrar sesión", f"HTTP {r.estado} → {r.ubicacion}",
             r.estado == 302 and (r.ubicacion or "").endswith("/login"),
             "El token de la sesión se borra de la base al salir.")
+
+        # Diez PC entran al mismo tiempo con la misma cuenta: todas deben quedar dentro.
+        barrera = threading.Barrier(10)
+        dentro = []
+
+        def entrar():
+            c = par.Cliente(srv.puerto, host=ip, usuario_id=CAPTURA)
+            c._conexion = c._conectar()
+            barrera.wait()
+            c.asegurar_sesion(CAPTURA)
+            dentro.append(c.pedir("GET", "/").estado == 200)
+
+        hilos = [threading.Thread(target=entrar) for _ in range(10)]
+        for h in hilos:
+            h.start()
+        for h in hilos:
+            h.join()
+        seg("S-14", "Diez equipos inician sesión a la vez con la misma cuenta",
+            f"{sum(dentro)} de 10 siguen dentro", sum(dentro) == 10,
+            "El token se crea una sola vez; los demás lo reciben.")
         cap2 = par.Cliente(srv.puerto, host=ip, usuario_id=CAPTURA)
         exp = cap2.formulario("/exportar", {})
         des = cap2.pedir("GET", "/descargar-lote?tipo=altas")
@@ -559,6 +579,7 @@ def bloque_s(modo):
             exp.estado == 403 and des.estado == 403)
         excepciones = srv.excepciones()
 
+    pruebas.sort(key=lambda p: p["clave"])
     hallazgos = [p["clave"] for p in pruebas if not p["seguro"]]
     log(f"  Hallazgos: {len(hallazgos)} de {len(pruebas)} {hallazgos} · excepciones en el servidor: {excepciones}")
     log("")
