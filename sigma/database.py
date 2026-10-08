@@ -45,9 +45,13 @@ except ImportError:  # el prototipo sigue siendo funcional sobre SQLite
 # ahí y no dentro del paquete, junto a exportaciones/.
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+# Por omisión, PostgreSQL en el propio equipo. Se usa 127.0.0.1 y no "localhost"
+# y se limita la espera: en Windows, sin servidor PostgreSQL, "localhost" (IPv6 e
+# IPv4) tardaba 4 s en fallar en cada arranque; así tarda 1 s. Con SIGMA_DB=sqlite
+# ni siquiera se intenta.
 DATABASE_URL = os.environ.get(
     "DATABASE_URL",
-    "postgresql://postgres:postgres@localhost:5432/sigma_imss?client_encoding=UTF8",
+    "postgresql://postgres:postgres@127.0.0.1:5432/sigma_imss?client_encoding=UTF8&connect_timeout=1",
 )
 SQLITE_PATH = os.environ.get("SQLITE_PATH", os.path.join(RAIZ, "sigma_imss.db"))
 MOTOR_FORZADO = os.environ.get("SIGMA_DB", "").strip().lower()
