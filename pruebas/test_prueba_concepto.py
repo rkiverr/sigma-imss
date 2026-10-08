@@ -35,7 +35,7 @@ if not os.environ.get("DATABASE_URL"):
 
 from sigma.database import (descripcion_backend, get_conn, init_db,  # noqa: E402
                             obtener_o_crear_trabajador, registrar_bitacora)
-from sigma.exportar_idse import exportar_a_archivo  # noqa: E402
+from sigma.exportar_idse import LONGITUD_REGISTRO, exportar_a_archivo  # noqa: E402
 from sigma.validaciones import validar_movimiento  # noqa: E402
 
 REPORTE = []
@@ -48,43 +48,43 @@ def log(linea=""):
 
 CASOS_PRUEBA = [
     {"caso": "C1 - Alta válida",
-     "datos": {"nombre_completo": "Gael Antonio Rivera Diego", "curp": "RIDG050515HNLVLL09",
+     "datos": {"apellido_paterno": "Rivera", "apellido_materno": "Diego", "nombres": "Gael Antonio", "curp": "RIDG050515HNLVLL09",
                "nss": "12345678901", "rfc": "RIDG050515AB1", "tipo_movimiento": "08",
                "fecha_movimiento": "05092026", "tipo_trabajador": "1", "tipo_salario": "0",
-               "tipo_jornada": "1", "sdi": "450.50", "causa_baja": ""},
+               "tipo_jornada": "0", "sdi": "450.50", "umf": "035", "causa_baja": ""},
      "esperado": True},
     {"caso": "C2 - Baja válida",
-     "datos": {"nombre_completo": "Ernesto Beas Hernandez", "curp": "BEHE900101HNLRRN05",
+     "datos": {"apellido_paterno": "Beas", "apellido_materno": "Hernandez", "nombres": "Ernesto", "curp": "BEHE900101HNLRRN05",
                "nss": "98765432101", "rfc": "BEHE900101AB2", "tipo_movimiento": "02",
                "fecha_movimiento": "01092026", "causa_baja": "1"},
      "esperado": True},
     {"caso": "C3 - CURP con longitud incorrecta",
-     "datos": {"nombre_completo": "Pedro Luna Salas", "curp": "LUSP99010",
+     "datos": {"apellido_paterno": "Luna", "apellido_materno": "Salas", "nombres": "Pedro", "curp": "LUSP99010",
                "nss": "11122233344", "rfc": "LUSP990101AB3", "tipo_movimiento": "08",
                "fecha_movimiento": "10092026"},
      "esperado": False},
     {"caso": "C4 - NSS con letras",
-     "datos": {"nombre_completo": "Hector Garza Pachicano", "curp": "GAPH880303HNLRCC02",
+     "datos": {"apellido_paterno": "Garza", "apellido_materno": "Pachicano", "nombres": "Hector", "curp": "GAPH880303HNLRCC02",
                "nss": "1234ABC8901", "rfc": "GAPH880303AB4", "tipo_movimiento": "08",
                "fecha_movimiento": "12092026"},
      "esperado": False},
     {"caso": "C5 - Fecha fuera de formato (usa guiones)",
-     "datos": {"nombre_completo": "Emilio Garza Diaz de Leon", "curp": "GADE970707HNLRML08",
+     "datos": {"apellido_paterno": "Garza", "apellido_materno": "Diaz de Leon", "nombres": "Emilio", "curp": "GADE970707HNLRML08",
                "nss": "55566677788", "rfc": "GADE970707AB5", "tipo_movimiento": "02",
                "fecha_movimiento": "12-09-2026", "causa_baja": "2"},
      "esperado": False},
     {"caso": "C6 - Fecha inexistente en el calendario (31 de febrero)",
-     "datos": {"nombre_completo": "Sofia Ramirez Torres", "curp": "RATS930231MNLMRF01",
+     "datos": {"apellido_paterno": "Ramirez", "apellido_materno": "Torres", "nombres": "Sofia", "curp": "RATS930231MNLMRF01",
                "nss": "22233344455", "rfc": "RATS930231AB6", "tipo_movimiento": "08",
                "fecha_movimiento": "31022026"},
      "esperado": False},
     {"caso": "C7 - Tipo de movimiento inválido",
-     "datos": {"nombre_completo": "Laura Mendez Cantu", "curp": "MECL881212MNLNND07",
+     "datos": {"apellido_paterno": "Mendez", "apellido_materno": "Cantu", "nombres": "Laura", "curp": "MECL881212MNLNND07",
                "nss": "33344455566", "rfc": "MECL881212AB7", "tipo_movimiento": "99",
                "fecha_movimiento": "15092026"},
      "esperado": False},
-    {"caso": "C8 - Nombre vacío",
-     "datos": {"nombre_completo": "", "curp": "TORJ951111HNLRZR06",
+    {"caso": "C8 - Nombre vacío (apellido paterno y nombre obligatorios)",
+     "datos": {"apellido_paterno": "", "apellido_materno": "", "nombres": "", "curp": "TORJ951111HNLRZR06",
                "nss": "44455566677", "rfc": "TORJ951111AB8", "tipo_movimiento": "08",
                "fecha_movimiento": "20092026"},
      "esperado": False},
@@ -110,20 +110,23 @@ def bloque_1_validacion():
                 log(f"        -> {e}")
 
         if es_valido:
+            datos = caso["datos"]
             cur.execute("SELECT id FROM patron LIMIT 1")
             patron_id = cur.fetchone()["id"]
+            nombre_completo = " ".join(datos[c] for c in ("apellido_paterno", "apellido_materno", "nombres")
+                                       if datos[c])
             trabajador_id = obtener_o_crear_trabajador(
-                conn, caso["datos"]["nombre_completo"], caso["datos"]["curp"],
-                caso["datos"]["nss"], caso["datos"]["rfc"])
+                conn, nombre_completo, datos["curp"], datos["nss"], datos["rfc"],
+                datos["apellido_paterno"], datos["apellido_materno"], datos["nombres"])
             cur.execute("""
                 INSERT INTO movimiento (trabajador_id, patron_id, tipo_movimiento, fecha_movimiento,
-                    tipo_trabajador, tipo_salario, tipo_jornada, sdi, causa_baja, estado, exportado)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 'Válido', FALSE)
+                    tipo_trabajador, tipo_salario, tipo_jornada, sdi, causa_baja, umf, estado, exportado)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'Válido', FALSE)
                 RETURNING id
-            """, (trabajador_id, patron_id, caso["datos"]["tipo_movimiento"], caso["datos"]["fecha_movimiento"],
-                  caso["datos"].get("tipo_trabajador", ""), caso["datos"].get("tipo_salario", ""),
-                  caso["datos"].get("tipo_jornada", ""), caso["datos"].get("sdi", ""),
-                  caso["datos"].get("causa_baja", "")))
+            """, (trabajador_id, patron_id, datos["tipo_movimiento"], datos["fecha_movimiento"],
+                  datos.get("tipo_trabajador", ""), datos.get("tipo_salario", ""),
+                  datos.get("tipo_jornada", ""), datos.get("sdi", ""),
+                  datos.get("causa_baja", ""), datos.get("umf", "")))
             movimiento_id = cur.fetchone()["id"]
             registrar_bitacora(conn, 1, movimiento_id, "Movimiento capturado", caso["caso"])
         else:
@@ -145,15 +148,22 @@ def bloque_2_exportacion():
     conn = get_conn()
     cur = conn.cursor()
     cur.execute("""
-        SELECT m.id AS movimiento_id, p.registro_patronal, m.tipo_movimiento, t.curp, t.nss, t.rfc,
-               m.fecha_movimiento, m.tipo_trabajador, m.tipo_salario, m.tipo_jornada, m.sdi, m.causa_baja
+        SELECT m.id AS movimiento_id, p.registro_patronal, p.guia, m.tipo_movimiento, t.id AS trabajador_id,
+               t.curp, t.nss, t.rfc, t.apellido_paterno, t.apellido_materno, t.nombres,
+               m.fecha_movimiento, m.tipo_trabajador, m.tipo_salario, m.tipo_jornada, m.sdi, m.causa_baja, m.umf
         FROM movimiento m
         JOIN trabajador t ON t.id = m.trabajador_id
         JOIN patron p ON p.id = m.patron_id
         WHERE m.estado = 'Válido' AND m.exportado = FALSE
     """)
     registros = [dict(r) for r in cur.fetchall()]
-    ruta = exportar_a_archivo(registros, os.path.join(RESULTADOS, "lote_idse_prueba.txt"))
+    # Estructura oficial del IMSS: un archivo por tipo de movimiento.
+    rutas = []
+    for tipo, nombre in (("08", "altas"), ("02", "bajas")):
+        del_tipo = [r for r in registros if r["tipo_movimiento"] == tipo]
+        if del_tipo:
+            ruta = exportar_a_archivo(del_tipo, os.path.join(RESULTADOS, f"lote_idse_prueba_{nombre}.txt"))
+            rutas.append((tipo, ruta))
 
     ids = [r["movimiento_id"] for r in registros]
     cur.executemany("UPDATE movimiento SET exportado = TRUE, estado = 'Exportado' WHERE id = %s", [(i,) for i in ids])
@@ -163,15 +173,21 @@ def bloque_2_exportacion():
     conn.close()
 
     log(f"Movimientos válidos exportados: {len(registros)}")
-    log(f"Archivo generado: {os.path.relpath(ruta, RAIZ)}")
-    log("Contenido del lote (una línea por movimiento, campos separados por '|'):")
-    with open(ruta, encoding="utf-8") as f:
-        for linea in f:
-            log("   " + linea.strip())
-    cumple = len(registros) == 2  # C1 y C2 son los únicos válidos del dataset
+    estructura_ok = True
+    for tipo, ruta in rutas:
+        with open(ruta, "rb") as f:
+            lineas = f.read().split(b"\r\n")[:-1]
+        log(f"Archivo generado: {os.path.relpath(ruta, RAIZ)} ({len(lineas)} registro(s) de "
+            f"{LONGITUD_REGISTRO} posiciones, sin separadores)")
+        for linea in lineas:
+            log("   " + linea.decode("cp1252"))
+            estructura_ok &= (len(linea) == LONGITUD_REGISTRO and linea[131:133].decode() == tipo
+                              and linea[-1:] == b"9")
+    cumple = len(registros) == 2 and len(rutas) == 2 and estructura_ok  # C1 y C2 son los únicos válidos
     log("")
     log(f"Resultado del bloque 2: {'CUMPLE' if cumple else 'NO CUMPLE'} — se esperaban 2 movimientos válidos "
-        f"(C1 y C2) y se exportaron {len(registros)}.")
+        f"(C1 y C2) en dos archivos (altas y bajas) de {LONGITUD_REGISTRO} posiciones por registro; se "
+        f"exportaron {len(registros)} en {len(rutas)} archivo(s).")
     log("")
     return cumple
 
@@ -255,7 +271,7 @@ def bloque_3_concurrencia():
 if __name__ == "__main__":
     init_db()
 
-    log("REPORTE DE RESULTADOS — PRUEBA DE CONCEPTO (ENTREGA 3 / TRL 3)")
+    log("REPORTE DE RESULTADOS — PRUEBA DE CONCEPTO (ENTREGA 3 / TRL 3; casos al día con el TRL 6)")
     log("Sistema para la automatización de altas y bajas de seguro social")
     log(f"Persistencia: {descripcion_backend()}")
     log("")

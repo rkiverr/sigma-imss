@@ -24,6 +24,11 @@ Bloques:
 Para no tocar la base de trabajo ni los lotes reales, cada bloque ejecuta una
 COPIA AISLADA del sistema en un directorio temporal, con su propia base SQLite.
 
+Desde el TRL 6 el sistema pide inicio de sesión: en cada copia aislada el arnés
+asigna contraseñas de prueba con python -m sigma.usuarios y cada capturista
+virtual entra con el usuario de su formulario. Con --codigo de una versión
+anterior (sin sigma/usuarios.py) el arnés funciona como antes.
+
 Uso (desde la raíz del repositorio; los reportes quedan en pruebas/resultados/):
   python pruebas/prueba_ambiente_relevante.py                         # servidor de producción
   python pruebas/prueba_ambiente_relevante.py --servidor desarrollo   # servidor de Flask
@@ -221,25 +226,33 @@ class Plantilla:
         salario = az.uniform(puesto[1], puesto[2])
         return {
             "nombre_completo": f"{paterno} {materno} {nombre}",
+            "apellido_paterno": paterno, "apellido_materno": materno, "nombres": nombre,
+            "umf": f"{self.consecutivo % 60 + 1:03d}",
             "curp": curp, "nss": nss, "rfc": rfc,
             "tipo_trabajador": "3" if az.random() < 0.6 else "1",  # 3 = eventual de la construcción
-            "tipo_salario": "0", "tipo_jornada": "1",
+            "tipo_salario": "0", "tipo_jornada": jornada_normal(),
             "sdi": f"{salario * FACTOR_INTEGRACION:.2f}",
             "puesto": puesto[0],
         }
 
 
+def _nombre(t):
+    """El nombre como lo envía cada versión: completo (hasta el TRL 5) y separado (TRL 6)."""
+    return {"nombre_completo": t["nombre_completo"], "apellido_paterno": t["apellido_paterno"],
+            "apellido_materno": t["apellido_materno"], "nombres": t["nombres"]}
+
+
 def alta(t, fecha, usuario_id="2"):
     """Formulario de un alta tal como lo envía el navegador (sin causa de baja)."""
-    return {"nombre_completo": t["nombre_completo"], "curp": t["curp"], "nss": t["nss"],
+    return {**_nombre(t), "curp": t["curp"], "nss": t["nss"],
             "rfc": t["rfc"], "tipo_movimiento": "08", "fecha_movimiento": ddmmaaaa(fecha),
             "tipo_trabajador": t["tipo_trabajador"], "tipo_salario": t["tipo_salario"],
-            "tipo_jornada": t["tipo_jornada"], "sdi": t["sdi"], "usuario_id": usuario_id}
+            "tipo_jornada": t["tipo_jornada"], "sdi": t["sdi"], "umf": t["umf"], "usuario_id": usuario_id}
 
 
 def baja(t, fecha, causa="1", usuario_id="2"):
     """Formulario de una baja: los campos de contratación van deshabilitados y no se envían."""
-    return {"nombre_completo": t["nombre_completo"], "curp": t["curp"], "nss": t["nss"],
+    return {**_nombre(t), "curp": t["curp"], "nss": t["nss"],
             "rfc": t["rfc"], "tipo_movimiento": "02", "fecha_movimiento": ddmmaaaa(fecha),
             "causa_baja": causa, "usuario_id": usuario_id}
 
@@ -263,6 +276,20 @@ def ip_lan():
             return "127.0.0.1"
 
 
+CONTRASENA_PRUEBA = "prueba-sigma-2026"
+USUARIOS_PRUEBA = {"1": "admin.rrhh", "2": "captura.obra1"}
+
+
+def version_trl6():
+    """True si la versión que se prueba tiene inicio de sesión, nombre separado y catálogo oficial."""
+    return os.path.isfile(os.path.join(CODIGO, "sigma", "usuarios.py"))
+
+
+def jornada_normal():
+    """Código de la jornada normal: 0 en el catálogo oficial del IMSS (TRL 6), 1 en el anterior."""
+    return "0" if version_trl6() else "1"
+
+
 def codigo_en_paquete():
     """True si la versión que se prueba tiene la aplicación en el paquete sigma/;
     las de las Entregas 3 a 5 la tenían suelta en la raíz (útil con --codigo)."""
@@ -273,6 +300,7 @@ class Servidor:
     """Levanta una copia del sistema en un directorio temporal."""
 
     IGNORAR = staticmethod(shutil.ignore_patterns(".git", "*.db", "*.db-wal", "*.db-shm", "exportaciones",
+                                     "respaldos", ".clave_sesion",
                                      "__pycache__", "resultados_*", "instrucciones", "pruebas",
                                      "Obsidian", "prueba_ambiente_relevante.py",
                                      "test_prueba_concepto.py"))
@@ -286,6 +314,7 @@ class Servidor:
         self.proceso = None
         self.bitacora_servidor = os.path.join(self.dir, "servidor.log")
         self.arranques = []
+        self.usuarios_listos = False
 
     def _comando(self):
         if self.modo == "produccion":
@@ -304,6 +333,13 @@ class Servidor:
                        PYTHONIOENCODING="utf-8", PYTHONUNBUFFERED="1")
         entorno.pop("DATABASE_URL", None)
         entorno.pop("SIGMA_DEBUG", None)
+        entorno.pop("SECRET_KEY", None)
+        if version_trl6() and not self.usuarios_listos:
+            for nombre in USUARIOS_PRUEBA.values():
+                subprocess.run([sys.executable, "-m", "sigma.usuarios", "contrasena", nombre,
+                                "--contrasena", CONTRASENA_PRUEBA], cwd=self.dir, env=entorno,
+                               capture_output=True, check=True)
+            self.usuarios_listos = True
         salida = open(self.bitacora_servidor, "a", encoding="utf-8")
         inicio = time.perf_counter()
         self.proceso = subprocess.Popen(self._comando(), cwd=self.dir, env=entorno,
@@ -355,7 +391,8 @@ class Servidor:
         carpeta = os.path.join(self.dir, "exportaciones")
         if not os.path.isdir(carpeta):
             return []
-        return sorted(os.path.join(carpeta, n) for n in os.listdir(carpeta) if n.endswith(".txt"))
+        return sorted((os.path.join(carpeta, n) for n in os.listdir(carpeta) if n.endswith(".txt")),
+                      key=os.path.getmtime)
 
     def __enter__(self):
         return self.iniciar()
@@ -364,6 +401,12 @@ class Servidor:
         self.detener()
         time.sleep(0.3)
         shutil.rmtree(self.dir, ignore_errors=True)
+
+
+def _lineas(ruta):
+    """Registros de un lote, sea UTF-8 (hasta el TRL 5) o Windows-1252 (TRL 6)."""
+    with open(ruta, "rb") as f:
+        return sum(1 for linea in f.read().splitlines() if linea.strip())
 
 
 class Respuesta:
@@ -426,10 +469,41 @@ class Cliente:
     REINTENTABLES = (http.client.RemoteDisconnected, ConnectionResetError,
                      ConnectionAbortedError, BrokenPipeError)
 
-    def __init__(self, puerto, host="127.0.0.1", metricas=None):
+    def __init__(self, puerto, host="127.0.0.1", metricas=None, usuario_id="2", sesion=True):
         self.puerto, self.host, self.metricas = puerto, host, metricas
         self.origen = f"http://{host}:{puerto}"
         self._conexion = None
+        # Desde el TRL 6 cada capturista entra con su usuario; la sesión viaja en la cookie.
+        self.sesion = sesion and version_trl6()
+        self.usuario_id = str(usuario_id)
+        self.cookie = None
+        self._usuario_en_sesion = None
+        self._iniciando = False
+
+    def iniciar_sesion(self, usuario_id):
+        self._iniciando = True
+        # Como en el navegador al cambiar de usuario: se entra sin la cookie de la sesión anterior.
+        self.cookie = None
+        self._usuario_en_sesion = None
+        try:
+            cuerpo = urllib.parse.urlencode({"usuario": USUARIOS_PRUEBA[str(usuario_id)],
+                                             "contrasena": CONTRASENA_PRUEBA}).encode("utf-8")
+            r = self.pedir("POST", "/login", cuerpo, {"Content-Type": "application/x-www-form-urlencoded",
+                                                      "Origin": self.origen}, etiqueta="/login")
+            if r.estado in (302, 303) and r.cookie:
+                self.cookie = _galleta(r)
+                self._usuario_en_sesion = str(usuario_id)
+            return r
+        finally:
+            self._iniciando = False
+
+    def asegurar_sesion(self, usuario_id=None):
+        """Entra (o cambia de usuario) antes de enviar algo a nombre de usuario_id."""
+        if not self.sesion or self._iniciando:
+            return
+        deseado = str(usuario_id or self._usuario_en_sesion or self.usuario_id)
+        if deseado != self._usuario_en_sesion:
+            self.iniciar_sesion(deseado)
 
     def _conectar(self):
         conexion = http.client.HTTPConnection(self.host, self.puerto, timeout=60)
@@ -447,6 +521,9 @@ class Cliente:
 
     def pedir(self, metodo, ruta, cuerpo=None, cabeceras=None, etiqueta=None):
         cabeceras = dict(cabeceras or {})
+        self.asegurar_sesion()
+        if self.cookie and not cabeceras.get("Cookie"):
+            cabeceras["Cookie"] = self.cookie
         inicio = time.perf_counter()
         respuesta = None
         for intento in range(2):
@@ -482,6 +559,7 @@ class Cliente:
         return respuesta
 
     def formulario(self, ruta, datos, origen=None, cookie=None, etiqueta=None):
+        self.asegurar_sesion(datos.get("usuario_id"))
         cabeceras = {"Content-Type": "application/x-www-form-urlencoded",
                      "Origin": origen or self.origen, "Referer": self.origen + "/"}
         if cookie:
@@ -490,6 +568,7 @@ class Cliente:
                           cabeceras, etiqueta)
 
     def validar(self, datos):
+        self.asegurar_sesion(datos.get("usuario_id"))
         return self.pedir("POST", "/api/validar", json.dumps(datos).encode("utf-8"),
                           {"Content-Type": "application/json", "Origin": self.origen})
 
@@ -547,8 +626,9 @@ def emular_navegador(datos, atributos):
         if limite.get("data-longitud"):
             valor = valor[:limite["data-longitud"]]
         resultado[campo] = valor
-    if "nombre_completo" in resultado:
-        resultado["nombre_completo"] = re.sub(r"\s+", " ", resultado["nombre_completo"]).strip()
+    for campo in ("nombre_completo", "apellido_paterno", "apellido_materno", "nombres"):
+        if campo in resultado:
+            resultado[campo] = re.sub(r"\s+", " ", resultado[campo]).strip()
     return resultado
 
 
@@ -650,10 +730,7 @@ def bloque_a(modo):
             antes = len(srv.lotes())
             r = cliente_base.formulario("/exportar", {"usuario_id": "1"}, etiqueta="POST /exportar")
             lotes = srv.lotes()
-            lineas = 0
-            if len(lotes) > antes:
-                with open(lotes[-1], encoding="utf-8") as f:
-                    lineas = sum(1 for linea in f if linea.strip())
+            lineas = sum(_lineas(ruta) for ruta in lotes[antes:])
             exportados += lineas
             log(f"  {nombre}: {len(cola)} movimientos en {duracion:.1f} s; "
                 f"aceptados {aceptados_etapa[0]}; lote IDSE con {lineas} línea(s) "
@@ -745,6 +822,14 @@ def _otra_fecha_rfc(t):
     return rfc[:8] + nuevo + rfc[10:]
 
 
+def _con_cero(t):
+    """El mismo error (un cero por una O) en el campo separado que lo contiene."""
+    for campo in ("apellido_paterno", "apellido_materno", "nombres"):
+        if "o" in t[campo]:
+            return {campo: t[campo].replace("o", "0", 1)}
+    return {"nombres": t["nombres"] + " 2"}
+
+
 CATEGORIAS_B = [
     # (clave, descripción, esperado, constructor(t, azar) -> (preparación, intento))
     ("B01", "CURP y RFC en minúsculas con espacios a los lados", "aceptar",
@@ -770,7 +855,8 @@ CATEGORIAS_B = [
     ("B10", "Nombre con un cero en lugar de la letra O", "detectar",
      lambda t, az: ([], dict(alta(t, dia_habil_atras(1)),
                              nombre_completo=t["nombre_completo"].replace("o", "0", 1)
-                             if "o" in t["nombre_completo"] else t["nombre_completo"] + " 2"))),
+                             if "o" in t["nombre_completo"] else t["nombre_completo"] + " 2",
+                             **_con_cero(t)))),
     ("B11", "SDI con el punto decimal corrido (45.05 en vez de 450.50)", "detectar",
      lambda t, az: ([], dict(alta(t, dia_habil_atras(1)), sdi=f"{float(t['sdi']) / 10:.2f}"))),
     ("B12", "SDI mayor al tope de 25 UMA", "detectar",
@@ -919,7 +1005,9 @@ def _par_simultaneo(puerto, datos_a, datos_b, desfase=0.0):
 
     def enviar(indice, datos, espera):
         cliente = Cliente(puerto)
-        cliente._conexion = cliente._conectar()     # conexión lista: ambos envíos salen juntos
+        cliente.asegurar_sesion(datos.get("usuario_id"))   # la sesión se abre antes de la carrera
+        if cliente._conexion is None:
+            cliente._conexion = cliente._conectar()     # conexión lista: ambos envíos salen juntos
         barrera.wait()
         if espera:
             time.sleep(espera)
@@ -1074,8 +1162,14 @@ def _precargar(ruta_bd, movimientos, plantilla, pendientes=500):
     creados = 0
     while creados < movimientos:
         t = plantilla.trabajador()
-        cur.execute("INSERT INTO trabajador (nombre_completo, curp, nss, rfc) VALUES (?, ?, ?, ?)",
-                    (t["nombre_completo"], t["curp"], t["nss"], t["rfc"]))
+        if version_trl6():
+            cur.execute("INSERT INTO trabajador (nombre_completo, curp, nss, rfc, apellido_paterno, "
+                        "apellido_materno, nombres) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                        (t["nombre_completo"], t["curp"], t["nss"], t["rfc"], t["apellido_paterno"],
+                         t["apellido_materno"], t["nombres"]))
+        else:
+            cur.execute("INSERT INTO trabajador (nombre_completo, curp, nss, rfc) VALUES (?, ?, ?, ?)",
+                        (t["nombre_completo"], t["curp"], t["nss"], t["rfc"]))
         trabajador_id = cur.lastrowid
         historial = [("08", ddmmaaaa(dia_habil_atras(40)), "1"), ("02", ddmmaaaa(dia_habil_atras(20)), "")]
         for tipo, fecha, _ in historial:
@@ -1088,8 +1182,10 @@ def _precargar(ruta_bd, movimientos, plantilla, pendientes=500):
                        exportado, creado_en) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (trabajador_id, patron_id, tipo, fecha,
                  t["tipo_trabajador"] if tipo == "08" else "", "0" if tipo == "08" else "",
-                 "1" if tipo == "08" else "", t["sdi"] if tipo == "08" else "",
+                 jornada_normal() if tipo == "08" else "", t["sdi"] if tipo == "08" else "",
                  "" if tipo == "08" else "1", estado, estado == "Exportado", marca))
+            if version_trl6() and tipo == "08":
+                cur.execute("UPDATE movimiento SET umf = ? WHERE id = ?", (t["umf"], cur.lastrowid))
             filas_bitacora.append((1, cur.lastrowid, "Movimiento capturado", "Precarga de volumen", marca))
             creados += 1
     cur.executemany("INSERT INTO bitacora (usuario_id, movimiento_id, accion, detalle, timestamp)"
@@ -1123,11 +1219,9 @@ def bloque_e(modo):
                 datos = alta(plantilla.trabajador(), dia_habil_atras(1))
                 cliente.validar(datos)
                 cliente.formulario("/capturar", datos, etiqueta="captura")
+            antes = len(srv.lotes())
             r = cliente.formulario("/exportar", {"usuario_id": "1"}, etiqueta="exportacion")
-            lineas = 0
-            if srv.lotes():
-                with open(srv.lotes()[-1], encoding="utf-8") as f:
-                    lineas = sum(1 for linea in f if linea.strip())
+            lineas = sum(_lineas(ruta) for ruta in srv.lotes()[antes:])
             srv.detener()
             tamano = os.path.getsize(srv.base) / 1024 / 1024
             nivel = {"movimientos": volumen, "tamano_bd_mb": round(tamano, 2),
@@ -1270,7 +1364,8 @@ def bloque_g(modo):
 
         t = plantilla.trabajador()
         r = cliente.formulario("/capturar", dict(alta(t, dia_habil_atras(1)),
-                                                nombre_completo="<script>alert(1)</script> Pérez Luna"))
+                                                nombre_completo="<script>alert(1)</script> Pérez Luna",
+                                                nombres="<script>alert(1)</script> Luna"))
         pagina = cliente.pedir("GET", "/").texto if r.estado in (302, 303) else r.texto
         ejecutable = "<script>alert(1)</script>" in pagina
         registrar("G06", "Nombre con etiqueta <script>",
