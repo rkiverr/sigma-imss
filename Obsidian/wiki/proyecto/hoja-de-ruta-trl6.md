@@ -1,46 +1,45 @@
 ---
 tipo: proyecto
-tags: [pendientes, trl6, roadmap]
-fuentes: ["raw/entregables/e5-trl5-ambiente-relevante.md", "CLAUDE.md"]
-actualizado: 2026-10-04
+tags: [pendientes, trl6, trl7, roadmap]
+fuentes: ["raw/entregables/e5-trl5-ambiente-relevante.md", "CLAUDE.md", "pruebas/prueba_integracion.py"]
+actualizado: 2026-10-07
 ---
 
-# Hoja de ruta hacia TRL 6 (pendientes)
+# Hoja de ruta: del TRL 6 al piloto (TRL 7)
 
-TRL 6 es la **demostración en ambiente real**: un piloto en la oficina de la empresa con datos reales. Esto es
-lo que falta, en orden de importancia.
+En el E6 (2026-10-07) el sistema completo se integró y se demostró en ambiente relevante, y se corrigieron en la
+rama local `trl6/correcciones` los bloqueantes que dejó el E5 ([[entregable-6-trl6]], [[bugs-corregidos]]):
 
-## Bloqueantes para operar de verdad
-1. **Confirmar el layout del lote contra el instructivo oficial del IDSE.** Hoy el lote usa campos separados
-   por `|`, en UTF-8 y sin nombre del trabajador. El IDSE probablemente pide ancho fijo. Es el **riesgo #1**
-   (R-01) y depende de que la empresa consiga el instructivo. Ver [[lote-idse]].
-2. **Login con contraseña cifrada y roles.** Hoy el usuario se elige de una lista, así que la bitácora documenta
-   la autoría pero no la demuestra (R-03, error E-17 del E5).
-3. **Respaldo automático de la base.** Hoy es un solo archivo en una PC (R-02, E-19).
-4. **HTTPS en la red local.** Hoy el tráfico viaja sin cifrar (E-18).
+| Pendiente del E5 | Estado |
+|---|---|
+| Layout del lote contra la estructura oficial (R-01) | **Hecho**: 168 posiciones, un archivo por tipo ([[lote-idse]]). Falta la prueba en el IDSE |
+| Login con contraseña y roles (R-03, E-17) | **Hecho** ([[adr-018-inicio-de-sesion-roles-y-token]]) |
+| Respaldo automático (R-02, E-19) | **Hecho** ([[adr-020-respaldo-automatico]]) |
+| HTTPS en la red local (E-18) | **Pendiente** |
+| Migrar a PostgreSQL (E-16) | **Pendiente**: el código lo soporta y ya instala psycopg2; falta instalar el servidor |
+
+## Antes de la prueba piloto con datos reales (TRL 7)
+1. **HTTPS en la red local.** Hoy la sesión, la contraseña y los datos viajan en claro (S-03). Opción: un proxy
+   con TLS (por ejemplo Caddy) delante de waitress, con un certificado de la oficina instalado en cada PC.
+2. **Lote de prueba en el IDSE** con un solo movimiento, con la e.firma de la empresa: confirma la codificación
+   (Windows-1252), el CRLF, la Ñ y el salario con 2 decimales implícitos.
+3. **Datos reales de la empresa:** registro patronal, guía de la subdelegación, usuarios y contraseñas.
+4. **Aviso de privacidad** a los trabajadores (LFPDPPP, arts. 14–15) y medidas físicas: servidor en un área
+   restringida, disco cifrado y respaldos en otro disco (art. 18).
+5. **Publicar la rama** `trl6/correcciones` (está solo en la PC de Pedro) cuando Pedro lo decida.
 
 ## Mejoras planeadas
-5. **Migrar a PostgreSQL** en el servidor de la oficina. Con 20 usuarios sin pausa, SQLite llegó a 6 s en una
-   captura porque solo admite una escritura a la vez (E-16). El código ya lo soporta
-   ([[doble-motor-de-base-de-datos]]).
-6. **Leer el acuse del IMSS** como sensor del **lazo externo** y marcar los movimientos como aceptados o
+6. **PostgreSQL** en la PC servidor: con 20 usuarios sin pausa, SQLite serializa las escrituras.
+7. **Leer el acuse del IMSS** como sensor del **lazo externo** y marcar los movimientos como aceptados o
    rechazados ([[sigma-como-sistema-de-control]]).
-7. **Notificaciones por correo** a RH; se planearon en el E4 y no se han hecho.
-8. **Varios patrones.** El modelo de datos los soporta, pero la interfaz usa solo el primero.
-9. **Movimiento 07** (modificación de salario). Está en el E1, pero nunca se implementó.
-10. **Proteger la bitácora** contra modificaciones hechas directamente en la base.
+8. **Notificaciones por correo** a RH (planeadas en el E4).
+9. **Varios patrones** en la interfaz.
+10. **Movimiento 07** (modificación de salario): la estructura oficial ya está documentada en [[lote-idse]].
+11. **Proteger la bitácora** contra cambios hechos directamente en la base.
 
-## Correcciones pendientes
-11. ~~**Feriado de transmisión del Poder Ejecutivo** en `plazo.py` y en el arnés~~. **Hecho** el 2026-10-04
-    (`3afbc9a`): ahora es el 1 de octubre de 2024, 2030… ([[bugs-corregidos]]).
-12. **Días inhábiles que publica el IMSS** (jueves y viernes santos, etc.): hay que cargarlos cada año en
-    `DIAS_INHABILES_ADICIONALES` ([[mantenimiento-anual]]).
+## Mantenimiento
+- Montos legales de cada año (salario mínimo en enero, UMA en febrero): Sigma avisa si faltan, pero no los
+  inventa ([[mantenimiento-anual]]).
+- Días inhábiles que publique el IMSS en `DIAS_INHABILES_ADICIONALES`.
 
-## Para el piloto (TRL 6)
-- Aviso de privacidad a los trabajadores (LFPDPPP, arts. 14–15) antes de capturar datos reales.
-- Medidas físicas y administrativas: servidor en un área de acceso restringido, disco cifrado y acceso solo
-  para RH (LFPDPPP, art. 18).
-- Datos reales de la empresa (trabajadores activos, movimientos al mes, equipos) para sustituir los
-  **supuestos** del E5.
-
-Ver también: [[riesgos]] · [[trayectoria-trl]] · [[entregable-5-trl5]] · [[inicio]]
+Ver también: [[riesgos]] · [[trayectoria-trl]] · [[entregable-6-trl6]] · [[inicio]]

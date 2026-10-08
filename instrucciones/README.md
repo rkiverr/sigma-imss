@@ -10,11 +10,13 @@ Abre una terminal **en la carpeta `sigma-imss`** (no en `instrucciones`) y corre
 
 ```bash
 pip install -r requirements.txt
+python -m sigma.usuarios contrasena admin.rrhh
+python -m sigma.usuarios contrasena captura.obra1
 python servidor.py
 ```
 
-La primera línea solo hace falta la primera vez (o cuando cambie
-`requirements.txt`). Para programar se puede usar `python -m sigma`, que solo
+Las tres primeras líneas solo hacen falta la primera vez (la de `pip`, también
+cuando cambie `requirements.txt`). Para programar se puede usar `python -m sigma`, que solo
 se ve desde este equipo.
 
 ## Verla
@@ -25,7 +27,7 @@ Abre en el navegador:
 http://localhost:5050
 ```
 
-Deja la terminal abierta mientras uses la página.
+Inicia sesión con uno de esos usuarios. Deja la terminal abierta mientras uses la página.
 
 ## Detenerla
 
@@ -45,6 +47,13 @@ python pruebas/test_prueba_concepto.py
 
 # Validación en ambiente relevante, unos 3 minutos (también en pruebas/resultados/)
 python pruebas/prueba_ambiente_relevante.py
+
+# Demostración del sistema integrado (Entrega 6), cerca de un minuto
+python pruebas/prueba_integracion.py
+
+# Usuarios y respaldos
+python -m sigma.usuarios listar
+python -m sigma.respaldo                 # respaldo manual (los automáticos van a respaldos/)
 ```
 
 ```bash

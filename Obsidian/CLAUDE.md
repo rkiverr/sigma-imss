@@ -27,7 +27,7 @@ pendiente, **sin releer todo el código**.
 sigma-imss/                     ← repositorio (github.com/rkiverr/sigma-imss)
 ├── servidor.py                 ┐ CÓDIGO: fuente de verdad del comportamiento
 ├── sigma/                      │ la aplicación: app.py, validaciones.py…, templates/, static/
-├── pruebas/                    │ los dos arneses (salidas en pruebas/resultados/, ignorada)
+├── pruebas/                    │ los arneses de E3, E5 y E6 (salidas en pruebas/resultados/, ignorada)
 │                               ┘ (el agente lo cambia solo cuando Pedro lo pide)
 ├── README.md, instrucciones/   ← documentación para personas
 ├── CLAUDE.md                   ← memoria corta del repo (la carga Claude Code); apunta aquí
@@ -36,7 +36,7 @@ sigma-imss/                     ← repositorio (github.com/rkiverr/sigma-imss)
     ├── index.md                ← catálogo de todas las páginas
     ├── log.md                  ← bitácora cronológica (solo se agrega al final)
     ├── raw/                    ← FUENTES CRUDAS, inmutables (.md)
-    │   ├── entregables/        ← texto de los informes E1–E5 y la rúbrica del E5
+    │   ├── entregables/        ← texto de los informes E1–E6 y las rúbricas del E5 y el E6
     │   ├── normativa/          ← artículos literales de LSS, RACERF, LFPDPPP, LFT y valores oficiales
     │   ├── historial/          ← volcado del historial de Git
     │   └── resultados/         ← salidas literales de los arneses de prueba
@@ -147,10 +147,12 @@ Al terminar una sesión con cambios importantes, crea `wiki/historial/sesion-AAA
 | `sigma/plazo.py` | [[modulo-plazo]], [[plazo-legal]], [[mantenimiento-anual]] |
 | `sigma/database.py` | [[modulo-database]], [[modelo-de-datos]], [[doble-motor-de-base-de-datos]] |
 | `sigma/exportar_idse.py` | [[modulo-exportar-idse]], [[lote-idse]] |
+| `sigma/usuarios.py` | [[modulo-usuarios]], [[seguridad-web]], [[rutas-http]] |
+| `sigma/respaldo.py` | [[modulo-respaldo]], [[configuracion]], [[como-arrancar]] |
 | `servidor.py`, `sigma/__main__.py` o la forma de arrancar | [[modulo-servidor]], [[como-arrancar]], [[configuracion]] |
 | `sigma/templates/` o `sigma/static/` | [[modulo-interfaz]], [[accesibilidad]] |
 | La estructura de carpetas | [[arquitectura-general]], [[inicio]], [[como-arrancar]] y el árbol de §2 de este archivo |
-| Arneses de prueba o sus resultados | [[arnes-prueba-de-concepto]] o [[arnes-ambiente-relevante]], [[resultados-de-pruebas]] y `raw/resultados/` |
+| Arneses de prueba o sus resultados | [[arnes-prueba-de-concepto]], [[arnes-ambiente-relevante]] o [[arnes-integracion]], [[resultados-de-pruebas]] y `raw/resultados/` |
 | Montos de salario mínimo o UMA | [[salario-sdi-y-limites]], [[mantenimiento-anual]] y `raw/normativa/` (archivo nuevo del año) |
 | Nueva entrega TRL | `raw/entregables/`, página en `entregables/`, [[trayectoria-trl]], [[hoja-de-ruta-trl6]] |
 | Ramas o publicación en GitHub | [[inicio]], [[cronologia]] y `raw/historial/git-log.md` (se regenera) |

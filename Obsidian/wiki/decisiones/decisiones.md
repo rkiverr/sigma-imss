@@ -28,6 +28,10 @@ como `estado: reemplazada` y se crea la nueva; nunca se borra.
 | [[adr-014-limites-legales-del-sdi]] | SDI entre el salario mínimo y 25 UMA; el lote exporta el tope | E5 | vigente |
 | [[adr-015-lazo-cerrado]] | El sistema se clasifica como lazo cerrado | 2026-09-19 | vigente |
 | [[adr-016-arnes-como-caja-negra]] | El arnés del E5 prueba por HTTP sobre una copia aislada | E5 | vigente |
+| [[adr-018-inicio-de-sesion-roles-y-token]] | Inicio de sesión con roles y token de sesión en la base | E6 | vigente |
+| [[adr-019-lote-con-la-estructura-oficial]] | Lote con la estructura oficial del IMSS: 168 posiciones, un archivo por tipo | E6 | vigente |
+| [[adr-020-respaldo-automatico]] | Respaldo al arrancar (antes de migrar) y cada 24 horas | E6 | vigente |
+| [[adr-021-migraciones-de-datos-unicas]] | Columnas nuevas y migraciones de datos que se aplican una vez | E6 | vigente |
 | [[adr-017-paquete-sigma-y-carpeta-de-pruebas]] | La app es el paquete `sigma/`; los arneses van en `pruebas/` | 2026-10-04 | vigente |
 
 Ver también: [[inicio]] · [[guia-para-modificar-el-codigo]]

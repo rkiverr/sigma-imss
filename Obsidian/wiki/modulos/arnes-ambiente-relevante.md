@@ -1,13 +1,13 @@
 ---
 tipo: modulo
 tags: [pruebas, arnes, trl5, carga, seguridad, accesibilidad]
-fuentes: ["pruebas/prueba_ambiente_relevante.py", "raw/resultados/e5-arnes-ambiente-relevante-antes.md", "raw/resultados/e5-arnes-ambiente-relevante-despues.md"]
-actualizado: 2026-10-04
+fuentes: ["pruebas/prueba_ambiente_relevante.py", "raw/resultados/e5-arnes-ambiente-relevante-antes.md", "raw/resultados/e5-arnes-ambiente-relevante-despues.md", "raw/resultados/e5-arnes-ambiente-relevante-trl6-version-corregida.md"]
+actualizado: 2026-10-07
 ---
 
 # `pruebas/prueba_ambiente_relevante.py` — arnés del Entregable 5
 
-Tiene 1,382 líneas. Prueba **el sistema completo** en condiciones semejantes a las de la empresa
+Tiene 1,382 líneas en `main` y 1,493 en la rama `trl6/correcciones`. Prueba **el sistema completo** en condiciones semejantes a las de la empresa
 ([[entregable-5-trl5]]). Usa solo la biblioteca estándar.
 
 ```bash
@@ -21,6 +21,19 @@ Genera `pruebas/resultados/resultados_ambiente_relevante[_etiqueta].txt` y `.jso
 `--codigo` acepta las dos estructuras del repositorio: la del paquete `sigma/` y la anterior, con todo en la raíz
 (E3 a E5). `codigo_en_paquete()` decide cómo importar la app en modo desarrollo y dónde leer `estilos.css` para el
 bloque H ([[adr-017-paquete-sigma-y-carpeta-de-pruebas]]).
+
+## Cambios del TRL 6 (rama `trl6/correcciones`, `540a313` y `86038c2`)
+- `version_trl6()` detecta si la versión probada tiene `sigma/usuarios.py`. Con eso se decide:
+  - si se inicia sesión;
+  - si el nombre va separado (`_nombre()`);
+  - la jornada normal: `jornada_normal()` da "0" o "1";
+  - la codificación del lote: `_lineas()` lee UTF-8 o Windows-1252.
+
+  Por eso `--codigo` sigue funcionando con el E4.
+- En cada copia aislada, `Servidor` fija la contraseña `prueba-sigma-2026` con `python -m sigma.usuarios`.
+- `Cliente` inicia sesión con el `usuario_id` del formulario. Con sesión, una redirección a `/login` cuenta
+  como falla (401), no como captura guardada. Así se descubrió P-20 ([[bugs-corregidos]]).
+- El [[arnes-integracion]] reutiliza `Servidor`, `Cliente` y `Plantilla`.
 
 ## Principios ([[adr-016-arnes-como-caja-negra]])
 - **Caja negra por HTTP**: levanta el servidor como proceso independiente y lo usa como lo haría el navegador.
@@ -59,8 +72,8 @@ bloque H ([[adr-017-paquete-sigma-y-carpeta-de-pruebas]]).
 
 ## Trampas al mantenerlo
 - Si cambias las máscaras o las longitudes de la interfaz, **actualiza `emular_navegador()`**.
-- Tiene su **propia copia** del calendario de días hábiles (`_descansos`), con el mismo bug que `plazo.py`
-  ([[bugs-conocidos]]).
+- Tiene su **propia copia** del calendario de días hábiles (`_descansos`). Ya usa el 1 de octubre como
+  `plazo.py` (BUG-01); si la LFT vuelve a cambiar, hay que actualizar las dos ([[mantenimiento-anual]]).
 - El `python.exe` del entorno virtual es un **lanzador** que crea al intérprete como proceso hijo. Por eso
   `memoria_mb()` busca a los hijos con PowerShell y `detener()` mata el árbol de procesos.
 - Las carreras (bloque C) son probabilísticas: con el código viejo salen de 2 a 5 duplicados según la corrida.

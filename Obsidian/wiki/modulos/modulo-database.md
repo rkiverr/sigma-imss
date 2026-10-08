@@ -2,7 +2,7 @@
 tipo: modulo
 tags: [database, persistencia, sqlite, postgresql, transacciones]
 fuentes: ["sigma/database.py"]
-actualizado: 2026-10-04
+actualizado: 2026-10-07
 ---
 
 # `sigma/database.py` — persistencia y selección de motor
@@ -75,5 +75,14 @@ Se decide **una sola vez** por proceso:
 - El arnés del E3 fija `SQLITE_PATH` **antes** de importar este módulo, porque la configuración se lee al
   importarlo.
 - `sigma_imss.db` es **local** de cada persona; está en `.gitignore`.
+
+
+## Cambios del TRL 6 (2026-10-07)
+- `_COLUMNAS_NUEVAS` y `_columnas()`: `init_db()` agrega las columnas que falten en los dos motores.
+- `_migrar()` con `_MIGRACIONES` (`2026-10-07-jornada-oficial`, `2026-10-07-nombres-separados`) y la tabla
+  `migracion` ([[adr-021-migraciones-de-datos-unicas]]).
+- `separar_nombre(nombre, curp)` y `obtener_o_crear_trabajador(..., apellido_paterno, apellido_materno, nombres)`.
+- `GUIA_SEMILLA = "00000"`; `patron.guia`.
+- `DATABASE_URL` por omisión con `127.0.0.1` y `connect_timeout=1`.
 
 Ver también: [[modelo-de-datos]] · [[doble-motor-de-base-de-datos]] · [[modulo-app]]

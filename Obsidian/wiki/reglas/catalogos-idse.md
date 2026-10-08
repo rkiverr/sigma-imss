@@ -2,7 +2,7 @@
 tipo: regla
 tags: [catalogos, idse, tipo-trabajador, causa-baja]
 fuentes: ["sigma/validaciones.py", "raw/entregables/e1-trl1-problematica.md"]
-actualizado: 2026-10-04
+actualizado: 2026-10-07
 ---
 
 # Catálogos del IDSE
@@ -32,13 +32,19 @@ como `CATALOGOS`. El usuario elige la clave y se guarda solo la clave.
 | 1 | Variable |
 | 2 | Mixto |
 
-## Tipo de jornada (`TIPOS_JORNADA`), obligatorio en un alta
+## Semana o jornada reducida (`TIPOS_JORNADA`), obligatoria en un alta
+Catálogo oficial del IMSS (posición 118 del lote), vigente desde el TRL 6:
+
 | Clave | Significado |
 |---|---|
-| 1 | Jornada normal (semana completa) |
-| 2 | Jornada reducida |
-| 3 | Semana reducida |
-| 4 | Jornada y semana reducidas |
+| 0 | Jornada normal |
+| 1 a 5 | Semana reducida: un día … cinco días |
+| 6 | Jornada reducida |
+
+Hasta el E5 Sigma usaba un catálogo propio (1 = normal, 2 = jornada reducida, 3 = semana reducida, 4 = ambas): el
+"1" que exportaba para la jornada normal el IMSS lo lee como **un día a la semana** (problema P-06 del E6). La
+migración `2026-10-07-jornada-oficial` convierte `1→0` y `2→6`; los `3`/`4` necesitan el número de días y se
+avisan ([[adr-021-migraciones-de-datos-unicas]]).
 
 ## Causa de baja (`CAUSAS_BAJA`), obligatoria en una baja y prohibida en un alta
 | Clave | Significado |
@@ -54,13 +60,11 @@ como `CATALOGOS`. El usuario elige la clave y se guarda solo la clave.
 | 9 | Jubilación |
 | A | Pensión |
 
-## ⚠ Diferencias con el Entregable 1
-- El E1 listó el tipo de trabajador "2 = Eventual ciudad" y el tipo de jornada "0 = Normal / 1 a 6 =
-  reducidas". El código usa las claves de arriba.
-- El E1 tiene "9 = Jubilación / Pensión"; el código las separa en 9 y A.
-
-**Antes de operar en serio, hay que confirmar los catálogos contra el instructivo oficial del IDSE**, el mismo
-que hace falta para el layout ([[lote-idse]]).
+## Comparación con la estructura oficial y con el Entregable 1
+- Contra el documento del IMSS "Estructura de Movimientos afiliatorios" (2026-10-07): tipo de trabajador (1–4),
+  tipo de salario (0–2) y causa de baja (1–9 y A) coinciden; la jornada coincide desde el TRL 6.
+- El E1 listó "2 = Eventual ciudad" (el documento oficial dice "eventual de la ciudad"), la jornada "0 = Normal /
+  1 a 6 = reducidas" (era correcto) y "9 = Jubilación / Pensión" (el oficial las separa en 9 y A).
 
 ## Historia
 En el E3, la causa de baja era texto libre. En el E4 se volvió catálogo, y por eso se actualizaron los casos C2

@@ -2,7 +2,7 @@
 tipo: hub
 tags: [entregables, formato, informe-tecnico, trl]
 fuentes: ["raw/entregables/"]
-actualizado: 2026-10-04
+actualizado: 2026-10-07
 ---
 
 # Entregables TRL (hub)
@@ -18,6 +18,7 @@ El proyecto se entrega al Mtro. Agustín Cortés Coss como un **Informe Técnico
 | [[entregable-3-trl3]] | Prueba de concepto | `raw/entregables/e3-trl3-prueba-de-concepto.md` |
 | [[entregable-4-trl4]] | Prototipo integrado | `raw/entregables/e4-trl4-prototipo-integrado.md` |
 | [[entregable-5-trl5]] | Validación en ambiente relevante | `raw/entregables/e5-trl5-ambiente-relevante.md` y `e5-rubrica-del-maestro.md` |
+| [[entregable-6-trl6]] | Integración y demostración del sistema (v2, con las correcciones) | `raw/entregables/e6-trl6-integracion-y-demostracion.md` y `e6-rubrica-del-maestro.md` |
 
 ## Formato que pide el maestro (se repite en todos)
 - **Portada "INFORME TÉCNICO"** con tres tablas:
@@ -47,8 +48,9 @@ El proyecto se entrega al Mtro. Agustín Cortés Coss como un **Informe Técnico
 - Coherencia numérica entre informes y documentos firmados (costos, horas).
 - Separar los **ajustes correctivos** del **trabajo planeado**.
 
-## Cómo se generan (E4 y E5)
+## Cómo se generan (E4 a E6)
 Con python-docx sobre una copia del informe anterior, diagramas con Mermaid y Word por COM. El método completo
-está en [[como-se-hizo-el-entregable-5]].
+está en [[como-se-hizo-el-entregable-5]]; lo que agregó el E6 (instalación limpia cronometrada, pantallas del
+arnés, huecos y filas huérfanas) está en [[entregable-6-trl6]].
 
 Ver también: [[trayectoria-trl]] · [[inicio]]

@@ -2,7 +2,7 @@
 tipo: historial
 tags: [cronologia, git, ramas, entregables]
 fuentes: ["raw/historial/git-log.md", "raw/entregables/"]
-actualizado: 2026-10-04
+actualizado: 2026-10-07
 ---
 
 # Cronología del proyecto
@@ -31,12 +31,18 @@ Todos los hechos con fecha, en orden. Los hashes salen de `raw/historial/git-log
 | 2026-10-04 | `3afbc9a`: el feriado de transmisión del Ejecutivo pasa al 1 de octubre (LFT reformada en 2024; BUG-01) | Pedro con Claude | [[bugs-corregidos]] |
 | 2026-10-04 | Se agrega este segundo cerebro (`Obsidian/`) con los punteros en `CLAUDE.md` y `README.md`; push a `main` | Pedro con Claude | [[inicio]] |
 | 2026-10-04 | Reorganización en carpetas: la app pasa al paquete `sigma/` y los arneses a `pruebas/`. Rama `mejora/estructura-de-carpetas` (PR #2): `3269ff1`, `ac56fc1` y `51a45ec`. Verificada contra `main` sin diferencias e integrada **directo a `main`** con el merge `fb3a4a8`, a petición de Pedro; push de `main` | Pedro con Claude | [[sesion-2026-10-04-estructura-de-carpetas]] · [[adr-017-paquete-sigma-y-carpeta-de-pruebas]] |
-| (pendiente) | TRL 6: demostración en ambiente real | — | [[hoja-de-ruta-trl6]] |
+| 2026-10-04 | `e6b405b` y `7f43596`: documentación al día y limpieza final de `main` | Pedro con Claude | — |
+| 2026-10-07 | **Primera demostración del TRL 6** con `main` (`7f43596`), sin tocar el código: 7 de 9 criterios y 18 problemas (lote fuera de la estructura oficial, sin login, sin respaldo) | Pedro con Claude | [[entregable-6-trl6]] |
+| 2026-10-07 | Rama **local** `trl6/correcciones`: `02aaad0` (lote oficial, login, respaldo, robustez) y `540a313` (arnés del E6) | Pedro con Claude | [[sesion-2026-10-07-correcciones-trl6]] |
+| 2026-10-07 | `882d60f`, `86038c2`, `aee7bc0` y `8914883`: lo que reveló la verificación (espera a PostgreSQL, carrera del token, texto del aviso) | Pedro con Claude | [[bugs-corregidos]] |
+| 2026-10-07 | **Entregable 6 (TRL 6)** redactado (v2, 33 páginas): 9 de 10 criterios con la versión corregida | Pedro con Claude | [[entregable-6-trl6]] |
+| (pendiente) | Publicar e integrar `trl6/correcciones`; TRL 7: piloto con datos reales | — | [[hoja-de-ruta-trl6]] |
 
 ## Ramas
 | Rama | Punta | Estado |
 |---|---|---|
-| `main` | El commit de documentación que sigue al merge `fb3a4a8` | **Vigente.** Incluye todo: E5, corrección del calendario, este wiki y la reorganización en carpetas |
+| `main` | `7f43596` | **Publicada.** Incluye E5, corrección del calendario, este wiki y la reorganización en carpetas |
+| `trl6/correcciones` | `8914883` y el commit de documentación que le sigue | **Solo local** (decisión de Pedro, 2026-10-07): correcciones del E6. La copia del escritorio está aquí |
 | `mejora/interfaz-y-validaciones` | `4c79ce4` | Histórica (E4). Ya fusionada por el PR #1 |
 | `trl5/ambiente-relevante` | `b46ad50` | Histórica (E5). Ya fusionada; se conserva porque el informe del E5 la cita por nombre |
 | `mejora/estructura-de-carpetas` | `51a45ec` | **Borrada** el 2026-10-04, después de integrarse a `main` con `fb3a4a8`. El PR #2 conserva sus commits ([[adr-017-paquete-sigma-y-carpeta-de-pruebas]]) |

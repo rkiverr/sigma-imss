@@ -2,7 +2,7 @@
 tipo: modulo
 tags: [servidor, waitress, produccion, despliegue]
 fuentes: ["servidor.py", "sigma/app.py"]
-actualizado: 2026-10-04
+actualizado: 2026-10-07
 ---
 
 # `servidor.py` — arranque en producción (waitress)
@@ -48,5 +48,10 @@ técnico de cada error 500. Se detectó en el bloque G del E5. Decisión complet
 - Memoria de unos 45–68 MB.
 
 Detalle en [[resultados-de-pruebas]].
+
+
+## Cambios del TRL 6 (2026-10-07)
+`main()` respalda la base **antes** de `init_db()` (y antes de cualquier migración), arranca el hilo de respaldo
+periódico y avisa si faltan los montos legales del año ([[modulo-respaldo]], [[adr-020-respaldo-automatico]]).
 
 Ver también: [[como-arrancar]] · [[modulo-app]] · [[arquitectura-general]]

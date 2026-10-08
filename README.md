@@ -1,24 +1,30 @@
-# Sigma — Prototipo validado en ambiente relevante (TRL 5)
+# Sigma — Sistema integrado y demostrado en ambiente relevante (TRL 6)
 
 Sistema para la automatización de altas y bajas de seguro social ante el IMSS.
-Captura validada, persistencia relacional, exportación al formato IDSE y
-bitácora de auditoría, en una aplicación cliente-servidor.
+Captura validada, persistencia relacional, lote IDSE con la estructura oficial
+del IMSS, inicio de sesión con roles, bitácora de auditoría y respaldo
+automático, en una aplicación cliente-servidor para la red local de la oficina.
 
 ## Requisitos
 
 - Python 3.9 o superior
 - `pip install -r requirements.txt`
-- PostgreSQL **opcional** (ver "Motor de base de datos"). Con Python 3.13 o
-  superior, `requirements.txt` no instala `psycopg2-binary`, así que Sigma
-  usa SQLite.
+- PostgreSQL **opcional** (ver "Motor de base de datos"). `requirements.txt`
+  instala el controlador `psycopg2-binary`; si no hay servidor PostgreSQL,
+  Sigma usa SQLite.
 
 ```bash
 pip install -r requirements.txt
+python -m sigma.usuarios contrasena admin.rrhh      # primera vez: contraseñas
+python -m sigma.usuarios contrasena captura.obra1
 python servidor.py      # modo producción (waitress), accesible desde la red local
 ```
 
 Abrir <http://localhost:5050> (o `http://<IP del servidor>:5050` desde otra PC
-de la oficina).
+de la oficina) e iniciar sesión. Los usuarios se administran con
+`python -m sigma.usuarios` (`listar`, `crear`, `contrasena`, `activar`,
+`desactivar`, `desbloquear`). El rol `captura` captura y consulta; el rol
+`administrador` además genera y descarga los lotes IDSE.
 
 `python -m sigma` arranca el servidor de **desarrollo** de Flask: solo escucha
 en el propio equipo y la depuración queda apagada salvo con `SIGMA_DEBUG=1`. No
@@ -46,9 +52,14 @@ Variables de entorno para controlarlo:
 | Variable | Para qué sirve |
 |---|---|
 | `DATABASE_URL` | Cadena de conexión de PostgreSQL |
-| `SIGMA_DB` | `postgres` o `sqlite` para forzar un motor |
+| `SIGMA_DB` | `postgres` o `sqlite` para forzar un motor. En un equipo sin PostgreSQL, `sqlite` evita 1 s de espera en cada arranque |
 | `SQLITE_PATH` | Ruta del archivo `.db` cuando se usa SQLite |
-| `SECRET_KEY` | Clave de sesión de Flask (en desarrollo se genera sola) |
+| `SECRET_KEY` | Clave de sesión; sin ella se crea y reutiliza `.clave_sesion` |
+| `SIGMA_SESION_HORAS` | Duración de la sesión (por defecto 10 horas) |
+| `SIGMA_MAX_PETICION_KB` | Tamaño máximo de una petición (por defecto 1024 KB) |
+| `SIGMA_RESPALDOS` | Carpeta de respaldos (por defecto `respaldos/`; mejor otro disco) |
+| `SIGMA_RESPALDO_HORAS` | Cada cuántas horas respalda `servidor.py` (por defecto 24) |
+| `SIGMA_RESPALDOS_CONSERVAR` | Cuántos respaldos se guardan (por defecto 30) |
 | `SIGMA_HOST` / `SIGMA_PUERTO` | Interfaz y puerto de escucha (por defecto `0.0.0.0:5050` en `servidor.py`) |
 | `SIGMA_HILOS` | Peticiones simultáneas que atiende waitress (por defecto 8) |
 | `SIGMA_DEBUG` | `1` para activar la depuración en `python -m sigma` |
@@ -82,17 +93,21 @@ sigma-imss/
 │   ├── validaciones.py      validación algorítmica y reglas de negocio
 │   ├── plazo.py             plazo legal de cinco días hábiles
 │   ├── database.py          persistencia relacional y selección de motor
-│   ├── exportar_idse.py     traducción al lote de texto plano IDSE
-│   ├── templates/           vistas Jinja (base.html, index.html, error.html)
+│   ├── exportar_idse.py     lote IDSE con la estructura oficial (168 posiciones)
+│   ├── usuarios.py          contraseñas, sesión y consola de usuarios
+│   ├── respaldo.py          respaldo y restauración de la base
+│   ├── templates/           vistas Jinja (base, index, login, error)
 │   └── static/              css/estilos.css y js/app.js
 ├── pruebas/                 arneses de prueba
 │   ├── test_prueba_concepto.py        Entrega 3
 │   ├── prueba_ambiente_relevante.py   Entrega 5
+│   ├── prueba_integracion.py          Entrega 6
 │   └── resultados/          lo que generan los arneses (no se versiona)
 ├── instrucciones/           guías de uso para personas
 ├── Obsidian/                segundo cerebro del proyecto
 ├── sigma_imss.db            base de trabajo con SQLite (no se versiona)
-└── exportaciones/           lotes IDSE generados (no se versiona)
+├── exportaciones/           lotes IDSE generados (no se versiona)
+└── respaldos/               respaldos automáticos de la base (no se versiona)
 ```
 
 | Archivo | Responsabilidad |
@@ -103,12 +118,15 @@ sigma-imss/
 | `sigma/validaciones.py` | Validación algorítmica y reglas de negocio (fuente única de verdad) |
 | `sigma/plazo.py` | Plazo legal de cinco días hábiles (art. 15 LSS, descansos del art. 74 LFT) |
 | `sigma/database.py` | Persistencia relacional y selección de motor |
-| `sigma/exportar_idse.py` | Traducción de movimientos al lote de texto plano IDSE |
-| `sigma/templates/` | Vistas Jinja (`base.html`, `index.html`, `error.html`) |
+| `sigma/exportar_idse.py` | Lote IDSE con la estructura oficial del IMSS: 168 posiciones, un archivo por tipo |
+| `sigma/usuarios.py` | Contraseñas, inicio de sesión, bloqueo y consola de usuarios |
+| `sigma/respaldo.py` | Respaldo automático y restauración de la base |
+| `sigma/templates/` | Vistas Jinja (`base.html`, `index.html`, `login.html`, `error.html`) |
 | `sigma/static/css/estilos.css` | Sistema de diseño y temas claro/oscuro |
 | `sigma/static/js/app.js` | Validación en vivo, máscaras de captura, tema y detalle |
 | `pruebas/test_prueba_concepto.py` | Arnés de pruebas del "Desarrollo experimental" (Entrega 3) |
 | `pruebas/prueba_ambiente_relevante.py` | Arnés de validación en ambiente relevante (Entrega 5) |
+| `pruebas/prueba_integracion.py` | Arnés de integración y demostración (Entrega 6) |
 | `instrucciones/` | Guías para personas: comandos rápidos, instalación y uso de la página |
 | `Obsidian/` | Segundo cerebro del proyecto en Markdown (se abre como bóveda de Obsidian): entregables, normativa, decisiones, pruebas e historial |
 
@@ -116,13 +134,17 @@ sigma-imss/
 
 Bloquean el guardado:
 
-- **Nombre** — solo letras (con acentos y ñ), espacios, punto, guion y apóstrofo.
+- **Nombre** — apellido paterno y nombre(s) obligatorios, materno opcional; hasta
+  27 caracteres cada uno (como en el lote del IMSS); solo letras (con acentos y
+  ñ), espacios, punto, guion y apóstrofo.
 - **CURP** — 18 caracteres con el formato oficial y fecha de nacimiento existente.
 - **NSS** — exactamente 11 dígitos.
 - **RFC** — 12 o 13 caracteres; debe coincidir en iniciales y fecha con la CURP.
 - **Fecha del movimiento** — formato `DDMMAAAA` y fecha real del calendario.
 - **Tipo de movimiento** — solo `08` (alta/reingreso) o `02` (baja).
-- **Alta (08)** — tipo de trabajador, de salario, de jornada y SDI obligatorios.
+- **Alta (08)** — tipo de trabajador, de salario, de jornada (catálogo oficial:
+  0 = normal, 1 a 5 = días de semana reducida, 6 = jornada reducida), SDI y
+  unidad de medicina familiar obligatorios.
 - **SDI** — no menor al salario mínimo general vigente (art. 28 LSS).
 - **Baja (02)** — causa de baja obligatoria, tomada del catálogo IDSE.
 - **Integridad** — no se permite repetir NSS entre trabajadores, ni capturar dos
@@ -135,6 +157,8 @@ Se muestran como aviso, sin bloquear:
 
 - Dígito verificador del NSS que no cuadra con el algoritmo de Luhn.
 - Dígito verificador de la CURP que no cuadra con el algoritmo de RENAPO.
+- Iniciales de la CURP que no corresponden a los apellidos y el nombre capturados.
+- Movimiento de un año cuyos montos legales todavía no están cargados.
 - SDI por encima del tope de 25 UMA (en el lote IDSE se exporta el tope).
 - Movimiento fuera del plazo legal de cinco días hábiles, o en su último día.
 - Baja de un trabajador sin alta registrada en Sigma.
@@ -160,15 +184,19 @@ navegador nunca puede desviarse de la regla real que aplica el servidor.
 
 | Ruta | Método | Descripción |
 |---|---|---|
+| `/login` | GET / POST | Inicio de sesión |
+| `/logout` | POST | Cierre de sesión (invalida también las copias de la cookie) |
 | `/` | GET | Pantalla principal, con filtros y paginación |
 | `/capturar` | POST | Valida y guarda un movimiento |
-| `/exportar` | POST | Genera el lote IDSE con los movimientos pendientes |
-| `/descargar-lote` | GET | Descarga el último lote generado |
+| `/exportar` | POST | Genera los lotes IDSE (altas y bajas por separado); solo administración |
+| `/descargar-lote?tipo=altas` o `bajas` | GET | Descarga el último lote de ese tipo; solo administración |
 | `/api/validar` | POST | Validación en vivo (JSON) |
 | `/api/movimiento/<id>` | GET | Detalle de un movimiento y su bitácora (JSON) |
 
-Los lotes se guardan en `exportaciones/` con marca de tiempo, de modo que un
-lote nuevo nunca sobrescribe a uno anterior.
+Todas las rutas, salvo `/login`, piden sesión: la página redirige al inicio de
+sesión y la API responde 401. Los lotes se guardan en `exportaciones/` con el
+tipo y la marca de tiempo (`lote_idse_altas_AAAAMMDD_HHMMSS.txt`), de modo que
+un lote nuevo nunca sobrescribe a uno anterior.
 
 ## Pruebas automáticas
 
@@ -195,6 +223,16 @@ carreras, carga, volumen, caída del servidor, seguridad en red y contraste.
 Cada bloque corre sobre una copia aislada del sistema y genera
 `pruebas/resultados/resultados_ambiente_relevante.txt` y `.json`.
 
+```bash
+python pruebas/prueba_integracion.py
+```
+
+Demuestra el sistema integrado (Entrega 6, cerca de un minuto): escenario de
+una semana por la IP de la red local con inicio de sesión y roles, conformidad
+del lote con la estructura oficial del IMSS campo por campo, seguridad
+(autenticación, bloqueo, cookie, métodos, rutas, tamaño, tráfico), respaldo y
+restauración tras perder la base, y tamaños y tiempos de cada enlace.
+
 ## Documentación
 
 | Para | Dónde |
@@ -209,11 +247,13 @@ Cada bloque corre sobre una copia aislada del sistema y genera
 
 - El motor PostgreSQL puede sustituirse por otro compatible con `psycopg2` sin
   tocar la lógica de negocio, ya que solo se usa SQL estándar.
-- La estructura de columnas del archivo IDSE en `sigma/exportar_idse.py` debe
-  confirmarse contra el layout oficial vigente del IMSS antes de usarse en un
-  entorno real.
-- En la oficina se usa `python servidor.py` (waitress). Conviene fijar
-  `SECRET_KEY` para que las sesiones sobrevivan a un reinicio.
+- El lote sigue la estructura publicada por el IMSS ("Estructura de Movimientos
+  afiliatorios", 168 posiciones). La codificación (Windows-1252), el fin de
+  línea (CRLF) y la Ñ se confirman cargando un lote de prueba en el IDSE. Antes
+  de operar hay que poner el registro patronal y la guía reales de la empresa.
+- En la oficina se usa `python servidor.py` (waitress): respalda la base al
+  arrancar y cada 24 horas. Conviene que `SIGMA_RESPALDOS` apunte a otro disco.
+- Falta HTTPS en la red local: la sesión y los datos viajan sin cifrar.
 - Los montos del salario mínimo y de la UMA viven en `sigma/validaciones.py`
   (`SALARIO_MINIMO_GENERAL`, `UMA_DIARIA`) y deben actualizarse cada año.
 

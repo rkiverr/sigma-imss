@@ -1,22 +1,24 @@
 ---
 tipo: fuente-cruda
 origen: "git log --all del repositorio sigma-imss"
-extraido: 2026-10-04
+extraido: 2026-10-07
 nota: Volcado del historial de Git (sin correos de los autores). NO editar; se regenera con `git log --all --stat`.
 ---
 
 # Historial de Git del repositorio sigma-imss
 
 > Fuente cruda e inmutable. Remoto: https://github.com/rkiverr/sigma-imss
+> La rama `trl6/correcciones` existe solo en la copia local de Pedro (no se ha publicado).
 
 ## Ramas al momento de extraer
 
 ```text
-* main                                          e6b405b [origin/main] Documentación al día con la reorganización integrada a main
+  main                                          7f43596 [origin/main] Registra el borrado de la rama de la reorganización
   mejora/interfaz-y-validaciones                4c79ce4 [origin/mejora/interfaz-y-validaciones] Rediseña la interfaz y refuerza la validación y la persistencia
   trl5/ambiente-relevante                       b46ad50 Registra en CLAUDE.md los resultados del arnés de ambiente relevante
+* trl6/correcciones                             8914883 Exportación: el aviso dice "altas: 8 en …; bajas: 1 en …" (antes "1 bajas")
   remotes/origin/HEAD                           -> origin/main
-  remotes/origin/main                           e6b405b Documentación al día con la reorganización integrada a main
+  remotes/origin/main                           7f43596 Registra el borrado de la rama de la reorganización
   remotes/origin/mejora/interfaz-y-validaciones 4c79ce4 Rediseña la interfaz y refuerza la validación y la persistencia
   remotes/origin/trl5/ambiente-relevante        b46ad50 Registra en CLAUDE.md los resultados del arnés de ambiente relevante
 ```
@@ -24,7 +26,14 @@ nota: Volcado del historial de Git (sin correos de los autores). NO editar; se r
 ## Grafo
 
 ```text
-* e6b405b (HEAD -> main, origin/main, origin/HEAD) Documentación al día con la reorganización integrada a main
+* 8914883 (HEAD -> trl6/correcciones) Exportación: el aviso dice "altas: 8 en …; bajas: 1 en …" (antes "1 bajas")
+* aee7bc0 Arnés del E6: diez inicios de sesión simultáneos con la misma cuenta (S-14)
+* 86038c2 Sesión: dos equipos que entran a la vez con la misma cuenta comparten el token
+* 882d60f Arranque: no esperar 4 s a un PostgreSQL que no existe
+* 540a313 Pruebas del TRL 6: arnés de integración y arneses E3/E5 al día
+* 02aaad0 TRL 6: lote IDSE oficial, inicio de sesión, respaldo y robustez
+* 7f43596 (origin/main, origin/HEAD, main) Registra el borrado de la rama de la reorganización
+* e6b405b Documentación al día con la reorganización integrada a main
 *   fb3a4a8 Integra la reorganización en carpetas: la app en sigma/ y los arneses en pruebas/
 |\  
 | * 51a45ec Obsidian: método para verificar un cambio contra main y cierre del PR #2
@@ -55,6 +64,204 @@ nota: Volcado del historial de Git (sin correos de los autores). NO editar; se r
 ```
 
 ## Commits (del más reciente al más antiguo)
+
+### 8914883 — Exportación: el aviso dice "altas: 8 en …; bajas: 1 en …" (antes "1 bajas")
+
+- **Autor:** Pedro Luna
+- **Fecha:** 2026-10-07 22:24:54 -0600
+- **Commit:** `89148833ec35ef876694a079332088f1e23a0cdd`
+- **Padres:** aee7bc0
+
+```text
+Exportación: el aviso dice "altas: 8 en …; bajas: 1 en …" (antes "1 bajas")
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+```
+
+```text
+ sigma/app.py | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+```
+
+### aee7bc0 — Arnés del E6: diez inicios de sesión simultáneos con la misma cuenta (S-14)
+
+- **Autor:** Pedro Luna
+- **Fecha:** 2026-10-07 19:07:59 -0600
+- **Commit:** `aee7bc094feb2df7f518344e20d385d3a653d370`
+- **Padres:** 86038c2
+
+```text
+Arnés del E6: diez inicios de sesión simultáneos con la misma cuenta (S-14)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+```
+
+```text
+ pruebas/prueba_integracion.py | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
+```
+
+### 86038c2 — Sesión: dos equipos que entran a la vez con la misma cuenta comparten el token
+
+- **Autor:** Pedro Luna
+- **Fecha:** 2026-10-07 19:07:36 -0600
+- **Commit:** `86038c201975be22021d1b1bc4cb40d6e7b33197`
+- **Padres:** 882d60f
+
+```text
+Sesión: dos equipos que entran a la vez con la misma cuenta comparten el token
+
+La prueba de caída del arnés del E5 reveló 640 capturas "confirmadas" que no
+estaban en la base: cuando dos clientes iniciaban sesión al mismo tiempo con
+la misma cuenta, cada uno escribía su propio token y el primero quedaba fuera
+de la sesión; sus capturas recibían una redirección al inicio de sesión.
+
+- usuarios.abrir_sesion(): el token se crea con "WHERE sesion_token IS NULL"
+  y se vuelve a leer, así que el segundo recibe el del primero.
+- Arnés: con sesión, una redirección a /login cuenta como falla (401) y no
+  como captura guardada.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+```
+
+```text
+ pruebas/prueba_ambiente_relevante.py |  9 +++++++--
+ sigma/usuarios.py                    | 13 +++++++++----
+ 2 files changed, 16 insertions(+), 6 deletions(-)
+```
+
+### 882d60f — Arranque: no esperar 4 s a un PostgreSQL que no existe
+
+- **Autor:** Pedro Luna
+- **Fecha:** 2026-10-07 19:02:03 -0600
+- **Commit:** `882d60f49d77bae44a9adf5b576806d2144bdb8f`
+- **Padres:** 540a313
+
+```text
+Arranque: no esperar 4 s a un PostgreSQL que no existe
+
+Con requirements.txt ya instalando psycopg2, cada arranque y cada comando de
+consola intentaba conectar con localhost:5432. En Windows, sin servidor, el
+rechazo por IPv6 y luego por IPv4 tardaba 4 s. El DATABASE_URL por omisión
+usa ahora 127.0.0.1 y connect_timeout=1: 1 s. Con SIGMA_DB=sqlite no se intenta.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+```
+
+```text
+ sigma/database.py | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+```
+
+### 540a313 — Pruebas del TRL 6: arnés de integración y arneses E3/E5 al día
+
+- **Autor:** Pedro Luna
+- **Fecha:** 2026-10-07 19:00:12 -0600
+- **Commit:** `540a3130f7d12cfb060e8266cbb3363f3ef0e222`
+- **Padres:** 02aaad0
+
+```text
+Pruebas del TRL 6: arnés de integración y arneses E3/E5 al día
+
+- pruebas/prueba_integracion.py (nuevo): escenario funcional por la red
+  local con inicio de sesión y roles, conformidad del lote con la estructura
+  oficial campo por campo, seguridad, respaldo y restauración, y tamaños y
+  tiempos de cada enlace.
+- prueba_ambiente_relevante.py: contraseñas de prueba en cada copia aislada,
+  cliente con sesión, nombre separado, UMF y jornada según la versión;
+  --codigo sigue funcionando con versiones anteriores.
+- test_prueba_concepto.py: casos con los campos nuevos y bloque 2 contra la
+  estructura de 168 posiciones.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+```
+
+```text
+ pruebas/prueba_ambiente_relevante.py | 139 +++++--
+ pruebas/prueba_integracion.py        | 746 +++++++++++++++++++++++++++++++++++
+ pruebas/test_prueba_concepto.py      |  76 ++--
+ 3 files changed, 909 insertions(+), 52 deletions(-)
+```
+
+### 02aaad0 — TRL 6: lote IDSE oficial, inicio de sesión, respaldo y robustez
+
+- **Autor:** Pedro Luna
+- **Fecha:** 2026-10-07 19:00:12 -0600
+- **Commit:** `02aaad0a4f5960f0ecaf25259963c6e2df9d3f64`
+- **Padres:** 7f43596
+
+```text
+TRL 6: lote IDSE oficial, inicio de sesión, respaldo y robustez
+
+Corrige los problemas encontrados en la demostración del Entregable 6:
+
+- Lote IDSE con la estructura oficial del IMSS ("Estructura de Movimientos
+  afiliatorios"): registros de 168 posiciones de ancho fijo, un archivo por
+  tipo de movimiento, Windows-1252 y CRLF. La estructura es una tabla de
+  campos en exportar_idse.ESTRUCTURA.
+- Nombre en apellido paterno, materno y nombre(s), UMF obligatoria en el alta
+  y guía del patrón. Aviso nuevo: iniciales de la CURP contra el nombre.
+- Catálogo de jornada oficial (0 = normal, 1-5 días, 6 = reducida); el
+  anterior usaba 1 para la jornada normal.
+- Inicio de sesión con contraseña (werkzeug), roles captura/administrador,
+  bloqueo tras 5 intentos y token de sesión en la base para que cerrar sesión
+  invalide también las copias de la cookie. El usuario de la bitácora sale de
+  la sesión; se quitan los selectores de usuario. Consola sigma.usuarios.
+- Respaldo automático (al arrancar, antes de migrar, y cada 24 h) y
+  restauración con sigma.respaldo.
+- Migraciones de datos únicas (tabla migracion): jornada y nombres separados.
+- errorhandler respeta las HTTPException (405, 413, 400); límite de tamaño de
+  petición; clave de sesión persistente; psycopg2 sin marcador de versión;
+  la exportación queda en el historial de cada movimiento; aviso de montos
+  legales sin cargar; pie con TRL 6.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+```
+
+```text
+ .gitignore                   |   3 +
+ requirements.txt             |   8 +-
+ servidor.py                  |  19 ++-
+ sigma/app.py                 | 286 ++++++++++++++++++++++++++++++++-----------
+ sigma/database.py            | 193 +++++++++++++++++++++++++----
+ sigma/exportar_idse.py       | 207 ++++++++++++++++++++++++-------
+ sigma/respaldo.py            | 163 ++++++++++++++++++++++++
+ sigma/static/css/estilos.css |  25 ++++
+ sigma/static/js/app.js       |  27 ++--
+ sigma/templates/base.html    |  13 +-
+ sigma/templates/index.html   |  80 +++++++-----
+ sigma/templates/login.html   |  38 ++++++
+ sigma/usuarios.py            | 221 +++++++++++++++++++++++++++++++++
+ sigma/validaciones.py        | 192 +++++++++++++++++++++++++----
+ 14 files changed, 1266 insertions(+), 209 deletions(-)
+```
+
+### 7f43596 — Registra el borrado de la rama de la reorganización
+
+- **Autor:** Pedro Luna
+- **Fecha:** 2026-10-04 18:42:33 -0600
+- **Commit:** `7f435968ab1c55932cc8e16cf09c89d186f3e423`
+- **Padres:** e6b405b
+
+```text
+Registra el borrado de la rama de la reorganización
+
+mejora/estructura-de-carpetas ya estaba integrada en main (fb3a4a8) y se
+borró en GitHub y en local; la página del PR #2 conserva sus commits.
+CLAUDE.md §1, cronología, sesión y log al día; raw/historial/git-log.md
+extraído de nuevo con las ramas actuales.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+```
+
+```text
+ CLAUDE.md                                          |  5 ++-
+ Obsidian/log.md                                    |  8 ++++
+ Obsidian/raw/historial/git-log.md                  | 47 ++++++++++++++++++----
+ Obsidian/wiki/historial/cronologia.md              |  2 +-
+ .../sesion-2026-10-04-estructura-de-carpetas.md    |  4 +-
+ 5 files changed, 55 insertions(+), 11 deletions(-)
+```
 
 ### e6b405b — Documentación al día con la reorganización integrada a main
 

@@ -3,7 +3,7 @@ tipo: bug
 estado: corregido
 tags: [bugs, regresion, no-reintroducir]
 fuentes: ["CLAUDE.md", "raw/entregables/e4-trl4-prototipo-integrado.md", "raw/entregables/e5-trl5-ambiente-relevante.md"]
-actualizado: 2026-10-04
+actualizado: 2026-10-07
 ---
 
 # Bugs corregidos: no reintroducir
@@ -59,5 +59,33 @@ BUG-01 se detectó el 2026-10-04 al extraer el texto literal de la LFT (`raw/nor
   que cambiar la otra.
 
 Las limitaciones que el E5 dejó planeadas (E-16 a E-20) están en [[bugs-conocidos]] y en [[hoja-de-ruta-trl6]].
+
+
+## Corregidos en el Entregable 6 (rama local `trl6/correcciones`, 2026-10-07)
+Los encontró la demostración del E6 (instalación limpia, escenario por la red local, comparación con la estructura
+oficial del IMSS y los arneses). Claves P-xx del informe del E6.
+
+| Clave | Bug | Corrección | Commit |
+|---|---|---|---|
+| P-06 | Catálogo de jornada propio: el "1" de la jornada normal el IMSS lo lee como "un día a la semana" | Catálogo oficial 0–6 y migración | `02aaad0` |
+| P-07 | Lote con campos separados por `\|`, sin nombre, UMF ni guía, altas y bajas juntas | Estructura oficial de 168 posiciones, un archivo por tipo ([[adr-019-lote-con-la-estructura-oficial]]) | `02aaad0` |
+| P-08 | Sin autenticación: cualquiera en la red capturaba a nombre de cualquiera | Inicio de sesión con roles ([[adr-018-inicio-de-sesion-roles-y-token]]) | `02aaad0` |
+| P-09 | El selector de usuario volvía a `admin.rrhh` en cada recarga | Sin selector: el usuario sale de la sesión | `02aaad0` |
+| P-10 | `GET /capturar`, TRACE, PUT y DELETE → 500 "El movimiento no se guardó" | `error_http()` conserva el código (405) | `02aaad0` |
+| P-12 | Sin respaldo de la base | `respaldo.py`, al arrancar y cada 24 h ([[adr-020-respaldo-automatico]]) | `02aaad0` |
+| P-13 | `requirements.txt` no instalaba psycopg2 en Python 3.13+ | `psycopg2-binary>=2.9.11` | `02aaad0` |
+| P-15 | La exportación no quedaba en el historial de cada movimiento | Asiento "Incluido en lote IDSE" | `02aaad0` |
+| P-16 | Sin límite de tamaño de petición | `MAX_CONTENT_LENGTH` → 413 | `02aaad0` |
+| P-17 | Montos legales solo hasta 2026, sin aviso | `aviso_montos_sin_cargar()` (los montos se siguen cargando cada año) | `02aaad0` |
+| P-18 | El pie decía "TRL 5" | "TRL 6" | `02aaad0` |
+| P-05 | Sin `SECRET_KEY`, cada reinicio cerraba las sesiones | `.clave_sesion` persistente | `02aaad0` |
+| — | La cookie seguía sirviendo después de cerrar sesión (sesión en cookie) | Token de sesión en la base | `02aaad0` |
+| P-19 | Con psycopg2 instalado y sin PostgreSQL, cada arranque esperaba 4 s (`localhost` por IPv6 e IPv4) | `127.0.0.1` y `connect_timeout=1` (1 s); `SIGMA_DB=sqlite` lo evita | `882d60f` |
+| P-20 | Dos equipos que entraban a la vez con la misma cuenta escribían tokens distintos y uno quedaba fuera (la prueba de caída mostró 640 capturas "confirmadas" que no estaban en la base: eran redirecciones al inicio de sesión) | Token creado con `WHERE sesion_token IS NULL` y releído; el arnés cuenta la redirección al login como falla | `86038c2` |
+| P-21 | Verificar el respaldo dejaba `-wal` y `-shm` junto a la copia | `journal_mode = DELETE` en la copia | `02aaad0` |
+| P-22 | El aviso de exportación decía "1 bajas" | "altas: 8 en …; bajas: 1 en …" | `8914883` |
+
+**Para no reintroducirlos:** el bloque L del [[arnes-integracion]] verifica el lote campo por campo; S-05, S-09,
+S-13 y S-14 cubren 405, 413, la cookie copiada y los inicios de sesión simultáneos.
 
 Ver también: [[resultados-de-pruebas]] · [[guia-para-modificar-el-codigo]]

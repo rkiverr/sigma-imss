@@ -17,13 +17,18 @@ decisión**, para no volver a deducirlo desde cero.
 ## 1. Qué es
 
 **Sigma** es un sistema para automatizar las altas y bajas de trabajadores ante
-el IMSS. Es un trabajo académico (Entregas 1 a 5 de un informe por niveles TRL),
+el IMSS. Es un trabajo académico (Entregas 1 a 6 de un informe por niveles TRL),
 no un producto en producción. Nació como prueba de concepto (TRL 3), se integró
-como prototipo (TRL 4) y en la Entrega 5 se validó en ambiente relevante
-(TRL 5).
+como prototipo (TRL 4), en la Entrega 5 se validó en ambiente relevante (TRL 5)
+y en la Entrega 6 se integró y demostró como sistema completo (TRL 6): lote
+IDSE con la estructura oficial, inicio de sesión con roles y respaldo
+automático.
 
 **Ramas.**
-- `main` es la vigente. Desde el 2026-10-04 incluye la Entrega 5 (el merge
+- `trl6/correcciones` (**solo local**, sin publicar a petición de Pedro): las
+  correcciones del TRL 6 sobre `main`. Cuando Pedro lo indique se integra a
+  `main` y se sube.
+- `main` es la publicada. Desde el 2026-10-04 incluye la Entrega 5 (el merge
   `cffd375` integró los 7 commits de `trl5/ambiente-relevante`) y la
   reorganización en carpetas (merge `fb3a4a8`: la app en `sigma/` y los
   arneses en `pruebas/`).
@@ -63,17 +68,21 @@ archivo los módulos se nombran sin carpeta (`app.py` = `sigma/app.py`).
 | `sigma/plazo.py` | Plazo legal de 5 días hábiles (art. 15 LSS; descansos art. 74 LFT) |
 | `sigma/validaciones.py` | Validación algorítmica y reglas de negocio |
 | `sigma/database.py` | Persistencia relacional y selección de motor |
-| `sigma/exportar_idse.py` | Traducción al formato de lote IDSE |
+| `sigma/exportar_idse.py` | Lote IDSE con la estructura oficial del IMSS (168 posiciones, un archivo por tipo) |
+| `sigma/usuarios.py` | Contraseñas, inicio de sesión, bloqueo y consola de usuarios (`python -m sigma.usuarios`) |
+| `sigma/respaldo.py` | Respaldo y restauración de la base (`python -m sigma.respaldo`) |
 | `sigma/templates/base.html` | Esqueleto: barra, tema, notificaciones, pie |
 | `sigma/templates/index.html` | Pantalla principal (hereda de `base.html`) |
-| `sigma/templates/error.html` | Página de error 404 / 500 / 503 |
+| `sigma/templates/login.html` | Inicio de sesión |
+| `sigma/templates/error.html` | Página de error 400 / 403 / 404 / 405 / 413 / 500 / 503 |
 | `sigma/static/css/estilos.css` | Sistema de diseño completo, temas claro y oscuro |
 | `sigma/static/js/app.js` | Validación en vivo, máscaras, tema, diálogo de detalle |
 | `pruebas/test_prueba_concepto.py` | Arnés de pruebas del "Desarrollo experimental" (E3) |
 | `pruebas/prueba_ambiente_relevante.py` | Arnés de validación en ambiente relevante (E5) |
+| `pruebas/prueba_integracion.py` | Arnés de integración y demostración (E6): escenario, lote, seguridad, respaldo, red |
 
-Lo que se genera al usar el sistema no se versiona: `sigma_imss.db` y
-`exportaciones/` en la raíz (fuera del paquete, a propósito: es la base y los
+Lo que se genera al usar el sistema no se versiona: `sigma_imss.db`,
+`exportaciones/`, `respaldos/` y `.clave_sesion` en la raíz (fuera del paquete, a propósito: es la base y los
 lotes de trabajo), y `pruebas/resultados/` para todo lo que producen los
 arneses.
 
@@ -81,8 +90,12 @@ arneses.
 `from . import plazo`). Por eso `sigma/app.py` ya no se ejecuta directo: el
 servidor de desarrollo es `python -m sigma`.
 
-Modelo de datos (5 tablas normalizadas):
-`patron`, `usuario`, `trabajador`, `movimiento`, `bitacora`.
+Modelo de datos (5 tablas normalizadas + `migracion`):
+`patron` (con `guia`), `usuario` (con `password_hash`, `activo`,
+`intentos_fallidos`, `bloqueado_hasta`, `sesion_token`), `trabajador` (con
+`apellido_paterno`, `apellido_materno`, `nombres`; `nombre_completo` se deriva),
+`movimiento` (con `umf`), `bitacora`. `migracion` registra las conversiones de
+datos ya aplicadas.
 
 ---
 
@@ -245,6 +258,52 @@ ambos la revisión previa; en las pruebas quedaban duplicados y errores 500.
 `data-longitud` en lugar de `maxlength`: `app.js` limpia y **después** recorta.
 Con `maxlength`, pegar "4316 89 1234 5" perdía dígitos.
 
+### 3.15 Inicio de sesión, roles y token de sesión (TRL 6)
+
+- `usuarios.py`: contraseñas con `werkzeug.security` (scrypt), bloqueo de 15 min
+  tras 5 intentos fallidos, mensaje genérico. Roles: `captura` captura y
+  consulta; `administrador` además genera y descarga lotes (`@requiere_rol`).
+- `before_request`: sin sesión, la página va a `/login` y la API responde 401.
+  El usuario de la bitácora sale de `g.usuario`; **ya no hay selector de
+  usuario** (regresaba a admin en cada recarga y atribuía mal las capturas).
+- La sesión vive en la cookie firmada de Flask, así que borrar la cookie no
+  basta: la sesión lleva un `token` que también está en `usuario.sesion_token`.
+  Cerrar sesión, cambiar la contraseña o desactivar al usuario lo borra y toda
+  copia de la cookie deja de servir. Varias PC con la misma cuenta comparten el
+  token (`abrir_sesion()` reutiliza el vigente).
+- Clave de sesión: `SECRET_KEY` o, si no hay, `.clave_sesion` (se crea una vez),
+  para que reiniciar el servidor no cierre las sesiones.
+
+### 3.16 Lote IDSE con la estructura oficial (TRL 6)
+
+`exportar_idse.ESTRUCTURA` transcribe, campo por campo, el PDF del IMSS
+"Estructura de Movimientos afiliatorios": registros de 168 posiciones, un
+archivo por tipo (`lote_idse_altas_…` / `lote_idse_bajas_…`), Windows-1252 y
+CRLF. Apellido paterno, materno y nombre(s) en 27 posiciones cada uno; SBC en 6
+dígitos con 2 decimales implícitos (topado a 25 UMA); jornada con el catálogo
+oficial (0 = normal, 1–5 días, 6 = reducida); UMF; guía del patrón
+(`patron.guia`, semilla `00000`); clave del trabajador = su id; "9" final. En la
+baja, la causa va en la 149 y la CURP en blanco. `generar_linea_idse()` afirma
+las 168 posiciones. ⚠️ Codificación, CRLF y Ñ se confirman con un lote de
+prueba en el IDSE.
+
+### 3.17 Respaldo automático (TRL 6)
+
+`servidor.py` respalda **antes** de `init_db()` (protege los datos antes de
+migrar) y deja un hilo cada `SIGMA_RESPALDO_HORAS`. SQLite: API `backup` →
+`journal_mode = DELETE` (un solo archivo) → `integrity_check`; rotación de
+`SIGMA_RESPALDOS_CONSERVAR`. PostgreSQL: `pg_dump` si existe (no probado aquí).
+`--restaurar` guarda antes una copia de la base actual.
+
+### 3.18 Migraciones de datos
+
+`init_db()` agrega las columnas que falten (`_COLUMNAS_NUEVAS`) y aplica una sola
+vez cada migración de `_MIGRACIONES` (queda en la tabla `migracion`): jornada
+`1→0` y `2→6` (avisa de los `3`/`4`), y separación del nombre con
+`separar_nombre()`, que elige la división que reproduce las iniciales de la
+CURP. Si agregas una migración, dale una clave nueva; nunca cambies una ya
+aplicada.
+
 ---
 
 ## 4. Bugs que ya se corrigieron — no reintroducir
@@ -270,6 +329,17 @@ Con `maxlength`, pegar "4316 89 1234 5" perdía dígitos.
 | (E5) "La causa de baja es obligatorio" | Mensaje de catálogo sin concordancia de género |
 | (E5) Texto tenue 3.15:1 (no cumple WCAG AA) | `--texto-tenue: #5c6b84` (5.4:1) |
 | Feriado de transmisión del Ejecutivo el 1 de dic con `anio % 6 == 0` (regla anterior a la reforma de la LFT de 2024) | 1 de oct con `anio % 6 == 2`, en `plazo.py` y en el arnés |
+| (E6) Catálogo de jornada propio: 1 = normal, que el IMSS lee como "un día a la semana" | Catálogo oficial 0–6 y migración |
+| (E6) Lote con campos separados por `|`, sin apellidos, UMF ni guía, altas y bajas juntas | Estructura oficial de 168 posiciones, un archivo por tipo |
+| (E6) Sin inicio de sesión; selector de usuario que volvía a admin.rrhh | Login con roles; el usuario sale de la sesión |
+| (E6) `GET /capturar` (y TRACE/PUT/DELETE) → 500 "El movimiento no se guardó" | `errorhandler` respeta las `HTTPException` (405, 413, 400) |
+| (E6) Sin límite de tamaño de petición | `MAX_CONTENT_LENGTH` (`SIGMA_MAX_PETICION_KB`, 1 MB) → 413 |
+| (E6) `requirements.txt` no instalaba psycopg2 en Python 3.13+ | `psycopg2-binary>=2.9.11` sin marcador |
+| (E6) Sin `SECRET_KEY`, cada reinicio cerraba sesiones | `.clave_sesion` persistente |
+| (E6) Cookie de sesión válida después de cerrar sesión | Token de sesión en la base |
+| (E6) La exportación no quedaba en el historial de cada movimiento | Asiento "Incluido en lote IDSE" por movimiento |
+| (E6) Sin respaldo de la base | `respaldo.py` + respaldo al arrancar y periódico |
+| (E6) Con psycopg2 instalado y sin PostgreSQL, cada arranque esperaba 4 s ("localhost" por IPv6 e IPv4) | `DATABASE_URL` por omisión con `127.0.0.1` y `connect_timeout=1` (1 s); `SIGMA_DB=sqlite` lo evita |
 
 ---
 
@@ -283,7 +353,14 @@ python -m sigma                             # desarrollo, solo 127.0.0.1 (SIGMA_
 python pruebas/test_prueba_concepto.py      # arnés del E3 → pruebas/resultados/
 python pruebas/prueba_ambiente_relevante.py # arnés del E5 (~3 min) → pruebas/resultados/
 python pruebas/prueba_ambiente_relevante.py --codigo <carpeta> --servidor desarrollo --etiqueta antes
+python pruebas/prueba_integracion.py        # arnés del E6 (~1 min); --capturas guarda el HTML de las pantallas
+python -m sigma.usuarios contrasena admin.rrhh   # asignar contraseña (también: listar, crear, desactivar…)
+python -m sigma.respaldo                    # respaldo manual; --restaurar ARCHIVO con el servidor detenido
 ```
+
+**Primer arranque con una base nueva o migrada:** nadie tiene contraseña, así
+que hay que asignarlas con `python -m sigma.usuarios contrasena <usuario>`
+(la página de inicio de sesión lo recuerda).
 
 Para demostrar que un cambio **no** altera el comportamiento (reorganizar,
 renombrar, limpiar), compara contra `main` con el método de
@@ -291,7 +368,15 @@ renombrar, limpiar), compara contra `main` con el método de
 dos versiones, los criterios CA5, el lado a lado por HTTP y Chrome headless.
 
 Variables de entorno: `DATABASE_URL`, `SIGMA_DB`, `SQLITE_PATH`, `SECRET_KEY`,
-`SIGMA_HOST`, `SIGMA_PUERTO`, `SIGMA_HILOS`, `SIGMA_DEBUG`.
+`SIGMA_HOST`, `SIGMA_PUERTO`, `SIGMA_HILOS`, `SIGMA_DEBUG`, `SIGMA_SESION_HORAS`,
+`SIGMA_MAX_PETICION_KB`, `SIGMA_RESPALDOS`, `SIGMA_RESPALDO_HORAS`,
+`SIGMA_RESPALDOS_CONSERVAR`.
+
+Desde el TRL 6, el arnés del E5 asigna contraseñas de prueba en cada copia
+aislada y su `Cliente` inicia sesión con el `usuario_id` del formulario; con
+`--codigo` de una versión sin `sigma/usuarios.py` funciona como antes
+(`version_trl6()`). `alta()`/`baja()` mandan el nombre completo y separado y la
+UMF, para servir a las dos versiones.
 
 El arnés del E5 copia el sistema a un directorio temporal por bloque (no toca
 `sigma_imss.db` ni `exportaciones/`). Emula al navegador: aplica `maxlength` /
@@ -336,6 +421,20 @@ código del commit 4c79ce4 con el servidor de desarrollo):
 Los 4 no detectados son CURP con una consonante cambiada que el dígito de
 RENAPO no distingue (límite del algoritmo, no del código).
 
+Versión del TRL 6 (rama `trl6/correcciones`, 07/10/2026, instalación limpia
+clonada de la rama; salidas en `Obsidian/raw/resultados/*trl6*` y
+`e6-arnes-integracion.md`):
+
+| Arnés | Resultado |
+|---|---|
+| E3 (`test_prueba_concepto.py`) | 8/8; lote en dos archivos de 168 posiciones |
+| E5 (`prueba_ambiente_relevante.py`) | 10/10 criterios; 96.9 %; 0 duplicados; 0 hallazgos en G |
+| E6 (`prueba_integracion.py`) | F 23/23 · L conforme (42 registros) · S 1 hallazgo de 14 (S-03, sin HTTPS) · R restauración en 0.85 s |
+
+Con 10 usuarios sin pausa atiende 3,935 capturas por minuto (5,609 sin inicio
+de sesión): cada petición consulta usuario y token. Criterios del TRL 6: 9 de
+10; solo falta el cifrado (HTTPS).
+
 ⚠️ Si cambias las reglas de `validaciones.py`, **vuelve a correr el arnés**:
 los casos C1 y C2 tienen que seguir saliendo válidos y C3–C8 rechazados. Al
 introducir los catálogos IDSE hubo que actualizar C2 y C5, cuya causa de baja
@@ -345,11 +444,16 @@ era texto libre.
 
 ## 7. Límites conocidos (no son bugs)
 
-- **No hay autenticación real.** El usuario se elige de un desplegable, así que
-  la bitácora documenta la autoría pero no la demuestra. Es el pendiente #1 para
-  TRL 6, junto con HTTPS en la red local.
-- **El layout del archivo IDSE es una representación**, con campos separados por
-  `|`. Debe confirmarse contra el layout oficial vigente del IMSS antes de
-  usarse de verdad. Está advertido en el código, el README y el pie de página.
-- **Sin respaldo automático de la base.** Un archivo SQLite en una sola PC.
+- **Sin HTTPS.** En la red local la sesión y los datos viajan sin cifrar; hace
+  falta un certificado de la oficina y un proxy con TLS (pendiente para el piloto).
+- **El lote sigue la estructura publicada por el IMSS**, pero la codificación,
+  el fin de línea y la Ñ solo se confirman cargando un lote de prueba en el IDSE.
+  El registro patronal y la guía de la semilla son de ejemplo.
+- **PostgreSQL no está instalado en el equipo de pruebas**; con 20 usuarios sin
+  pausa SQLite serializa las escrituras: la captura más lenta llegó a 3.1 s sin
+  inicio de sesión y a 0.58 s con él. Mientras no haya PostgreSQL,
+  `SIGMA_DB=sqlite` evita 1 s de espera en cada arranque.
+- **Montos legales** (salario mínimo y UMA) solo hasta 2026: el sistema avisa,
+  pero hay que cargarlos cada año. Los días inhábiles del IMSS se cargan a mano.
 - **Un solo patrón.** El modelo soporta varios, pero la interfaz usa el primero.
+- **Sin movimiento 07** (modificación de salario).

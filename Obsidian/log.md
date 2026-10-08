@@ -140,3 +140,36 @@ Bitácora cronológica: solo se agrega al final y lo anterior no se edita.
 - Se borraron los reportes locales de las verificaciones (`pruebas/resultados/`, ignorada por Git).
 - Páginas: [[cronologia]] (tabla de ramas) y [[sesion-2026-10-04-estructura-de-carpetas]] (pendientes).
   `CLAUDE.md` del repo §1. `raw/historial/git-log.md` se extrajo de nuevo con las ramas actuales.
+
+## [2026-10-07] sesion | Entregable 6: primera demostración y correcciones del TRL 6 (rama local)
+- Primera demostración con `main` (`7f43596`), sin tocar el código: 7 de 9 criterios y 18 problemas; el lote
+  cumplía 7 de 18 aspectos del PDF oficial del IMSS. Pedro pidió corregirlos en el repo: todo lo de código, sin
+  instalar programas, y Git **solo local**.
+- Rama `trl6/correcciones`: `02aaad0`, `540a313`, `882d60f`, `86038c2`, `aee7bc0` y `8914883`. Sin push ni
+  merge. La verificación reveló P-19 (4 s de espera a PostgreSQL), P-20 (carrera del token de sesión) y P-22.
+- Instalación limpia de la rama: E3 8/8, E5 10/10, [[arnes-integracion]] F 23/23, L conforme (42), S 1 de 14
+  (S-03). TRL 6 con 9 de 10 criterios; falta HTTPS.
+- Páginas nuevas: [[sesion-2026-10-07-correcciones-trl6]], [[entregable-6-trl6]], [[arnes-integracion]],
+  [[adr-018-inicio-de-sesion-roles-y-token]], [[adr-019-lote-con-la-estructura-oficial]],
+  [[adr-020-respaldo-automatico]], [[adr-021-migraciones-de-datos-unicas]], [[modulo-usuarios]] y
+  [[modulo-respaldo]].
+- Reescritas: [[lote-idse]], [[modulo-exportar-idse]], [[hoja-de-ruta-trl6]] y [[bugs-conocidos]]. Actualizadas:
+  - [[bugs-corregidos]] (P-05…P-22), [[catalogos-idse]], [[rutas-http]], [[modelo-de-datos]] y [[configuracion]];
+  - [[como-arrancar]], las páginas de módulos, [[reglas-de-validacion]], [[seguridad-web]] y [[decisiones]];
+  - [[inicio]], [[cronologia]], [[trayectoria-trl]] y [[riesgos]];
+  - [[estrategia-de-pruebas]], [[resultados-de-pruebas]], [[mantenimiento-anual]], los dos arneses anteriores y
+    [[entregables-trl]].
+
+## [2026-10-07] ingesta | Entregable 6 (v2), rúbrica, salidas de los arneses e historial de Git
+- `raw/entregables/`: `e6-trl6-integracion-y-demostracion.md` (texto del .docx v2, 33 págs.) y
+  `e6-rubrica-del-maestro.md`.
+- `raw/resultados/`: `e6-arnes-integracion.md`, `e3-arnes-prueba-de-concepto-trl6.md`,
+  `e5-arnes-ambiente-relevante-trl6-version-corregida.md` y `e5-arnes-ambiente-relevante-trl6-codigo-e4.md`.
+  Son las corridas finales sobre la instalación limpia.
+- `raw/historial/git-log.md` se regeneró: 30 commits, hasta `8914883`. Incluye la rama local
+  `trl6/correcciones`, pero no el commit de documentación que lo contiene.
+
+## [2026-10-07] sistema | Esquema: tres arneses, fuentes del E6 y mapa de impacto
+- `Obsidian/CLAUDE.md` §2: `pruebas/` con los arneses de E3, E5 y E6, y `raw/entregables/` con E1–E6.
+- §5: filas para `sigma/usuarios.py` y `sigma/respaldo.py`, y [[arnes-integracion]] en la fila de arneses.
+- `index.md`: páginas nuevas, ADR-018 a ADR-021 y las fuentes crudas del E6.

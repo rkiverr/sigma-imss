@@ -2,7 +2,7 @@
 tipo: regla
 tags: [validacion, errores, avisos, catalogo-de-reglas]
 fuentes: ["sigma/validaciones.py", "sigma/app.py", "sigma/database.py"]
-actualizado: 2026-10-04
+actualizado: 2026-10-07
 ---
 
 # Catálogo completo de reglas de validación
@@ -62,5 +62,15 @@ Viven en `app.capturar()` y **no** corren en `/api/validar`.
 Con 128 errores inyectados en 16 categorías: **88 bloqueados, 36 avisados y 4 no detectados** (96.9 %), con 0
 falsos positivos en 60 capturas limpias. Los 4 no detectados son CURP con una consonante cambiada, un límite del
 algoritmo de RENAPO ([[resultados-de-pruebas]]).
+
+
+## Reglas nuevas del TRL 6 (2026-10-07)
+| Regla | Tipo | Dónde |
+|---|---|---|
+| Apellido paterno y nombre(s) obligatorios; materno opcional; 27 caracteres como máximo cada uno | error | `validar_nombre()` |
+| UMF de 1 a 3 dígitos (no 000), obligatoria en el alta | error | `validar_umf()` |
+| Jornada del catálogo oficial (0–6) | error | `validar_catalogo(TIPOS_JORNADA)` |
+| Iniciales de la CURP contra el nombre capturado | aviso | `verificar_iniciales_curp()` |
+| Año sin montos legales cargados | aviso | `aviso_montos_sin_cargar()` |
 
 Ver también: [[modulo-validaciones]] · [[flujo-de-captura]] · [[catalogos-idse]] · [[salario-sdi-y-limites]]

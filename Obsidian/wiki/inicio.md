@@ -1,8 +1,8 @@
 ---
 tipo: hub
 tags: [sigma, panorama, inicio]
-fuentes: ["README.md", "CLAUDE.md", "raw/entregables/e5-trl5-ambiente-relevante.md", "raw/historial/git-log.md"]
-actualizado: 2026-10-04
+fuentes: ["README.md", "CLAUDE.md", "raw/entregables/e6-trl6-integracion-y-demostracion.md", "raw/historial/git-log.md"]
+actualizado: 2026-10-07
 ---
 
 # Sigma — panorama del proyecto
@@ -15,15 +15,16 @@ Excel donde el estado de cada trabajador se marca solo con colores ([[empresa-y-
 Es el proyecto académico del **Equipo 4** para Laboratorio de Automatización, que se presenta por niveles
 TRL ([[equipo-y-contexto-academico]]).
 
-## Estado actual (2026-10-04)
+## Estado actual (2026-10-07)
 
 | | |
 |---|---|
-| Nivel de madurez | **TRL 5**: validado en un ambiente que emula a la empresa ([[entregable-5-trl5]]) |
-| Rama vigente | `main` en GitHub (`github.com/rkiverr/sigma-imss`). Incluye el E5 desde el merge `cffd375`, la corrección del calendario (`3afbc9a`), este segundo cerebro y la reorganización en `sigma/` y `pruebas/` (merge `fb3a4a8`, [[adr-017-paquete-sigma-y-carpeta-de-pruebas]]) ([[cronologia]]) |
-| Cómo se arranca | `python servidor.py` → `http://localhost:5050` ([[como-arrancar]]) |
-| Pruebas | `python pruebas/test_prueba_concepto.py` (8/8) y `python pruebas/prueba_ambiente_relevante.py` ([[resultados-de-pruebas]]) |
-| Siguiente nivel | TRL 6: piloto en la oficina con datos reales ([[hoja-de-ruta-trl6]]) |
+| Nivel de madurez | **TRL 6**: sistema completo integrado y demostrado en ambiente relevante; 9 de 10 criterios ([[entregable-6-trl6]]) |
+| Rama de trabajo | **`trl6/correcciones`, solo local** (no publicada ni integrada): lote oficial de 168 posiciones, inicio de sesión con roles, respaldo automático y arnés del E6. **La copia del escritorio está en esta rama** ([[sesion-2026-10-07-correcciones-trl6]]) |
+| Rama publicada | `main` en GitHub (`github.com/rkiverr/sigma-imss`). Incluye el E5 desde el merge `cffd375`, la corrección del calendario (`3afbc9a`), este segundo cerebro y la reorganización en `sigma/` y `pruebas/` (merge `fb3a4a8`, [[adr-017-paquete-sigma-y-carpeta-de-pruebas]]) ([[cronologia]]) |
+| Cómo se arranca | `python servidor.py` → `http://localhost:5050`. En la rama del E6, antes: `python -m sigma.usuarios contrasena admin.rrhh` ([[como-arrancar]]) |
+| Pruebas | `python pruebas/test_prueba_concepto.py` (8/8), `python pruebas/prueba_ambiente_relevante.py` y, en la rama del E6, `python pruebas/prueba_integracion.py` ([[resultados-de-pruebas]]) |
+| Siguiente nivel | TRL 7: piloto en la oficina con datos reales, después de HTTPS y de un lote de prueba en el IDSE ([[hoja-de-ruta-trl6]]) |
 
 ## Qué hace, en una línea por paso
 
@@ -43,7 +44,9 @@ flowchart LR
    ([[reglas-de-validacion]], [[flujo-de-captura]]).
 4. Si todo está bien, lo guarda junto con un asiento en la bitácora ([[modelo-de-datos]]). Si no, devuelve el
    formulario con el error de cada campo.
-5. Al final, arma el **lote** de texto plano que se carga en el **IDSE** ([[lote-idse]]).
+5. Al final, administración arma el **lote**: un archivo de altas y uno de bajas, de 168 posiciones por
+   registro, que se cargan en el **IDSE** ([[lote-idse]]). Desde el E6 todo pasa por un inicio de sesión con
+   roles ([[modulo-usuarios]]).
 
 ## Cómo está hecho
 
@@ -58,9 +61,12 @@ dependencias externas. Ver [[arquitectura-general]].
 | `sigma/plazo.py` | [[modulo-plazo]] |
 | `sigma/database.py` | [[modulo-database]] |
 | `sigma/exportar_idse.py` | [[modulo-exportar-idse]] |
+| `sigma/usuarios.py` (rama del E6) | [[modulo-usuarios]] |
+| `sigma/respaldo.py` (rama del E6) | [[modulo-respaldo]] |
 | `sigma/templates/`, `sigma/static/` | [[modulo-interfaz]] |
 | `pruebas/test_prueba_concepto.py` | [[arnes-prueba-de-concepto]] |
 | `pruebas/prueba_ambiente_relevante.py` | [[arnes-ambiente-relevante]] |
+| `pruebas/prueba_integracion.py` (rama del E6) | [[arnes-integracion]] |
 
 Por qué está organizado así: [[adr-017-paquete-sigma-y-carpeta-de-pruebas]].
 
@@ -77,20 +83,23 @@ Las decisiones de diseño y sus porqués están en [[decisiones]]. Las cinco má
 
 - Detección de errores típicos de captura: **96.9 %** (antes del E5: 50 %).
 - Capturas simultáneas del mismo movimiento: **0 duplicados y 0 errores 500** (antes: 5 y 7).
-- Capacidad: unas **5,900 capturas por minuto** con 10 usuarios sin pausa; la empresa supone hasta 140 al mes.
+- Capacidad: unas **3,900 capturas por minuto** con 10 usuarios sin pausa en la versión con inicio de sesión
+  (5,600–5,900 sin él); la empresa supone hasta 140 al mes.
+- Lote: **42 de 42** registros conformes con la estructura oficial del IMSS (bloque L del [[arnes-integracion]]).
 - Detalle en [[resultados-de-pruebas]].
 
 ## Pendientes principales
 
-- **Riesgo #1:** el formato del lote no está confirmado contra el layout oficial del IDSE ([[lote-idse]]).
-- Falta login, HTTPS y respaldo automático ([[hoja-de-ruta-trl6]]).
+- Publicar la rama `trl6/correcciones` e integrarla a `main` cuando Pedro lo decida.
+- **HTTPS** en la red local: el único criterio del TRL 6 que no se cumple (P-11, [[hoja-de-ruta-trl6]]).
+- Un lote de prueba en el IDSE para confirmar codificación, CRLF y Ñ ([[lote-idse]]); servidor PostgreSQL (P-14).
 - Cargar cada año los días inhábiles del IMSS y las jornadas electorales ([[mantenimiento-anual]]). No hay bugs
   abiertos ([[bugs-conocidos]]).
 
 ## Mapa del wiki
 
 - **Proyecto:** [[empresa-y-problematica]] · [[equipo-y-contexto-academico]] · [[trayectoria-trl]] · [[riesgos]] · [[hoja-de-ruta-trl6]]
-- **Entregables:** [[entregables-trl]] y una página por informe (E1–E5).
+- **Entregables:** [[entregables-trl]] y una página por informe (E1–E6).
 - **Arquitectura:** [[arquitectura-general]] · [[flujo-de-captura]] · [[rutas-http]] · [[modelo-de-datos]] · [[sigma-como-sistema-de-control]]
 - **Reglas del IMSS:** [[reglas-de-validacion]] · [[plazo-legal]] · [[salario-sdi-y-limites]] · [[historial-afiliatorio]] · [[catalogos-idse]] · [[lote-idse]]
 - **Conceptos:** [[glosario]] y los conceptos técnicos.

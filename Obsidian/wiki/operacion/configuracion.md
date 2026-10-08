@@ -2,7 +2,7 @@
 tipo: operacion
 tags: [configuracion, variables-de-entorno]
 fuentes: ["servidor.py", "sigma/app.py", "sigma/database.py", "README.md"]
-actualizado: 2026-10-04
+actualizado: 2026-10-07
 ---
 
 # Configuración (variables de entorno)
@@ -37,5 +37,22 @@ python servidor.py
   vuelva a sembrar.
 - **Usuarios reales:** `USUARIOS_SEMILLA`. Mientras no haya login, solo firman la bitácora.
 - **Montos legales del año:** `validaciones.py` ([[mantenimiento-anual]]).
+
+
+## Variables nuevas del TRL 6 (2026-10-07)
+| Variable | Dónde se lee | Por defecto | Para qué |
+|---|---|---|---|
+| `SIGMA_SESION_HORAS` | `app.py` | `10` | Duración de la sesión |
+| `SIGMA_MAX_PETICION_KB` | `app.py` | `1024` | Tamaño máximo de una petición (413 si se pasa) |
+| `SIGMA_RESPALDOS` | `respaldo.py` | `respaldos/` en la raíz | Carpeta de respaldos (mejor otro disco) |
+| `SIGMA_RESPALDO_HORAS` | `respaldo.py` | `24` | Cada cuántas horas respalda `servidor.py` |
+| `SIGMA_RESPALDOS_CONSERVAR` | `respaldo.py` | `30` | Cuántos respaldos se guardan |
+
+Cambios:
+- `SECRET_KEY`: si falta, se crea y reutiliza `.clave_sesion` (ya no cambia en cada arranque).
+- `DATABASE_URL` por omisión: `127.0.0.1` con `connect_timeout=1`. Sin PostgreSQL, el intento tarda 1 s (con
+  `localhost` tardaba 4 s). `SIGMA_DB=sqlite` lo evita.
+- Datos que se cambian antes de operar: `PATRON_SEMILLA` y `GUIA_SEMILLA` (`database.py`) y las contraseñas
+  (`python -m sigma.usuarios`).
 
 Ver también: [[como-arrancar]] · [[doble-motor-de-base-de-datos]]

@@ -1,45 +1,49 @@
 ---
 tipo: modulo
-tags: [exportacion, idse, lote, actuador]
+tags: [exportacion, idse, lote, actuador, estructura-oficial]
 fuentes: ["sigma/exportar_idse.py"]
-actualizado: 2026-10-04
+actualizado: 2026-10-07
 ---
 
-# `sigma/exportar_idse.py` — lote de texto para el IDSE (el actuador)
+# `sigma/exportar_idse.py` — lote para el IDSE (el actuador)
 
-Tiene 102 líneas. Traduce los movimientos válidos al **archivo de texto plano** que se carga en el IDSE. El
-formato y su riesgo están en [[lote-idse]].
+Traduce los movimientos válidos a los archivos que se cargan en el IDSE, con la **estructura oficial del IMSS**
+desde el TRL 6 ([[adr-019-lote-con-la-estructura-oficial]]). El formato campo por campo está en [[lote-idse]].
 
 ## Constantes
-- `CAMPOS_EXPORTACION` tiene 11 campos, en este orden: `registro_patronal`, `tipo_movimiento`, `curp`, `nss`,
-  `rfc`, `fecha_movimiento`, `tipo_trabajador`, `tipo_salario`, `tipo_jornada`, `sdi` y `causa_baja`.
-- `SEPARADOR = "|"`.
+- `LONGITUD_REGISTRO = 168`, `CODIFICACION = "cp1252"`, `FIN_DE_LINEA = "\r\n"`.
+- `NOMBRES_TIPO = {"08": "altas", "02": "bajas"}`.
+- `ESTRUCTURA = {"08": [...], "02": [...]}`: lista de `(nombre, inicio, longitud, formato, fuente)`; `formato`
+  es `"N"` (numérico, ceros a la izquierda), `"A"` (alfabético: mayúsculas sin acentos, la Ñ se conserva),
+  `"AN"` (alfanumérico) o un relleno fijo (`" "` o `"0"`). 21 campos en el alta y 16 en la baja.
+- `OBLIGATORIOS`: datos sin los que un registro no se puede generar.
 - `DIRECTORIO_SALIDA = <repo>/exportaciones` (está en `.gitignore`).
 
 ## Funciones
 | Función | Qué hace |
 |---|---|
-| `_limpiar(valor)` | Quita el separador y los saltos de línea, que romperían el archivo |
-| `_sdi_para_cotizar(registro)` | **Topa el SDI** a 25 UMA según la fecha del movimiento (art. 28 LSS y art. 45 RACERF). En la base queda el real ([[salario-sdi-y-limites]]) |
-| `generar_linea_idse(registro)` | Una línea por movimiento |
-| `generar_lote_idse(registros)` | Une las líneas con `\n` |
-| `nombre_de_lote(prefijo)` | `lote_idse_AAAAMMDD_HHMMSS.txt`, con nombre único para no sobrescribir |
-| `exportar_a_archivo(registros, ruta)` | Escribe en UTF-8 con `\n` final y crea la carpeta si falta |
-| `exportar_lote(registros)` | Llama a `exportar_a_archivo` dentro de `DIRECTORIO_SALIDA`; devuelve la ruta |
-| `ultimo_lote()` | El `.txt` más reciente por fecha de modificación, o `None` |
+| `_sdi_para_cotizar(registro)` | **Topa el SDI** a 25 UMA según la fecha del movimiento ([[salario-sdi-y-limites]]) |
+| `_salario_en_centavos(registro)` | 687.70 → `68770` (se rellena a 6 posiciones) |
+| `_formatear(valor, longitud, tipo, nombre)` | Aplica el formato; un numérico que no cabe lanza `ValueError` |
+| `faltantes(registro)` | Campos obligatorios vacíos (movimientos de bases anteriores al TRL 6) |
+| `generar_linea_idse(registro)` | Un registro de 168 posiciones; afirma que cada campo empieza donde dice la tabla |
+| `generar_lote_idse(registros)` | Registros terminados en CRLF |
+| `nombre_de_lote(tipo)` | `lote_idse_altas_AAAAMMDD_HHMMSS.txt` |
+| `exportar_a_archivo(registros, ruta)` | Escribe en Windows-1252 (registros de un solo tipo) |
+| `exportar_lote(registros)` | Un archivo por tipo en `DIRECTORIO_SALIDA`; devuelve `{tipo: ruta}` |
+| `ultimo_lote(tipo=None)` | El más reciente, de cualquier tipo o de `"altas"`/`"bajas"` |
 
-Importa `limites_sbc` de `validaciones.py`.
-
-## Ejemplo de línea
-```text
-A1234567890|08|GOMF880323HDGNRR00|19108815572|GOMF880323686|01102026|3|0|1|706.53|
-A1234567890|02|LEGF880617HNLLMR08|39118821246|LEGF880617PT5|01102026|||||1
-```
+Los registros llegan de `app.exportar()` con `registro_patronal`, `guia`, `trabajador_id`, apellidos y nombre(s),
+`umf`, catálogos, fecha, SDI y causa.
 
 ## Trampas
-- **El layout no es el oficial**: es una representación con campos delimitados, en UTF-8 y sin nombre del
-  trabajador. Antes de usarlo de verdad hay que confirmarlo contra el instructivo del IMSS. Está advertido en
-  el docstring, el README y el pie de la página. Es el **riesgo #1**.
-- Si se pasa a ancho fijo, la **ñ** y los acentos en UTF-8 ocupan 2 bytes y desfasan las columnas.
+- La codificación, el CRLF y la Ñ no los especifica el documento del IMSS: se confirman con un lote de prueba.
+- UTF-8 desfasaría el ancho fijo (la Ñ y los acentos ocupan 2 bytes); por eso es Windows-1252.
+- Un cambio del instructivo se corrige en `ESTRUCTURA`, no en el código; el `assert` de posiciones avisa si la tabla
+  queda con huecos o encimada.
+
+## Pruebas
+[[arnes-prueba-de-concepto]] (bloque 2: dos archivos, 168 posiciones) y [[arnes-integracion]] (bloque L: cada campo
+de cada registro contra la base, 42 registros).
 
 Ver también: [[lote-idse]] · [[flujo-de-captura]] · [[modulo-app]]

@@ -2,7 +2,7 @@
 tipo: modulo
 tags: [app, flask, controlador, rutas, seguridad]
 fuentes: ["sigma/app.py"]
-actualizado: 2026-10-04
+actualizado: 2026-10-07
 ---
 
 # `sigma/app.py` — controlador HTTP
@@ -71,5 +71,18 @@ orquesta la validación, la persistencia y la exportación, y responde. Crea la 
 
 ## Pruebas que lo cubren
 Bloques A, B, C, F y G de [[arnes-ambiente-relevante]].
+
+
+## Cambios del TRL 6 (2026-10-07)
+- Sesión: `_clave_de_sesion()` (`SECRET_KEY` o `.clave_sesion`), cookie `HttpOnly` + `SameSite=Lax`,
+  `PERMANENT_SESSION_LIFETIME`, `MAX_CONTENT_LENGTH`.
+- `preparar_peticion()` carga `g.usuario` y compara el token; `RUTAS_PUBLICAS = {"login", "static"}`;
+  `requiere_rol()`. Rutas nuevas `login()` y `logout()` ([[modulo-usuarios]]).
+- `CAMPOS_FORMULARIO` con `apellido_paterno`, `apellido_materno`, `nombres` y `umf`; ya no `nombre_completo`
+  ni `usuario_id` (se quitó `_usuario_valido()`). `_guardar_movimiento()` guarda la UMF y los apellidos.
+- `exportar()`: un archivo por tipo, `faltantes()`, asiento "Incluido en lote IDSE" por movimiento y
+  `_mensaje_incompletos()`. `descargar_lote()` acepta `?tipo=`.
+- Errores: `error_http()` para cualquier `HTTPException` (`MENSAJES_HTTP` con 400, 405 y 413); `error_403()`
+  muestra la explicación del rol cuando la trae.
 
 Ver también: [[flujo-de-captura]] · [[arquitectura-general]]

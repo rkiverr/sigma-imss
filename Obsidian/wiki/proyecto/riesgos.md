@@ -1,13 +1,13 @@
 ---
 tipo: proyecto
 tags: [riesgos, matriz]
-fuentes: ["raw/entregables/e5-trl5-ambiente-relevante.md", "raw/entregables/e2-trl2-alternativas-y-arquitectura.md"]
-actualizado: 2026-10-04
+fuentes: ["raw/entregables/e5-trl5-ambiente-relevante.md", "raw/entregables/e2-trl2-alternativas-y-arquitectura.md", "raw/entregables/e6-trl6-integracion-y-demostracion.md"]
+actualizado: 2026-10-07
 ---
 
 # Riesgos del proyecto
 
-Es la matriz del [[entregable-5-trl5]]. Retoma los tres riesgos iniciales del [[entregable-2-trl2]] y agrega los
+Es la matriz del [[entregable-5-trl5]], con el estado al día después del [[entregable-6-trl6]]. Retoma los tres riesgos iniciales del [[entregable-2-trl2]] y agrega los
 que surgieron en las pruebas.
 
 - **Probabilidad (P)** e **impacto (I)** van de 1 a 3.
@@ -16,9 +16,9 @@ que surgieron en las pruebas.
 
 | Clave | Riesgo | P | I | Nivel | Mitigación | Estado |
 |---|---|---|---|---|---|---|
-| R-01 | El layout del lote no coincide con el oficial del IDSE y el IMSS rechaza el lote completo | 3 | 3 | **Alto (9)** | Conseguir con la empresa el instructivo oficial; layout configurable; probar con un lote de 1 movimiento | Abierto, es el **riesgo #1** ([[lote-idse]]) |
-| R-02 | Se pierde la base por una falla del equipo servidor | 2 | 3 | Alto (6) | Respaldo diario automático y UPS. Una caída abrupta no pierde capturas confirmadas ([[resultados-de-pruebas]]) | Planeado |
-| R-03 | Suplantación: la bitácora registra quién captura, pero no lo comprueba | 2 | 3 | Alto (6) | Login con contraseña cifrada y roles | Planeado |
+| R-01 | El layout del lote no coincide con el oficial del IDSE y el IMSS rechaza el lote completo | 3 | 3 | **Alto (9)** | Conseguir con la empresa el instructivo oficial; layout configurable; probar con un lote de 1 movimiento | **Mitigado en parte** (E6): estructura oficial implementada y verificada campo por campo (42/42). Falta el lote de prueba en el IDSE ([[lote-idse]]) |
+| R-02 | Se pierde la base por una falla del equipo servidor | 2 | 3 | Alto (6) | Respaldo diario automático y UPS. Una caída abrupta no pierde capturas confirmadas ([[resultados-de-pruebas]]) | **Mitigado en parte** (E6): respaldo al arrancar y cada 24 h, restauración probada ([[modulo-respaldo]]). Falta guardarlo en otro disco y la UPS |
+| R-03 | Suplantación: la bitácora registra quién captura, pero no lo comprueba | 2 | 3 | Alto (6) | Login con contraseña cifrada y roles | **Mitigado** (E6): login, roles, bloqueo y token en la base ([[modulo-usuarios]]) |
 | R-04 | El residente avisa tarde; el movimiento queda extemporáneo y se multa (20 a 350 UMA) | 2 | 2 | Medio (4) | Aviso de plazo y fecha límite ([[plazo-legal]]); acordar que avisen el mismo día | Mitigado en parte |
 | R-05 | Un error de captura pasa la validación (una letra de la CURP, un nombre) | 2 | 2 | Medio (4) | Avisos por dígito verificador ([[curp]], [[nss]]); el acuse del IMSS como medición final | Mitigado en parte |
 | R-06 | Exposición de datos personales en la red local | 1 | 3 | Medio (3) | Servidor de producción, base no expuesta, CSRF y cabeceras ([[seguridad-web]]); falta HTTPS | Mitigado en parte |
@@ -35,4 +35,12 @@ que surgieron en las pruebas.
   el riesgo de que cambien otros días o de olvidar los que se cargan a mano ([[mantenimiento-anual]]). Encaja
   en R-08.
 
-Ver también: [[hoja-de-ruta-trl6]] · [[entregable-5-trl5]]
+## Riesgos que aparecieron en el E6
+- **Sesiones perdidas con la misma cuenta en dos equipos** (P-20): dos inicios de sesión simultáneos
+  escribían tokens distintos y uno quedaba fuera sin aviso. **Corregido** (`86038c2`); lo vigila S-14
+  ([[arnes-integracion]]). Queda una limitación: si una PC cierra sesión, las demás con esa cuenta también
+  salen ([[bugs-conocidos]]).
+- **Costo del login en el rendimiento:** bajó de 5,609 a 3,935 capturas por minuto con 10 usuarios sin
+  pausa. Sigue muy por encima de la carga real; encaja en R-11.
+
+Ver también: [[hoja-de-ruta-trl6]] · [[entregable-5-trl5]] · [[entregable-6-trl6]]

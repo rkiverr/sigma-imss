@@ -2,7 +2,7 @@
 tipo: concepto
 tags: [seguridad, owasp, csrf, csp, xss, inyeccion, lfpdppp]
 fuentes: ["sigma/app.py", "servidor.py", "sigma/templates/base.html", "raw/normativa/lfpdppp-datos-personales.md"]
-actualizado: 2026-10-04
+actualizado: 2026-10-07
 ---
 
 # Seguridad web y de datos personales
@@ -43,5 +43,15 @@ img-src 'self' data:; form-action 'self'; frame-ancestors 'none'; base-uri 'self
 
 ## Cómo se verifica
 Las 8 pruebas del bloque G de [[arnes-ambiente-relevante]]: antes había 5 hallazgos y después 0.
+
+
+## Cambios del TRL 6 (2026-10-07)
+- **Autenticación y roles** con bloqueo tras 5 intentos ([[adr-018-inicio-de-sesion-roles-y-token]]); el
+  usuario de la bitácora sale de la sesión.
+- **Token de sesión en la base**: cerrar sesión invalida también las copias de la cookie (S-13 del
+  [[arnes-integracion]]).
+- Cookie `HttpOnly` + `SameSite=Lax`. `Secure` requiere HTTPS, que sigue pendiente: en la red local la cookie y los
+  datos viajan en claro (S-03).
+- Métodos no permitidos → 405; peticiones grandes → 413.
 
 Ver también: [[modulo-app]] · [[riesgos]] · [[hoja-de-ruta-trl6]]

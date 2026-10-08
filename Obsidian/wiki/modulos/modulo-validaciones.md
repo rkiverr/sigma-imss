@@ -2,7 +2,7 @@
 tipo: modulo
 tags: [validaciones, regex, reglas, comparador]
 fuentes: ["sigma/validaciones.py"]
-actualizado: 2026-10-04
+actualizado: 2026-10-07
 ---
 
 # `sigma/validaciones.py` — validación algorítmica (el comparador)
@@ -61,5 +61,16 @@ base viven en `app.py` y `database.py`.
 - Si cambias la limpieza, **actualiza `emular_navegador()`** del arnés y las máscaras de `app.js`.
 - Un error bloquea y un aviso no. Antes de convertir un aviso en error, lee [[errores-vs-avisos]].
 - Los montos legales cambian cada año ([[mantenimiento-anual]]).
+
+
+## Cambios del TRL 6 (2026-10-07)
+- `TIPOS_JORNADA` con el catálogo oficial (0–6) ([[catalogos-idse]]).
+- `CAMPOS_NOMBRE`, `LONGITUD_NOMBRE = 27`, `validar_nombre()`: paterno y nombre(s) obligatorios, materno opcional.
+  `normalizar_datos()` deriva `nombre_completo` y rellena la UMF a 3 dígitos.
+- `UMF_REGEX`, `validar_umf()` (obligatoria en el alta).
+- `PARTICULAS`, `NOMBRES_COMUNES`, `iniciales_curp()` y `verificar_iniciales_curp()`: aviso cuando las 4 letras
+  de la CURP no corresponden al nombre (acepta la X de RENAPO en la segunda posición).
+- `aviso_montos_sin_cargar(anio)`: aviso en el SDI y al arrancar si faltan los montos del año.
+- `ORDEN_CAMPOS` con los campos nuevos.
 
 Ver también: [[reglas-de-validacion]] · [[modulo-plazo]] · [[modulo-app]]

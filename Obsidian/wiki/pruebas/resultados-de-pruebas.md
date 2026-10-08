@@ -1,11 +1,38 @@
 ---
 tipo: prueba
 tags: [resultados, metricas, antes-despues, trl5]
-fuentes: ["raw/resultados/e5-arnes-ambiente-relevante-antes.md", "raw/resultados/e5-arnes-ambiente-relevante-despues.md", "raw/resultados/e3-arnes-prueba-de-concepto.md"]
-actualizado: 2026-10-04
+fuentes: ["raw/resultados/e5-arnes-ambiente-relevante-antes.md", "raw/resultados/e5-arnes-ambiente-relevante-despues.md", "raw/resultados/e3-arnes-prueba-de-concepto.md", "raw/resultados/e6-arnes-integracion.md", "raw/resultados/e5-arnes-ambiente-relevante-trl6-version-corregida.md", "raw/resultados/e5-arnes-ambiente-relevante-trl6-codigo-e4.md", "raw/resultados/e3-arnes-prueba-de-concepto-trl6.md"]
+actualizado: 2026-10-07
 ---
 
 # Resultados de pruebas
+
+## TRL 6: versión corregida (2026-10-07)
+Son corridas sobre una **instalación limpia** de la rama local `trl6/correcciones`, en el mismo equipo
+(Windows 11, i5-10400F, 32 GB, Python 3.14.3). Las salidas literales están en `raw/resultados/*trl6*` y
+`raw/resultados/e6-arnes-integracion.md`.
+
+| Arnés | Resultado |
+|---|---|
+| E3 ([[arnes-prueba-de-concepto]]) | 8/8, y el lote sale en dos archivos de 168 posiciones |
+| E5 ([[arnes-ambiente-relevante]]) | **10/10** criterios. Detección 96.9 % (88 bloqueados, 36 avisados, 4 sin detectar); 0 duplicados; 0 hallazgos en G; 14/14 contrastes |
+| E5 sobre el código del E4 (misma sesión) | 6/10. Detección 50.0 %; 7 duplicados y 2 pares con error 500; 5 hallazgos |
+| E6 ([[arnes-integracion]]) | F 23/23 · L conforme (42 registros) · S 1 hallazgo de 14 (S-03) · R íntegro en 0.16 s, restauración en 0.85 s · C p95 13.6 ms (pantalla) y 8.5 ms (validación) por la LAN |
+
+| Carga (bloque D) | 1 usuario | 3 | 5 | 10 | 20 |
+|---|---|---|---|---|---|
+| Capturas por minuto | 931 | 2,022 | 3,008 | 3,935 | 3,771 |
+| p95 de la captura | 22.2 ms | 46.6 ms | 55.7 ms | 85.4 ms | 127.8 ms |
+| Captura más lenta | 132.2 ms | 202.2 ms | 545.4 ms | 837.2 ms | 580.1 ms |
+
+- **Volumen (E):** con 10,000 movimientos, tablero p95 de 21.5 ms y búsqueda de 27.4 ms. La captura dio un p95
+  de 261.6 ms (21–23 ms con 1,000 y 5,000).
+- **Caída (F):** 0 de 940 capturas confirmadas perdidas; servicio en 2.94 s.
+- **El login cuesta rendimiento.** Con 10 usuarios, de 5,609 (primera demostración, sin login) a 3,935
+  capturas por minuto: cada petición consulta usuario y token, y la captura valida más campos. Con 20
+  usuarios llegan menos escrituras a la vez y la captura más lenta bajó de 3.1 s a 0.58 s.
+
+## TRL 5 (2026-10-04)
 
 Las dos corridas finales se hicieron el **4 de octubre de 2026**, en el mismo equipo: Windows 11, Intel Core
 i5-10400F (6 núcleos y 12 hilos) y 32 GB, con Python 3.14.3.

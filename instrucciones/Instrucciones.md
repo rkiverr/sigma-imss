@@ -36,7 +36,8 @@ Sigma ataca los tres: **valida antes de guardar**, **arma el archivo solo** y
 Cada uno pide datos distintos, y **el formulario se adapta solo** al que elijas:
 
 - En un **alta** pide las condiciones de contratación: tipo de trabajador, tipo
-  de salario, tipo de jornada y salario diario integrado (SDI).
+  de salario, tipo de jornada, salario diario integrado (SDI) y unidad de
+  medicina familiar (UMF).
 - En una **baja** pide la causa, tomada del catálogo oficial del IDSE
   (término de contrato, separación voluntaria, defunción, etc.).
 
@@ -47,10 +48,26 @@ desaparecen de la pantalla.
 
 ## 3. Recorrido por la pantalla
 
+### Inicio de sesión
+
+Cada persona entra con **su usuario y su contraseña**; todo lo que captura queda
+en la bitácora a su nombre. Hay dos roles:
+
+| Rol | Puede |
+|---|---|
+| **captura** | Capturar movimientos y consultar la tabla y la bitácora |
+| **administrador** | Lo mismo y, además, generar y descargar los lotes del IDSE |
+
+Tras **5 contraseñas equivocadas** la cuenta se bloquea 15 minutos. El botón
+**Salir** de la barra superior cierra la sesión (y deja sin efecto cualquier
+copia de ella). Las contraseñas se asignan en la PC servidor con
+`python -m sigma.usuarios contrasena <usuario>` (ver `Ejecutar.md`).
+
 ### Barra superior
 
 - **Registro patronal** de la empresa que manda los movimientos.
 - **Motor de base de datos** activo (PostgreSQL o SQLite).
+- **Usuario y rol** de la sesión, con el botón **Salir**.
 - **Botón de tema**: cambia entre claro y oscuro. Arranca siguiendo la
   configuración de tu sistema operativo y recuerda tu elección.
 
@@ -77,9 +94,12 @@ Mientras escribes, la página va marcando cada campo:
 
 Ayudas de captura:
 
+- El nombre va en **tres campos**: apellido paterno, apellido materno (puede
+  quedar vacío) y nombre(s), como los pide el IMSS. Cada uno admite hasta 27
+  caracteres.
 - La **CURP** y el **RFC** se convierten a mayúsculas solas y no aceptan
   símbolos raros.
-- El **NSS** y la **fecha** solo aceptan números.
+- El **NSS**, la **fecha** y la **UMF** solo aceptan números.
 - Puedes **pegar la CURP o el NSS con espacios o guiones** (como
   `4316 89 1234 5`): la página los limpia y no pierde dígitos.
 - Un **contador** al lado de cada etiqueta te dice cuántos caracteres llevas
@@ -93,30 +113,35 @@ hay que corregir **sin borrar lo que ya habías escrito**.
 Cuando el movimiento se guarda a tiempo, el mensaje de confirmación te dice
 **hasta qué día puedes presentarlo en el IDSE** (plazo legal de 5 días hábiles).
 
-### Exportación a IDSE
+### Exportación a IDSE (solo administración)
 
-Toma todos los movimientos válidos que aún no se han enviado y arma el archivo
-de texto plano. Cada línea es un movimiento, con los campos separados por `|`:
+Toma todos los movimientos válidos que aún no se han enviado y arma **dos
+archivos**, uno de altas y otro de bajas, con la estructura que publica el IMSS
+para presentar cinco o más movimientos ("Estructura de Movimientos
+afiliatorios"): cada línea mide **168 posiciones** de ancho fijo, sin
+separadores. Una alta se ve así (los espacios forman parte del formato):
 
 ```
-A1234567890|08|RIDG050515HNLVLL09|12345678901|RIDG050515AB1|05092026|3|0|1|450.50|
+A123456789012345678903RIVERA                     DIEGO                      GAEL ANTONIO               045050      30006102026035  08000001          RIDG050515HNLVLL099
 ```
 
-El orden de los campos es: registro patronal, tipo de movimiento, CURP, NSS,
-RFC, fecha, tipo de trabajador, tipo de salario, tipo de jornada, SDI y causa
-de baja.
+En orden: registro patronal y su dígito, NSS y su dígito, apellido paterno,
+materno y nombre(s) (27 posiciones cada uno), salario en centavos sin punto
+(`045050` = 450.50), tipo de trabajador, de salario y de jornada, fecha, UMF,
+tipo de movimiento, guía, clave del trabajador, CURP y un `9` al final. En las
+bajas va la causa en lugar del salario y la CURP.
 
 Si un SDI capturado pasa del tope de 25 UMA, en el archivo se manda el tope,
 porque el IMSS no recibe salarios por encima de él (art. 28 de la LSS). En la
 base de datos se conserva el salario real que se capturó.
 
-Al generar el lote, esos movimientos pasan de **Válido** a **Exportado** y ya no
-se vuelven a incluir en lotes futuros. El botón **Descargar** te baja el último
-archivo generado.
+Al generar el lote, esos movimientos pasan de **Válido** a **Exportado**, cada
+uno registra en su historial en qué archivo salió y ya no se vuelven a incluir.
+Los botones **Altas (08)** y **Bajas (02)** te bajan el último archivo de cada tipo.
 
-> ⚠️ **Importante:** la estructura de este archivo es una representación para el
-> prototipo. Antes de usarla de verdad hay que confirmarla contra el layout
-> oficial vigente que publica el IMSS.
+> ⚠️ **Antes de operar:** poner el registro patronal y la guía reales de la
+> empresa, y cargar primero un lote de prueba en el IDSE para confirmar la
+> codificación del archivo.
 
 ### Bitácora de auditoría
 
@@ -150,13 +175,13 @@ Estas reglas **bloquean** el guardado:
 
 | Campo | Regla |
 |---|---|
-| **Nombre completo** | Obligatorio, mínimo 5 caracteres; solo letras (con acentos y ñ), espacios, punto, guion y apóstrofo |
+| **Nombre** | Apellido paterno y nombre(s) obligatorios, materno opcional; hasta 27 caracteres cada uno; solo letras (con acentos y ñ), espacios, punto, guion y apóstrofo |
 | **CURP** | 18 caracteres con el formato oficial, y la fecha de nacimiento que lleva dentro debe existir en el calendario |
 | **NSS** | Exactamente 11 dígitos |
 | **RFC** | 12 o 13 caracteres, y debe coincidir en iniciales y fecha con la CURP |
 | **Fecha del movimiento** | Formato `DDMMAAAA` y fecha real (un 31 de febrero se rechaza) |
 | **Tipo de movimiento** | Solo `08` o `02` |
-| **Alta (08)** | Tipo de trabajador, de salario, de jornada y SDI obligatorios |
+| **Alta (08)** | Tipo de trabajador, de salario, de jornada, SDI y UMF obligatorios. La jornada usa el catálogo del IMSS: 0 = normal, 1 a 5 = días de semana reducida, 6 = jornada reducida |
 | **Baja (02)** | Causa de baja obligatoria, del catálogo IDSE |
 | **SDI** | No menor al salario mínimo general vigente (315.04 en 2026, art. 28 LSS) ni mayor a 10,000.00 (eso casi siempre es un punto decimal mal puesto) |
 
@@ -190,6 +215,11 @@ Estas comprobaciones **advierten pero dejan pasar**:
   se salta fines de semana y feriados oficiales (`plazo.py`).
 - **Dígito verificador de la CURP.** Si no cuadra, probablemente hay una letra o
   un número mal tecleado; confírmala contra la constancia de CURP.
+- **Iniciales de la CURP contra el nombre.** Las cuatro primeras letras de la
+  CURP salen de los apellidos y el nombre; si no cuadran, quizá un apellido está
+  en el campo equivocado o la CURP es de otra persona.
+- **Montos del año sin cargar.** Si el movimiento es de un año cuyo salario
+  mínimo y UMA todavía no están en Sigma, avisa que se usaron los del año anterior.
 - **Dígito verificador del NSS.** El último dígito del NSS se calcula con el
   algoritmo de Luhn. Si no cuadra, te avisa — pero no bloquea, porque existen
   NSS antiguos, emitidos antes de que se estandarizara ese dígito, que son
@@ -228,11 +258,14 @@ El código de la página está en la carpeta `sigma/`, y las pruebas en `pruebas
 | `sigma/validaciones.py` | Todas las reglas de validación |
 | `sigma/plazo.py` | Cuenta los días hábiles del plazo legal |
 | `sigma/database.py` | Guarda y consulta en la base de datos |
-| `sigma/exportar_idse.py` | Arma el archivo del lote |
+| `sigma/exportar_idse.py` | Arma los archivos del lote con la estructura oficial |
+| `sigma/usuarios.py` | Contraseñas, inicio de sesión y administración de usuarios |
+| `sigma/respaldo.py` | Respaldo automático y restauración de la base |
 | `sigma/templates/` | Las pantallas (HTML) |
 | `sigma/static/` | Estilos (CSS) y comportamiento del navegador (JS) |
 | `pruebas/test_prueba_concepto.py` | Pruebas de la Entrega 3 (8 casos) |
 | `pruebas/prueba_ambiente_relevante.py` | Pruebas de la Entrega 5: varios usuarios a la vez, errores típicos, volumen, caídas y seguridad |
+| `pruebas/prueba_integracion.py` | Pruebas de la Entrega 6: escenario completo con inicio de sesión, formato del lote, seguridad, respaldo y red |
 
 Dos detalles que vale la pena conocer:
 
@@ -247,9 +280,13 @@ formulario se envía igual y el servidor valida igual. Tampoco usa librerías
 externas ni CDN: funciona sin conexión a internet.
 
 **Está protegida para la red de la oficina.**
+- Pide inicio de sesión y separa lo que puede hacer cada rol.
 - Corre con un servidor de producción, sin la consola de depuración de Flask.
-- Rechaza capturas enviadas desde otras páginas web.
+- Rechaza capturas enviadas desde otras páginas web y peticiones demasiado grandes.
 - Manda cabeceras de seguridad en cada respuesta.
+
+**Se respalda sola.** Al arrancar y cada 24 horas copia la base a la carpeta
+`respaldos/` (conviene que sea otro disco) y comprueba que la copia esté íntegra.
 
 ---
 
@@ -259,10 +296,10 @@ Cinco tablas normalizadas:
 
 | Tabla | Guarda |
 |---|---|
-| `patron` | La empresa (registro patronal y razón social) |
-| `usuario` | Quién puede capturar (administrador o captura) |
-| `trabajador` | El expediente de cada persona (CURP, NSS, RFC) |
-| `movimiento` | Cada alta o baja, ligada a un trabajador y un patrón |
+| `patron` | La empresa (registro patronal, razón social y guía del IMSS) |
+| `usuario` | Quién puede entrar, su rol y su contraseña cifrada |
+| `trabajador` | El expediente de cada persona (apellidos, nombre, CURP, NSS, RFC) |
+| `movimiento` | Cada alta o baja, con su UMF, ligada a un trabajador y un patrón |
 | `bitacora` | Cada acción, ligada a un usuario y opcionalmente a un movimiento |
 
 Un trabajador se registra **una sola vez** y puede tener varios movimientos a lo
@@ -273,18 +310,13 @@ largo del tiempo (un alta, luego una baja, luego un reingreso). Por eso
 
 ## 8. Lo que todavía no hace
 
-Es un prototipo validado en un ambiente parecido al de la empresa (TRL 5), con
-datos de prueba y no con datos reales de trabajadores. Límites conocidos:
+Es un sistema integrado y demostrado en un ambiente parecido al de la empresa
+(TRL 6), con datos de prueba y no con datos reales de trabajadores. Límites
+conocidos:
 
-- **No hay login.** El usuario se elige de un desplegable, así que la bitácora
-  documenta la autoría pero no la demuestra. Para producción haría falta
-  autenticación real.
-- **No hay HTTPS ni respaldo automático.** El tráfico en la red local va sin
-  cifrar y la base es un solo archivo en una PC; conviene respaldarlo a mano
-  mientras tanto.
-- **No se conecta al IDSE.** Genera el archivo, pero subirlo sigue siendo
-  manual.
-- **El formato del archivo está por confirmar** contra el layout oficial del
-  IMSS.
+- **No hay HTTPS.** En la red local la sesión y los datos viajan sin cifrar.
+- **No se conecta al IDSE.** Genera los archivos, pero subirlos sigue siendo
+  manual, con la e.firma de la empresa. El primer lote debe ser de prueba.
+- **No maneja la modificación de salario (07).**
 - **Maneja un solo patrón.** El modelo de datos soporta varios, pero la interfaz
   usa el primero.

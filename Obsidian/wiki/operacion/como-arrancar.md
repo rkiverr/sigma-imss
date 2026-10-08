@@ -2,7 +2,7 @@
 tipo: operacion
 tags: [arranque, comandos, instalacion]
 fuentes: ["README.md", "instrucciones/Ejecutar.md", "instrucciones/README.md", "servidor.py"]
-actualizado: 2026-10-04
+actualizado: 2026-10-07
 ---
 
 # Cómo arrancar Sigma
@@ -49,5 +49,16 @@ Ver [[estrategia-de-pruebas]].
 | `pruebas/resultados/` | Salidas de los arneses (bases, lotes y reportes) | No |
 | `sigma/` | El código de la aplicación ([[arquitectura-general]]) | Sí |
 | `Obsidian/` | Este segundo cerebro | Sí |
+
+
+## Desde el TRL 6 (2026-10-07)
+1. `pip install -r requirements.txt` (ahora instala también `psycopg2-binary` en Python 3.14).
+2. **Contraseñas** (primera vez o base migrada): `python -m sigma.usuarios contrasena admin.rrhh` y
+   `python -m sigma.usuarios contrasena captura.obra1`. Más usuarios: `crear <usuario> captura|administrador`.
+3. `python servidor.py`: respalda la base en `respaldos/`, migra si hace falta y atiende en el puerto 5050.
+4. Entrar desde el navegador e iniciar sesión.
+
+Sin PostgreSQL conviene `$env:SIGMA_DB = "sqlite"` (evita 1 s de espera por arranque). Respaldo manual:
+`python -m sigma.respaldo`; restaurar (servidor detenido): `python -m sigma.respaldo --restaurar <archivo>`.
 
 Ver también: [[configuracion]] · [[problemas-frecuentes]] · [[modulo-servidor]]

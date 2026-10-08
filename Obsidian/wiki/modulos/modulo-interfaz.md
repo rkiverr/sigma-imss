@@ -2,7 +2,7 @@
 tipo: modulo
 tags: [interfaz, templates, javascript, css, accesibilidad, tema]
 fuentes: ["sigma/templates/base.html", "sigma/templates/index.html", "sigma/templates/error.html", "sigma/static/js/app.js", "sigma/static/css/estilos.css"]
-actualizado: 2026-10-04
+actualizado: 2026-10-07
 ---
 
 # Interfaz: `sigma/templates/` y `sigma/static/`
@@ -65,5 +65,16 @@ HTML, CSS y JS **propios**, sin CDN ni frameworks ([[adr-006-frontend-sin-depend
 - Un script en línea nuevo necesita `nonce="{{ csp_nonce }}"`; si no, la CSP lo bloquea ([[seguridad-web]]).
 - Si cambias las máscaras o las longitudes, actualiza `emular_navegador()` en [[arnes-ambiente-relevante]].
 - Después de cambiar CSS o JS, recarga con `Ctrl + Shift + R`.
+
+
+## Cambios del TRL 6 (2026-10-07)
+- `templates/login.html` (nueva) y en la barra de `base.html` el usuario con su rol y el botón **Salir**.
+- `index.html`: tres campos de nombre (`maxlength="27"`), UMF con `data-longitud="3"`; sin selectores de usuario;
+  el panel de exportación solo aparece al administrador, con un botón de descarga por tipo y el aviso de montos.
+- `app.js`: máscara de dígitos para la UMF, limpieza de espacios en los tres campos del nombre, redirección a
+  `/login` si la API responde 401 y detalle con apellidos y UMF.
+- `estilos.css`: `.sesion`, `.pagina-login`, `.formulario-login`, `.aviso-montos`, `.descargas` (el aviso usa el par
+  de color ya medido en [[accesibilidad]]: 4.76:1).
+- Pie: "TRL 6".
 
 Ver también: [[accesibilidad]] · [[normalizacion-de-datos]] · [[arquitectura-general]]

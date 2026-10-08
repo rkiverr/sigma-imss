@@ -2,7 +2,7 @@
 tipo: arquitectura
 tags: [base-de-datos, esquema, sql, tablas]
 fuentes: ["sigma/database.py"]
-actualizado: 2026-10-04
+actualizado: 2026-10-07
 ---
 
 # Modelo de datos
@@ -99,5 +99,17 @@ no se puede crear: solo imprime un aviso y el sistema sigue funcionando.
 ## Migraciones
 - `init_db()` agrega `movimiento.creado_en` a bases SQLite viejas que no lo tenían.
 - En PostgreSQL usa `ALTER TABLE … ADD COLUMN IF NOT EXISTS`.
+
+
+## Cambios del TRL 6 (2026-10-07)
+Columnas nuevas (aceptan nulos, para no romper bases anteriores; `init_db()` las agrega):
+- `patron.guia`: número de 5 dígitos de la subdelegación (semilla `00000`).
+- `usuario.password_hash`, `activo`, `intentos_fallidos`, `bloqueado_hasta`, `sesion_token`
+  ([[modulo-usuarios]]).
+- `trabajador.apellido_paterno`, `apellido_materno`, `nombres`; `nombre_completo` se deriva de ellos.
+- `movimiento.umf`.
+
+Tabla nueva `migracion(clave, aplicada)`: cada conversión de datos se aplica una sola vez
+([[adr-021-migraciones-de-datos-unicas]]).
 
 Ver también: [[modulo-database]] · [[arquitectura-general]]
