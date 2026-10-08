@@ -178,3 +178,12 @@ Bitácora cronológica: solo se agrega al final y lo anterior no se edita.
 - Pedro aclaró que el repo es del equipo, que el maestro solo recibe el informe y que Sigma ya está completo para
   la materia. Los pendientes de [[hoja-de-ruta-trl6]] quedan como trabajo planeado, sin fecha.
 - Páginas: [[entregable-6-trl6]] y [[sesion-2026-10-07-correcciones-trl6]] (pendientes al día).
+
+## [2026-10-07] sesion | Rediseño del inicio de sesión y pie con el nombre de la empresa
+- A pedido de Pedro: login en tarjeta dividida (panel de marca + formulario), ver u ocultar la contraseña, y un
+  recuadro **temporal** con los accesos de prueba para el equipo, con botón "Usar". Se quita borrando su bloque
+  en `login.html`.
+- Pie: solo "Desarrollos Eléctricos y Soluciones Avanzadas S.A. de C.V.", sin el texto del TRL 6.
+- Verificado: login 302, error 401 dentro del diseño nuevo, capturas en claro, oscuro, tableta y móvil, contraste
+  AA de los pares nuevos, E3 8/8, E6 F 23/23 y S 1 de 14 (S-03), y bloque H del E5 14/14.
+- Página: [[modulo-interfaz]].

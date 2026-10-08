@@ -1,17 +1,64 @@
 {% extends "base.html" %}
 
 {% block titulo %}Iniciar sesión — Sigma{% endblock %}
+{% block clase_cuerpo %}cuerpo-login{% endblock %}
 
 {% block contenido %}
 <main class="pagina-login" id="contenido">
-  <section class="tarjeta" aria-labelledby="titulo-login">
-    <div class="tarjeta-encabezado">
-      <div>
-        <h2 id="titulo-login">Iniciar sesión</h2>
-        <p>Cada captura y cada lote quedan en la bitácora a nombre de quien inició sesión.</p>
+  <div class="acceso">
+
+    <section class="acceso-marca" aria-labelledby="titulo-marca">
+      <div class="acceso-marca-encabezado">
+        <span class="acceso-logo" aria-hidden="true">Σ</span>
+        <p class="acceso-antetitulo">Sistema de movimientos afiliatorios</p>
       </div>
-    </div>
-    <div class="tarjeta-cuerpo">
+      <h2 id="titulo-marca" class="acceso-lema">Altas y bajas ante el IMSS, validadas antes de llegar al IDSE.</h2>
+      <ul class="ventajas">
+        <li>
+          <span class="ventaja-icono" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          </span>
+          <div>
+            <strong>Validación en vivo</strong>
+            <span>CURP, NSS y RFC se revisan campo por campo mientras escribes.</span>
+          </div>
+        </li>
+        <li>
+          <span class="ventaja-icono" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          </span>
+          <div>
+            <strong>Plazo legal a la vista</strong>
+            <span>Cada movimiento muestra su fecha límite de 5 días hábiles.</span>
+          </div>
+        </li>
+        <li>
+          <span class="ventaja-icono" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>
+          </span>
+          <div>
+            <strong>Lote IDSE en un clic</strong>
+            <span>Altas y bajas en archivos separados, con la estructura oficial.</span>
+          </div>
+        </li>
+        <li>
+          <span class="ventaja-icono" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </span>
+          <div>
+            <strong>Bitácora por usuario</strong>
+            <span>Cada captura y cada lote quedan con nombre y hora.</span>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <section class="acceso-formulario" aria-labelledby="titulo-login">
+      <div class="acceso-titulos">
+        <h2 id="titulo-login">Iniciar sesión</h2>
+        <p>Entra con tu usuario de Sigma para capturar y consultar movimientos.</p>
+      </div>
+
       {% if error %}
       <div class="resumen-errores" role="alert"><strong>{{ error }}</strong></div>
       {% endif %}
@@ -19,20 +66,73 @@
       <p class="aviso-montos" role="note">Ningún usuario tiene contraseña todavía. En el equipo
         servidor, asígnala con <code>python -m sigma.usuarios contrasena admin.rrhh</code>.</p>
       {% endif %}
+
       <form action="{{ url_for('login') }}" method="post" class="formulario-login">
         <div class="campo">
           <label for="usuario">Usuario</label>
-          <input id="usuario" name="usuario" autocomplete="username" required autofocus
-                 value="{{ nombre }}">
+          <div class="campo-icono">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <input id="usuario" name="usuario" autocomplete="username" required autofocus
+                   spellcheck="false" autocapitalize="none" placeholder="por ejemplo, captura.obra1"
+                   value="{{ nombre }}">
+          </div>
         </div>
         <div class="campo">
           <label for="contrasena">Contraseña</label>
-          <input id="contrasena" name="contrasena" type="password" autocomplete="current-password"
-                 required>
+          <div class="campo-icono">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+            <input id="contrasena" name="contrasena" type="password" autocomplete="current-password"
+                   required>
+            <button type="button" class="ver-contrasena" id="ver-contrasena" aria-pressed="false"
+                    aria-label="Mostrar contraseña" title="Mostrar contraseña" hidden>
+              <svg class="icono-ojo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="icono-ojo-cerrado" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.9 4.2A10.4 10.4 0 0 1 12 4c6.5 0 10 8 10 8a17.6 17.6 0 0 1-2.2 3.2M6.6 6.6A17.4 17.4 0 0 0 2 12s3.5 7 10 7a9.7 9.7 0 0 0 5.4-1.6M3 3l18 18M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
+            </button>
+          </div>
         </div>
-        <button type="submit" class="boton">Entrar</button>
+        <button type="submit" class="boton boton-bloque">
+          Entrar
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
       </form>
-    </div>
-  </section>
+      <p class="acceso-ayuda">¿Sin acceso? Pide tu usuario a Recursos Humanos.</p>
+
+      {# ===== TEMPORAL: credenciales de prueba para el equipo. Para quitarlas, borra este bloque completo. ===== #}
+      <aside class="credenciales-prueba" aria-labelledby="titulo-credenciales">
+        <div class="credenciales-encabezado">
+          <p id="titulo-credenciales">Acceso de prueba para el equipo</p>
+          <span class="etiqueta-temporal">Temporal</span>
+        </div>
+        <ul>
+          <li>
+            <div class="credencial-datos">
+              <span class="credencial-rol">Administrador · genera los lotes</span>
+              <dl>
+                <div><dt>Usuario</dt><dd><code>admin.rrhh</code></dd></div>
+                <div><dt>Contraseña</dt><dd><code>sigma-admin-2026</code></dd></div>
+              </dl>
+            </div>
+            <button type="button" class="boton boton-secundario boton-chico"
+                    data-credencial-usuario="admin.rrhh" data-credencial-contrasena="sigma-admin-2026"
+                    aria-label="Usar el acceso de admin.rrhh" hidden>Usar</button>
+          </li>
+          <li>
+            <div class="credencial-datos">
+              <span class="credencial-rol">Captura · captura y consulta</span>
+              <dl>
+                <div><dt>Usuario</dt><dd><code>captura.obra1</code></dd></div>
+                <div><dt>Contraseña</dt><dd><code>sigma-captura-2026</code></dd></div>
+              </dl>
+            </div>
+            <button type="button" class="boton boton-secundario boton-chico"
+                    data-credencial-usuario="captura.obra1" data-credencial-contrasena="sigma-captura-2026"
+                    aria-label="Usar el acceso de captura.obra1" hidden>Usar</button>
+          </li>
+        </ul>
+      </aside>
+      {# ===== FIN DEL BLOQUE TEMPORAL ===== #}
+    </section>
+
+  </div>
 </main>
 {% endblock %}

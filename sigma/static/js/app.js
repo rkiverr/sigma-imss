@@ -447,10 +447,45 @@
     return div.innerHTML;
   }
 
+  /* ----------------------------------------------------------------------
+     Inicio de sesión: ver u ocultar la contraseña y llenar un acceso de
+     prueba. Los botones empiezan con "hidden" y se muestran solo aquí, para
+     que sin JavaScript no quede un botón que no hace nada.
+     ---------------------------------------------------------------------- */
+  function iniciarLogin() {
+    var usuario = document.getElementById("usuario");
+    var contrasena = document.getElementById("contrasena");
+    if (!usuario || !contrasena) return;
+
+    var ver = document.getElementById("ver-contrasena");
+    if (ver) {
+      ver.hidden = false;
+      ver.addEventListener("click", function () {
+        var mostrar = contrasena.type === "password";
+        contrasena.type = mostrar ? "text" : "password";
+        ver.setAttribute("aria-pressed", String(mostrar));
+        ver.setAttribute("aria-label", mostrar ? "Ocultar contraseña" : "Mostrar contraseña");
+        ver.setAttribute("title", mostrar ? "Ocultar contraseña" : "Mostrar contraseña");
+        contrasena.focus();
+      });
+    }
+
+    document.querySelectorAll("[data-credencial-usuario]").forEach(function (boton) {
+      boton.hidden = false;
+      boton.addEventListener("click", function () {
+        usuario.value = boton.getAttribute("data-credencial-usuario");
+        contrasena.value = boton.getAttribute("data-credencial-contrasena");
+        var entrar = document.querySelector(".formulario-login [type=submit]");
+        if (entrar) entrar.focus();
+      });
+    });
+  }
+
   /* ---------------------------------------------------------------------- */
   document.addEventListener("DOMContentLoaded", function () {
     iniciarTema();
     iniciarNotificaciones();
+    iniciarLogin();
     iniciarFormulario();
     iniciarFiltros();
     iniciarDetalle();

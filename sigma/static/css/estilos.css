@@ -38,6 +38,15 @@
 
   --sombra: 0 1px 2px rgba(19, 30, 53, .06), 0 10px 26px -14px rgba(19, 30, 53, .28);
   --sombra-alta: 0 14px 44px -12px rgba(19, 30, 53, .38);
+
+  /* Panel de marca del inicio de sesión: azul marino en los dos temas, con
+     texto claro: blanco ≥ 8.3:1 y texto suave ≥ 5.6:1 en cualquier punto del
+     degradado, contando la Σ de marca de agua (WCAG AA). */
+  --login-panel: linear-gradient(155deg, #1f4482 0%, #17346a 52%, #0f2347 100%);
+  --login-panel-borde: rgba(255, 255, 255, .16);
+  --login-texto: #ffffff;
+  --login-texto-suave: #c9d5ea;
+
   --radio: 14px;
   --radio-chico: 9px;
 
@@ -77,6 +86,9 @@
 
     --sombra: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px -12px rgba(0, 0, 0, .6);
     --sombra-alta: 0 12px 40px -12px rgba(0, 0, 0, .75);
+    --login-panel: linear-gradient(155deg, #1b3563 0%, #132a4f 52%, #0c1b35 100%);
+    --login-panel-borde: rgba(255, 255, 255, .1);
+    --login-texto-suave: #b9c6dd;
     color-scheme: dark;
   }
 }
@@ -109,6 +121,9 @@
 
   --sombra: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px -12px rgba(0, 0, 0, .6);
   --sombra-alta: 0 12px 40px -12px rgba(0, 0, 0, .75);
+  --login-panel: linear-gradient(155deg, #1b3563 0%, #132a4f 52%, #0c1b35 100%);
+  --login-panel-borde: rgba(255, 255, 255, .1);
+  --login-texto-suave: #b9c6dd;
   color-scheme: dark;
 }
 
@@ -782,9 +797,239 @@ dialog::backdrop { background: rgba(8, 16, 12, .55); backdrop-filter: blur(2px);
    Sesión (TRL 6): usuario en la barra, inicio de sesión y avisos del panel
    -------------------------------------------------------------------------- */
 .sesion { display: flex; align-items: center; gap: 8px; margin: 0; min-width: 0; }
-.pagina-login { max-width: 440px; margin: 0 auto; padding: 72px 24px; }
-.formulario-login { display: flex; flex-direction: column; gap: 14px; }
-.formulario-login .boton { align-self: flex-start; }
+
+/* Inicio de sesión: una tarjeta dividida (panel de marca + formulario) que
+   ocupa el alto disponible entre la barra y el pie. */
+.cuerpo-login { display: flex; flex-direction: column; }
+.cuerpo-login .pagina-login { flex: 1; }
+
+.pagina-login {
+  display: grid;
+  place-items: center;
+  padding: 36px 24px;
+}
+
+.acceso {
+  width: min(1040px, 100%);
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: 22px;
+  box-shadow: var(--sombra-alta);
+  overflow: hidden;
+}
+
+.acceso-marca {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: 40px 42px;
+  background: var(--login-panel);
+  color: var(--login-texto);
+  overflow: hidden;
+}
+/* Trama de puntos que se desvanece hacia abajo. */
+.acceso-marca::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: radial-gradient(rgba(255, 255, 255, .14) 1px, transparent 1.5px);
+  background-size: 22px 22px;
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, transparent 70%);
+          mask-image: linear-gradient(180deg, #000 0%, transparent 70%);
+}
+/* Σ de marca de agua. */
+.acceso-marca::after {
+  content: "Σ";
+  position: absolute;
+  right: 10px;
+  bottom: -50px;
+  z-index: -1;
+  font-size: 300px;
+  font-weight: 800;
+  line-height: 1;
+  color: rgba(255, 255, 255, .05);
+  pointer-events: none;
+}
+
+.acceso-marca-encabezado { display: flex; align-items: center; gap: 12px; }
+.acceso-logo {
+  width: 46px; height: 46px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, .14);
+  border: 1px solid var(--login-panel-borde);
+  font-size: 22px;
+  font-weight: 700;
+}
+.acceso-antetitulo {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--login-texto-suave);
+}
+.acceso-lema {
+  font-size: 27px;
+  font-weight: 700;
+  line-height: 1.22;
+  letter-spacing: -.02em;
+  max-width: 20ch;
+}
+
+/* El lema y las ventajas se centran juntos en el espacio que deja el logo. */
+.acceso-lema { margin-top: auto; }
+.ventajas { list-style: none; margin: 4px 0 auto; padding: 0; display: grid; gap: 16px; }
+.ventajas li { display: grid; grid-template-columns: 38px 1fr; gap: 13px; align-items: start; }
+.ventaja-icono {
+  width: 38px; height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, .1);
+  border: 1px solid var(--login-panel-borde);
+}
+.ventaja-icono svg { width: 18px; height: 18px; }
+.ventajas strong { display: block; font-size: 14.5px; font-weight: 650; }
+.ventajas li > div > span { display: block; font-size: 13px; line-height: 1.45; color: var(--login-texto-suave); }
+
+.acceso-formulario {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 18px;
+  padding: 40px 42px;
+}
+.acceso-titulos h2 { font-size: 24px; font-weight: 700; letter-spacing: -.02em; }
+.acceso-titulos p { margin: 6px 0 0; font-size: 14px; color: var(--texto-suave); }
+.acceso-formulario .resumen-errores,
+.acceso-formulario .aviso-montos { margin: 0; }
+
+.formulario-login { display: flex; flex-direction: column; gap: 16px; }
+
+.campo-icono { position: relative; }
+.campo-icono > svg {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px; height: 18px;
+  color: var(--texto-tenue);
+  pointer-events: none;
+  transition: color var(--transicion);
+}
+.campo-icono:focus-within > svg { color: var(--acento); }
+.campo-icono input { height: 46px; padding-left: 42px; font-size: 15px; }
+.campo-icono input[name="contrasena"] { padding-right: 48px; }
+
+.ver-contrasena {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 34px; height: 34px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--texto-suave);
+  cursor: pointer;
+  transition: background var(--transicion), color var(--transicion);
+}
+.ver-contrasena:hover { background: var(--superficie-2); color: var(--texto); }
+.ver-contrasena svg { width: 18px; height: 18px; }
+.ver-contrasena .icono-ojo-cerrado,
+.ver-contrasena[aria-pressed="true"] .icono-ojo { display: none; }
+.ver-contrasena[aria-pressed="true"] .icono-ojo-cerrado { display: block; }
+
+.boton-bloque { width: 100%; margin-top: 4px; padding: 13px 18px; font-size: 15px; }
+.boton-bloque svg { transition: transform var(--transicion); }
+.boton-bloque:hover svg { transform: translateX(3px); }
+
+.acceso-ayuda { margin: -6px 0 0; text-align: center; font-size: 12.8px; color: var(--texto-tenue); }
+
+/* Acceso de prueba (temporal, se quita junto con su bloque en login.html). */
+.credenciales-prueba {
+  padding: 14px 16px;
+  border: 1px dashed var(--borde-fuerte);
+  border-radius: 14px;
+  background: var(--superficie-2);
+}
+.credenciales-encabezado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.credenciales-encabezado p {
+  margin: 0;
+  font-size: 11.5px;
+  font-weight: 650;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--texto-suave);
+}
+.etiqueta-temporal {
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--aviso) 30%, transparent);
+  background: var(--aviso-fondo);
+  color: var(--aviso);
+  font-size: 11.5px;
+  font-weight: 650;
+}
+.credenciales-prueba ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.credenciales-prueba li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  background: var(--superficie);
+}
+.credencial-datos { flex: 1; min-width: 0; }
+.credencial-rol { display: block; font-size: 12.5px; font-weight: 600; }
+.credenciales-prueba dl { display: flex; flex-wrap: wrap; gap: 2px 14px; margin: 3px 0 0; }
+.credenciales-prueba dl div { display: flex; align-items: baseline; gap: 6px; }
+.credenciales-prueba dt { font-size: 11.5px; color: var(--texto-tenue); }
+.credenciales-prueba dd { margin: 0; }
+.credenciales-prueba code { font-family: var(--mono); font-size: 12.5px; color: var(--texto); white-space: nowrap; }
+
+/* Los botones que solo sirven con JavaScript empiezan ocultos; las clases de
+   botón definen "display", así que el atributo hidden necesita su propia regla. */
+.ver-contrasena[hidden],
+.credenciales-prueba [hidden] { display: none; }
+
+@media (max-width: 860px) {
+  .acceso { grid-template-columns: 1fr; max-width: 560px; }
+  .acceso-marca { padding: 30px 28px; gap: 18px; }
+  .acceso-lema { font-size: 22px; max-width: none; }
+  .ventajas { grid-template-columns: 1fr 1fr; margin-top: 4px; }
+  .acceso-formulario { padding: 32px 28px; }
+}
+
+@media (max-width: 560px) {
+  .pagina-login { padding: 20px 16px 28px; }
+  .acceso { border-radius: 18px; }
+  .acceso-marca { padding: 24px 20px; }
+  .acceso-marca::after { font-size: 200px; right: 0; bottom: -40px; }
+  .acceso-lema { font-size: 19px; }
+  .ventajas { display: none; }
+  .acceso-formulario { padding: 26px 20px; }
+  .credenciales-prueba { padding: 12px; }
+  .credenciales-prueba li { padding: 9px 10px; gap: 10px; }
+}
+
 .aviso-montos {
   margin: 0 0 14px;
   padding: 10px 12px;

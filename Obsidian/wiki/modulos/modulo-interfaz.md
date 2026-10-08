@@ -77,4 +77,30 @@ HTML, CSS y JS **propios**, sin CDN ni frameworks ([[adr-006-frontend-sin-depend
   de color ya medido en [[accesibilidad]]: 4.76:1).
 - Pie: "TRL 6".
 
+## Rediseño del inicio de sesión (2026-10-07, a pedido de Pedro)
+- `login.html` es una **tarjeta dividida**, centrada en el alto disponible.
+  - Panel de marca azul marino: lema, cuatro ventajas con icono, trama de puntos y una Σ de marca de agua.
+  - Formulario: campos con icono, botón para **ver u ocultar la contraseña** y "Entrar" a todo el ancho.
+  - Responsivo: a ≤ 860 px el panel va arriba; a ≤ 560 px se ocultan las ventajas.
+- **Acceso de prueba (temporal):** recuadro con los usuarios y contraseñas de prueba para el equipo, con un botón
+  "Usar" que llena el formulario.
+  - Está entre los comentarios `{# ===== TEMPORAL … #}` y `{# ===== FIN DEL BLOQUE TEMPORAL ===== #}`. Para
+    quitarlo basta borrar ese bloque.
+  - Las contraseñas están escritas en la plantilla. Si cambian con `python -m sigma.usuarios`, este recuadro
+    queda desactualizado.
+- `base.html`:
+  - El `body` acepta `{% block clase_cuerpo %}`; el login usa `cuerpo-login`, que lo pone en columna para que
+    el `main` crezca.
+  - El pie dice solo "Desarrollos Eléctricos y Soluciones Avanzadas S.A. de C.V.".
+- `estilos.css`:
+  - Tokens `--login-panel`, `--login-panel-borde`, `--login-texto` y `--login-texto-suave` en los dos temas.
+  - Contraste medido: blanco ≥ 8.3:1 y texto suave ≥ 5.6:1 sobre todo el degradado. El bloque H del arnés del
+    E5 sigue en 14/14.
+- `app.js` → `iniciarLogin()`: muestra los botones que dependen de JavaScript (empiezan con `hidden`), alterna
+  el tipo del campo de contraseña y llena los campos con "Usar".
+- Trampa: `.boton` y `.ver-contrasena` definen `display`, así que el atributo `hidden` necesita su propia regla
+  (`.ver-contrasena[hidden]`, `.credenciales-prueba [hidden]`).
+- Para revisarlo en móvil con Chrome headless: la ventana no baja de 491 px. Se usa un `iframe` de 390 px
+  dentro de una ventana más ancha.
+
 Ver también: [[accesibilidad]] · [[normalizacion-de-datos]] · [[arquitectura-general]]
