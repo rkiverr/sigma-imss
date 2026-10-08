@@ -2,7 +2,7 @@
 tipo: modulo
 tags: [interfaz, templates, javascript, css, accesibilidad, tema]
 fuentes: ["sigma/templates/base.html", "sigma/templates/index.html", "sigma/templates/error.html", "sigma/static/js/app.js", "sigma/static/css/estilos.css"]
-actualizado: 2026-10-07
+actualizado: 2026-10-08
 ---
 
 # Interfaz: `sigma/templates/` y `sigma/static/`
@@ -102,5 +102,18 @@ HTML, CSS y JS **propios**, sin CDN ni frameworks ([[adr-006-frontend-sin-depend
   (`.ver-contrasena[hidden]`, `.credenciales-prueba [hidden]`).
 - Para revisarlo en móvil con Chrome headless: la ventana no baja de 491 px. Se usa un `iframe` de 390 px
   dentro de una ventana más ancha.
+
+## Letras más grandes (2026-10-08, a pedido de Pedro)
+- Pedro veía las letras demasiado chicas en pantallas anchas. Se subió la escala tipográfica entre 12 y 15 %:
+  - `body`: 15 → 16 px; etiquetas de campo: 12.5 → 14.
+  - Tabla: 13.5 → 15; títulos de tarjeta: 15.5 → 18; métricas: 27 → 32.
+  - Bitácora: 13.5 → 15 y 11 → 12.5; pie: 12.3 → 13.5.
+- El contenedor y la barra pasan de 1180 a **1360 px**, y el diálogo de detalle de 560 a 640 px.
+- En `index.html`, el texto "Hay N movimiento(s) listo(s)…" tiene su tamaño en línea: 13.5 → 15 px.
+- Los filtros de la tabla ya no se parten de uno en uno:
+  - `.tarjeta-encabezado > .filtros` crece (`flex: 1 1 560px`);
+  - el título del encabezado usa `flex: 1 1 320px`.
+- El login conserva sus tamaños propios; solo hereda la base de 16 px y las etiquetas de 14.
+- Se verificó con capturas en 1920 y 1366 px y en móvil; el bloque H del E5 sigue en 14/14 y el E3 en 8/8.
 
 Ver también: [[accesibilidad]] · [[normalizacion-de-datos]] · [[arquitectura-general]]

@@ -142,7 +142,7 @@ body {
   background-repeat: no-repeat;
   color: var(--texto);
   font-family: var(--sans);
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
 }
@@ -192,7 +192,7 @@ h1, h2, h3 { margin: 0; line-height: 1.25; letter-spacing: -.012em; }
 }
 
 .barra-interior {
-  max-width: 1180px;
+  max-width: 1360px;
   margin: 0 auto;
   padding: 12px 24px;
   display: flex;
@@ -205,7 +205,7 @@ h1, h2, h3 { margin: 0; line-height: 1.25; letter-spacing: -.012em; }
 .marca > div { min-width: 0; }
 
 .marca-logo {
-  width: 38px; height: 38px;
+  width: 42px; height: 42px;
   flex-shrink: 0;
   display: grid;
   place-items: center;
@@ -213,12 +213,12 @@ h1, h2, h3 { margin: 0; line-height: 1.25; letter-spacing: -.012em; }
   background: linear-gradient(140deg, var(--acento), var(--acento-fuerte));
   color: var(--acento-texto);
   font-weight: 700;
-  font-size: 19px;
+  font-size: 21px;
   letter-spacing: -.02em;
 }
 
-.marca h1 { font-size: 17px; font-weight: 650; }
-.marca p { margin: 0; font-size: 12.5px; color: var(--texto-suave); }
+.marca h1 { font-size: 19px; font-weight: 650; }
+.marca p { margin: 0; font-size: 13.5px; color: var(--texto-suave); }
 
 .insignia {
   display: inline-flex;
@@ -229,7 +229,7 @@ h1, h2, h3 { margin: 0; line-height: 1.25; letter-spacing: -.012em; }
   border: 1px solid var(--borde);
   background: var(--superficie-2);
   color: var(--texto-suave);
-  font-size: 12px;
+  font-size: 13.5px;
   white-space: nowrap;
   min-width: 0;
   /* Sin esto, el texto largo del patrón ensancha la barra y provoca
@@ -251,14 +251,14 @@ h1, h2, h3 { margin: 0; line-height: 1.25; letter-spacing: -.012em; }
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  height: 36px;
+  height: 40px;
   padding: 0 13px;
   border: 1px solid var(--borde);
   border-radius: 999px;
   background: var(--superficie-2);
   color: var(--texto);
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
   cursor: pointer;
   transition: background var(--transicion), border-color var(--transicion);
 }
@@ -282,7 +282,7 @@ h1, h2, h3 { margin: 0; line-height: 1.25; letter-spacing: -.012em; }
    Estructura
    -------------------------------------------------------------------------- */
 .contenedor {
-  max-width: 1180px;
+  max-width: 1360px;
   margin: 0 auto;
   padding: 26px 24px 72px;
 }
@@ -304,8 +304,8 @@ h1, h2, h3 { margin: 0; line-height: 1.25; letter-spacing: -.012em; }
   gap: 14px;
   flex-wrap: wrap;
 }
-.tarjeta-encabezado h2 { font-size: 15.5px; font-weight: 650; }
-.tarjeta-encabezado p { margin: 3px 0 0; font-size: 12.8px; color: var(--texto-suave); }
+.tarjeta-encabezado h2 { font-size: 18px; font-weight: 650; }
+.tarjeta-encabezado p { margin: 3px 0 0; font-size: 14.5px; color: var(--texto-suave); }
 .tarjeta-cuerpo { padding: 22px; }
 
 .columnas {
@@ -322,7 +322,7 @@ h1, h2, h3 { margin: 0; line-height: 1.25; letter-spacing: -.012em; }
    -------------------------------------------------------------------------- */
 .metricas {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 14px;
 }
 
@@ -357,7 +357,7 @@ h1, h2, h3 { margin: 0; line-height: 1.25; letter-spacing: -.012em; }
 .metrica dt, .metrica dd { position: relative; }
 .metrica dd { color: var(--color-metrica, var(--texto)); }
 .metrica dt {
-  font-size: 12px;
+  font-size: 13.5px;
   color: var(--texto-suave);
   margin: 0 0 6px;
   display: flex;
@@ -366,13 +366,13 @@ h1, h2, h3 { margin: 0; line-height: 1.25; letter-spacing: -.012em; }
 }
 .metrica dd {
   margin: 0;
-  font-size: 27px;
+  font-size: 32px;
   font-weight: 650;
   letter-spacing: -.02em;
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
 }
-.metrica .nota { font-size: 11.5px; color: var(--texto-tenue); font-weight: 400; }
+.metrica .nota { font-size: 13px; color: var(--texto-tenue); font-weight: 400; }
 
 /* --------------------------------------------------------------------------
    Formulario
@@ -382,7 +382,7 @@ h1, h2, h3 { margin: 0; line-height: 1.25; letter-spacing: -.012em; }
 
 .grupo-campos legend {
   padding: 0;
-  font-size: 11.5px;
+  font-size: 12.5px;
   font-weight: 600;
   letter-spacing: .07em;
   text-transform: uppercase;
@@ -403,7 +403,7 @@ h1, h2, h3 { margin: 0; line-height: 1.25; letter-spacing: -.012em; }
 .campo { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 
 .campo label {
-  font-size: 12.5px;
+  font-size: 14px;
   font-weight: 550;
   color: var(--texto-suave);
   display: flex;
@@ -414,7 +414,7 @@ h1, h2, h3 { margin: 0; line-height: 1.25; letter-spacing: -.012em; }
 .campo label .contador {
   margin-left: auto;
   font-family: var(--mono);
-  font-size: 10.5px;
+  font-size: 12px;
   color: var(--texto-tenue);
   font-weight: 400;
 }
@@ -422,7 +422,7 @@ h1, h2, h3 { margin: 0; line-height: 1.25; letter-spacing: -.012em; }
 input, select, textarea {
   font: inherit;
   width: 100%;
-  padding: 9px 11px;
+  padding: 10px 12px;
   border: 1px solid var(--borde-fuerte);
   border-radius: var(--radio-chico);
   background: var(--superficie);
@@ -454,7 +454,7 @@ select {
 
 /* Estado de validación por campo */
 .campo .mensaje {
-  font-size: 12px;
+  font-size: 13.5px;
   display: none;
   align-items: flex-start;
   gap: 5px;
@@ -471,7 +471,7 @@ select {
 .campo[data-estado="ok"] input,
 .campo[data-estado="ok"] select { border-color: color-mix(in srgb, var(--exito) 55%, var(--borde)); }
 
-.ayuda { font-size: 11.8px; color: var(--texto-tenue); }
+.ayuda { font-size: 13px; color: var(--texto-tenue); }
 
 .acciones {
   margin-top: 20px;
@@ -489,7 +489,7 @@ select {
    -------------------------------------------------------------------------- */
 .boton {
   font: inherit;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 550;
   display: inline-flex;
   align-items: center;
@@ -523,11 +523,11 @@ select {
   color: var(--texto-suave);
   border-color: transparent;
   padding: 8px 12px;
-  font-size: 13px;
+  font-size: 14.5px;
 }
 .boton-tenue:hover { background: var(--superficie-2); color: var(--texto); }
 
-.boton-chico { padding: 6px 12px; font-size: 12.5px; }
+.boton-chico { padding: 6px 12px; font-size: 13.5px; }
 
 /* --------------------------------------------------------------------------
    Alertas y avisos flotantes
@@ -539,7 +539,7 @@ select {
   background: var(--error-fondo);
   border: 1px solid color-mix(in srgb, var(--error) 35%, transparent);
   color: var(--error);
-  font-size: 13.5px;
+  font-size: 15px;
 }
 .resumen-errores strong { display: block; margin-bottom: 6px; }
 .resumen-errores ul { margin: 0; padding-left: 20px; }
@@ -567,7 +567,7 @@ select {
   border: 1px solid var(--borde);
   border-left: 3px solid var(--info);
   box-shadow: var(--sombra-alta);
-  font-size: 13.5px;
+  font-size: 15px;
   animation: entrar 260ms cubic-bezier(.16, 1, .3, 1);
 }
 .notificacion-success { border-left-color: var(--exito); }
@@ -599,8 +599,12 @@ select {
   flex-wrap: wrap;
   align-items: center;
 }
+/* En el encabezado de la tabla, los filtros toman el espacio que deja el título
+   y solo bajan a otro renglón completos, no uno por uno. */
+.tarjeta-encabezado > .filtros { flex: 1 1 560px; justify-content: flex-end; }
+.tarjeta-encabezado > div:first-child { flex: 1 1 320px; }
 .buscador { position: relative; flex: 1 1 230px; min-width: 190px; }
-.buscador input { padding-left: 34px; }
+.buscador input { padding-left: 36px; }
 .buscador svg {
   position: absolute;
   left: 11px; top: 50%;
@@ -613,14 +617,14 @@ select {
 
 .tabla-envoltura { overflow-x: auto; }
 
-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+table { width: 100%; border-collapse: collapse; font-size: 15px; }
 
 thead th {
   position: sticky;
   top: 0;
   text-align: left;
   font-weight: 600;
-  font-size: 11.5px;
+  font-size: 12.5px;
   letter-spacing: .05em;
   text-transform: uppercase;
   color: var(--texto-tenue);
@@ -636,8 +640,8 @@ tbody tr { transition: background var(--transicion); cursor: pointer; }
 tbody tr:hover { background: var(--superficie-2); }
 tbody tr:focus-visible { background: var(--superficie-2); outline-offset: -2px; }
 
-td.folio { font-family: var(--mono); color: var(--texto-suave); font-size: 12.5px; }
-td.identificador { font-family: var(--mono); font-size: 12.5px; letter-spacing: .03em; }
+td.folio { font-family: var(--mono); color: var(--texto-suave); font-size: 14px; }
+td.identificador { font-family: var(--mono); font-size: 14px; letter-spacing: .03em; }
 td.nombre { font-weight: 550; }
 td.numero { font-variant-numeric: tabular-nums; text-align: right; }
 
@@ -647,7 +651,7 @@ td.numero { font-variant-numeric: tabular-nums; text-align: right; }
   gap: 6px;
   padding: 3px 10px;
   border-radius: 999px;
-  font-size: 11.5px;
+  font-size: 12.5px;
   font-weight: 550;
   white-space: nowrap;
   border: 1px solid transparent;
@@ -672,7 +676,7 @@ td.numero { font-variant-numeric: tabular-nums; text-align: right; }
 }
 .vacio svg { width: 34px; height: 34px; color: var(--texto-tenue); margin-bottom: 10px; }
 .vacio p { margin: 0 0 4px; font-weight: 550; color: var(--texto); }
-.vacio span { font-size: 13px; }
+.vacio span { font-size: 14px; }
 
 .paginacion {
   display: flex;
@@ -681,7 +685,7 @@ td.numero { font-variant-numeric: tabular-nums; text-align: right; }
   gap: 12px;
   padding: 13px 22px;
   border-top: 1px solid var(--borde);
-  font-size: 12.8px;
+  font-size: 14px;
   color: var(--texto-suave);
   flex-wrap: wrap;
 }
@@ -709,17 +713,17 @@ td.numero { font-variant-numeric: tabular-nums; text-align: right; }
 }
 .linea-tiempo li[data-tipo="rechazo"]::before { background: var(--error); }
 .linea-tiempo li[data-tipo="exportacion"]::before { background: var(--info); }
-.linea-tiempo .accion { font-weight: 550; font-size: 13.5px; }
+.linea-tiempo .accion { font-weight: 550; font-size: 15px; }
 .linea-tiempo .meta {
   display: block;
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 12.5px;
   color: var(--texto-tenue);
   margin-top: 1px;
 }
 .linea-tiempo .detalle {
   display: block;
-  font-size: 12.5px;
+  font-size: 14px;
   color: var(--texto-suave);
   margin-top: 3px;
   overflow-wrap: anywhere;
@@ -734,7 +738,7 @@ dialog {
   background: var(--superficie);
   color: var(--texto);
   padding: 0;
-  width: min(560px, calc(100vw - 32px));
+  width: min(640px, calc(100vw - 32px));
   box-shadow: var(--sombra-alta);
 }
 dialog::backdrop { background: rgba(8, 16, 12, .55); backdrop-filter: blur(2px); }
@@ -747,7 +751,7 @@ dialog::backdrop { background: rgba(8, 16, 12, .55); backdrop-filter: blur(2px);
   padding: 17px 20px;
   border-bottom: 1px solid var(--borde);
 }
-.dialogo-encabezado h2 { font-size: 15.5px; }
+.dialogo-encabezado h2 { font-size: 18px; }
 .dialogo-cuerpo { padding: 20px; max-height: 65vh; overflow-y: auto; }
 .dialogo-cerrar {
   background: none;
@@ -766,15 +770,15 @@ dialog::backdrop { background: rgba(8, 16, 12, .55); backdrop-filter: blur(2px);
   grid-template-columns: minmax(120px, auto) 1fr;
   gap: 9px 18px;
   margin: 0;
-  font-size: 13.5px;
+  font-size: 15px;
 }
-.definiciones dt { color: var(--texto-suave); font-size: 12.5px; }
+.definiciones dt { color: var(--texto-suave); font-size: 13.5px; }
 .definiciones dd { margin: 0; overflow-wrap: anywhere; }
-.definiciones dd.mono { font-family: var(--mono); font-size: 12.5px; }
+.definiciones dd.mono { font-family: var(--mono); font-size: 14px; }
 
 .subtitulo-dialogo {
   margin: 22px 0 11px;
-  font-size: 11.5px;
+  font-size: 12.5px;
   font-weight: 600;
   letter-spacing: .07em;
   text-transform: uppercase;
@@ -788,7 +792,7 @@ dialog::backdrop { background: rgba(8, 16, 12, .55); backdrop-filter: blur(2px);
   border-top: 1px solid var(--borde);
   padding: 20px 24px 34px;
   text-align: center;
-  font-size: 12.3px;
+  font-size: 13.5px;
   color: var(--texto-tenue);
 }
 .pie p { margin: 3px 0; }
@@ -1036,7 +1040,7 @@ dialog::backdrop { background: rgba(8, 16, 12, .55); backdrop-filter: blur(2px);
   border-radius: 10px;
   background: var(--aviso-fondo);
   color: var(--aviso);
-  font-size: 12.8px;
+  font-size: 14px;
 }
 .descargas {
   display: flex;
@@ -1044,7 +1048,7 @@ dialog::backdrop { background: rgba(8, 16, 12, .55); backdrop-filter: blur(2px);
   gap: 8px;
   flex-wrap: wrap;
   margin-top: 12px;
-  font-size: 12.5px;
+  font-size: 14px;
   color: var(--texto-suave);
 }
 
@@ -1073,7 +1077,7 @@ dialog::backdrop { background: rgba(8, 16, 12, .55); backdrop-filter: blur(2px);
   border-radius: var(--radio-chico);
   padding: 13px;
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: 13px;
   overflow-x: auto;
   white-space: pre-wrap;
   color: var(--texto-suave);
@@ -1087,7 +1091,7 @@ dialog::backdrop { background: rgba(8, 16, 12, .55); backdrop-filter: blur(2px);
 }
 
 @media (max-width: 720px) {
-  body { font-size: 14.5px; }
+  body { font-size: 15.5px; }
   .barra-interior { padding: 10px 16px; gap: 10px; }
   .marca p { display: none; }
   /* En móvil la barra se reserva para la marca y el interruptor de tema.
@@ -1097,7 +1101,7 @@ dialog::backdrop { background: rgba(8, 16, 12, .55); backdrop-filter: blur(2px);
   .tarjeta-cuerpo, .tarjeta-encabezado { padding-left: 16px; padding-right: 16px; }
   .rejilla { grid-template-columns: repeat(2, 1fr); }
   .col-2, .col-3, .col-4, .col-6 { grid-column: span 2; }
-  .metrica dd { font-size: 23px; }
+  .metrica dd { font-size: 26px; }
   .acciones .boton { flex: 1 1 100%; }
   .acciones .separador { margin-left: 0; }
   .paginacion { justify-content: center; }

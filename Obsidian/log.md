@@ -187,3 +187,9 @@ Bitácora cronológica: solo se agrega al final y lo anterior no se edita.
 - Verificado: login 302, error 401 dentro del diseño nuevo, capturas en claro, oscuro, tableta y móvil, contraste
   AA de los pares nuevos, E3 8/8, E6 F 23/23 y S 1 de 14 (S-03), y bloque H del E5 14/14.
 - Página: [[modulo-interfaz]].
+
+## [2026-10-08] sesion | Letras más grandes en la pantalla principal
+- A pedido de Pedro ("las letras están muy pequeñas"): escala tipográfica +12–15 % en `estilos.css`, contenedor
+  de 1180 a 1360 px y diálogo de 560 a 640 px. Los filtros de la tabla quedan en un renglón.
+- Verificado con capturas (1920, 1366 y móvil, claro y oscuro), bloque H del E5 14/14 y E3 8/8.
+- Página: [[modulo-interfaz]].
