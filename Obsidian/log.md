@@ -218,3 +218,12 @@ Bitácora cronológica: solo se agrega al final y lo anterior no se edita.
 - Pedro decidió dejar el recuadro de accesos de prueba en `login.html` aunque el repo es público.
 - Cada compañero debe fijar contraseñas con `python -m sigma.usuarios contrasena <usuario>`; su base se migra sola.
 - Páginas: [[inicio]], [[cronologia]], [[entregable-6-trl6]] y [[hoja-de-ruta-trl6]].
+
+## [2026-10-11] sistema | Guía para usar Sigma entre varias personas
+- Pedro preguntó por qué un compañero que descarga el repo no ve sus registros: la base `sigma_imss.db` es local
+  de cada equipo y `.gitignore` la excluye (repo público, datos personales). La solución es la de la oficina: un
+  servidor y los demás por el navegador.
+- Nueva guía `instrucciones/Compartir.md`: opción 1, misma red (IP local, regla de firewall `LocalSubnet`); opción 2,
+  cada quien en su casa con Tailscale (regla para `100.64.0.0/10`); usuarios por persona y problemas frecuentes.
+  Incluye el hallazgo H-01 del E7 (Windows deja dos `servidor.py` en el mismo puerto sin error). Enlazada desde
+  `README.md` e `instrucciones/README.md`. Sin cambios de código.

@@ -240,6 +240,7 @@ restauración tras perder la base, y tamaños y tiempos de cada enlace.
 | Levantar la página en dos minutos | [`instrucciones/README.md`](instrucciones/README.md) |
 | Instalación, PostgreSQL y problemas frecuentes | [`instrucciones/Ejecutar.md`](instrucciones/Ejecutar.md) |
 | Qué hace la página y cómo se usa | [`instrucciones/Instrucciones.md`](instrucciones/Instrucciones.md) |
+| Usarla entre varias personas (misma red o Tailscale) | [`instrucciones/Compartir.md`](instrucciones/Compartir.md) |
 | Decisiones de diseño, bugs corregidos y comandos (para programar) | [`CLAUDE.md`](CLAUDE.md) |
 | Contexto completo: entregables, normativa, ADR, pruebas e historial | [`Obsidian/index.md`](Obsidian/index.md) |
 

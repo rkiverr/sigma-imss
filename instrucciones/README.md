@@ -89,3 +89,4 @@ taskkill /F /IM python.exe
 
 - **[Ejecutar.md](Ejecutar.md)** — guía completa de instalación, PostgreSQL y solución de problemas.
 - **[Instrucciones.md](Instrucciones.md)** — qué hace la página y cómo se usa.
+- **[Compartir.md](Compartir.md)** — usarla entre varias personas: misma red o cada quien en su casa con Tailscale.
