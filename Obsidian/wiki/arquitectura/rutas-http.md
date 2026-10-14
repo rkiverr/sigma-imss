@@ -2,7 +2,7 @@
 tipo: arquitectura
 tags: [rutas, api, http, flask]
 fuentes: ["sigma/app.py"]
-actualizado: 2026-10-07
+actualizado: 2026-10-14
 ---
 
 # Rutas HTTP
@@ -23,6 +23,9 @@ Todas están en `app.py` ([[modulo-app]]). Puerto **5050**.
 ## Parámetros de `GET /`
 `_filtros_de_peticion()` lee:
 - `q`: busca en nombre, CURP o NSS con `LIKE` parametrizado.
+  - En el nombre no distingue mayúsculas, acentos ni Ñ: «lopez» encuentra a «López» y «munoz» a «Muñoz».
+  - Lo hacen `texto_de_busqueda()` y `sql_sin_acentos()`, de [[modulo-database]].
+  - Hasta el 2026-10-14, un nombre con acento o Ñ no se encontraba; ver [[bugs-corregidos]].
 - `estado`: solo `Válido`, `Exportado` o `Rechazado`.
 - `tipo`: `08` o `02`.
 - `pagina`: entero ≥ 1.

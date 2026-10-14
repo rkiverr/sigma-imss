@@ -2,7 +2,7 @@
 tipo: modulo
 tags: [app, flask, controlador, rutas, seguridad]
 fuentes: ["sigma/app.py"]
-actualizado: 2026-10-07
+actualizado: 2026-10-14
 ---
 
 # `sigma/app.py` — controlador HTTP
@@ -31,7 +31,8 @@ orquesta la validación, la persistencia y la exportación, y responde. Crea la 
 
 **Pantalla principal**
 - `_consultar_movimientos(conn, filtros)`: hace el `WHERE` con parámetros, el `COUNT` y el `LIMIT/OFFSET`, y
-  calcula las páginas.
+  calcula las páginas. El filtro `q` compara el nombre sin acentos ni Ñ con `texto_de_busqueda()` y
+  `sql_sin_acentos()` de [[modulo-database]].
 - `_contexto(...)`: arma todo lo que necesita `index.html`: movimientos, usuarios, bitácora (15), patrón,
   estadísticas, catálogos, motor y si hay lote.
 - `_filtros_de_peticion()`: limpia `q`, `estado`, `tipo` y `pagina`.

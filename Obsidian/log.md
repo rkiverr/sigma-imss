@@ -227,3 +227,15 @@ Bitácora cronológica: solo se agrega al final y lo anterior no se edita.
   cada quien en su casa con Tailscale (regla para `100.64.0.0/10`); usuarios por persona y problemas frecuentes.
   Incluye el hallazgo H-01 del E7 (Windows deja dos `servidor.py` en el mismo puerto sin error). Enlazada desde
   `README.md` e `instrucciones/README.md`. Sin cambios de código.
+
+## [2026-10-14] sesion | Búsqueda con acentos y Ñ corregida
+- Al tomar las capturas para los manuales de Automatización se vio que el buscador de la tabla no encontraba
+  nombres con acento o Ñ. Causa: `UPPER()` de SQLite solo convierte ASCII («López» → «LóPEZ», patrón «LÓPEZ»).
+- Venía de `4c79ce4` (E4). Con la marcha blanca del E7, 59 de 66 trabajadores tenían acento o Ñ.
+- Corrección (`205cfd0`, rama `correccion/busqueda-acentos`):
+  - En `database.py`: `texto_de_busqueda()` y `sql_sin_acentos()`, y `TRANSLATE` registrada en SQLite.
+  - En `app.py`: el filtro `q` las usa. La búsqueda ya no distingue mayúsculas, acentos ni Ñ.
+- Verificación en un clon con la marcha blanca: 20/20 consultas con el conteo esperado (incluidas Ñ, CURP, NSS e
+  inyección). Regresión: E3 8/8, E6 23/23 y E5 sin cambios. PostgreSQL no se probó porque no está instalado.
+- Páginas: [[bugs-corregidos]], [[modulo-database]], [[modulo-app]], [[rutas-http]] y
+  [[doble-motor-de-base-de-datos]].

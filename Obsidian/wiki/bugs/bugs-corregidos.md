@@ -3,7 +3,7 @@ tipo: bug
 estado: corregido
 tags: [bugs, regresion, no-reintroducir]
 fuentes: ["CLAUDE.md", "raw/entregables/e4-trl4-prototipo-integrado.md", "raw/entregables/e5-trl5-ambiente-relevante.md"]
-actualizado: 2026-10-07
+actualizado: 2026-10-14
 ---
 
 # Bugs corregidos: no reintroducir
@@ -87,5 +87,16 @@ oficial del IMSS y los arneses). Claves P-xx del informe del E6.
 
 **Para no reintroducirlos:** el bloque L del [[arnes-integracion]] verifica el lote campo por campo; S-05, S-09,
 S-13 y S-14 cubren 405, 413, la cookie copiada y los inicios de sesión simultáneos.
+
+## Corregidos después del Entregable 7 (2026-10-14)
+| Clave | Bug | Corrección | Commit |
+|---|---|---|---|
+| — | El buscador de la tabla no encontraba nombres con acento o Ñ. Pasaba porque `UPPER()` de SQLite solo convierte letras ASCII: «López» quedaba «LóPEZ» y el patrón buscado era «LÓPEZ» | `texto_de_busqueda()` y `sql_sin_acentos()` en `database.py`, con `TRANSLATE` registrada en SQLite. Ahora la búsqueda no distingue mayúsculas, acentos ni Ñ | `205cfd0` |
+
+- **Alcance:** con la marcha blanca del E7, 59 de 66 trabajadores tenían acento o Ñ. Buscar «López», «Martínez» o «Muñoz» daba 0 resultados.
+- **Origen:** la falla venía de `4c79ce4` (E4). No se había detectado porque el E6 busca por NSS y el E5 solo revisa que la búsqueda responda.
+- **Verificación:** 20 consultas, con y sin acento, con Ñ, por CURP, por NSS y con una inyección SQL. Las 20 dieron el conteo esperado.
+- **Regresión:** E3 8/8, E6 23/23 y E5 sin cambios (detección del 96.9 % y G05, inyección SQL, correcto).
+- **PostgreSQL:** usa `UPPER(TRANSLATE(...))` nativo; no se probó porque no está instalado.
 
 Ver también: [[resultados-de-pruebas]] · [[guia-para-modificar-el-codigo]]

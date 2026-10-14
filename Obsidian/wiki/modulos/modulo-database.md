@@ -2,7 +2,7 @@
 tipo: modulo
 tags: [database, persistencia, sqlite, postgresql, transacciones]
 fuentes: ["sigma/database.py"]
-actualizado: 2026-10-07
+actualizado: 2026-10-14
 ---
 
 # `sigma/database.py` — persistencia y selección de motor
@@ -34,7 +34,14 @@ Se decide **una sola vez** por proceso:
 - **`_ConexionSQLite` y `_CursorSQLite`**: envoltorios que traducen `%s` → `?` (`_traducir`). Por eso **todo el
   SQL de la aplicación usa `%s`** ([[adr-008-sql-con-marcadores-psycopg2]]).
 - `_abrir_sqlite()`: `timeout=10`, `row_factory=sqlite3.Row`, `PRAGMA foreign_keys = ON` y
-  `PRAGMA journal_mode = WAL` (permite leer mientras alguien escribe).
+  `PRAGMA journal_mode = WAL` (permite leer mientras alguien escribe). Además registra
+  `TRANSLATE(texto, de, a)` (`_translate`), que PostgreSQL trae y SQLite no.
+- **Búsqueda sin acentos** (2026-10-14):
+  - `texto_de_busqueda(texto)` quita acentos y Ñ y pasa a mayúsculas en Python.
+  - `sql_sin_acentos(columna)` devuelve `UPPER(TRANSLATE(col, 'áéíóúüñÁÉÍÓÚÜÑ', 'aeiouunAEIOUUN'))`, que es la
+    misma expresión en los dos motores.
+  - Hacía falta porque `UPPER()` de SQLite solo convierte ASCII: «López» quedaba «LóPEZ».
+  - La usa el filtro `q` de [[modulo-app]].
 - **`conexion(commit=False)`**: *context manager* que confirma si `commit=True`, revierte si hubo excepción y
   **siempre** cierra.
 - `get_conn()`: conexión nueva al motor activo. La usa el arnés del E3.

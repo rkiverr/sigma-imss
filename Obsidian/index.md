@@ -1,7 +1,7 @@
 ---
 tipo: hub
 tags: [indice, catalogo]
-actualizado: 2026-10-07
+actualizado: 2026-10-14
 ---
 
 # Índice del segundo cerebro de Sigma
@@ -107,7 +107,7 @@ la bitácora en [[log]].
 - [[resultados-de-pruebas]]: cifras del TRL 6 (versión corregida) y del TRL 5 (antes y después, CA5-1 a CA5-10).
 
 ## Bugs
-- [[bugs-corregidos]]: los del E4, E-01 a E-15, BUG-01 (feriado de la LFT) y P-05 a P-22 del E6. No reintroducir.
+- [[bugs-corregidos]]: los del E4, E-01 a E-15, BUG-01 (feriado de la LFT), P-05 a P-22 del E6 y la búsqueda con acentos y Ñ (2026-10-14). No reintroducir.
 - [[bugs-conocidos]]: sin bugs abiertos; limitaciones declaradas (P-11 sin HTTPS, P-14 sin PostgreSQL) y otras.
 
 ## Historial

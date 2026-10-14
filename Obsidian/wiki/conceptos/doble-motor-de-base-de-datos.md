@@ -2,7 +2,7 @@
 tipo: concepto
 tags: [postgresql, sqlite, persistencia, portabilidad]
 fuentes: ["sigma/database.py", "README.md"]
-actualizado: 2026-10-04
+actualizado: 2026-10-14
 ---
 
 # Doble motor de base de datos: PostgreSQL y SQLite
@@ -19,6 +19,10 @@ servidor PostgreSQL. Decisión completa en [[adr-002-doble-motor-de-base-de-dato
 - Las marcas de tiempo son texto ISO, que funciona en `TIMESTAMP` y en `TEXT`
   ([[adr-007-marcas-de-tiempo-texto-iso]]).
 - El orden por fecha real usa `substr(...) || substr(...)`, que existe en ambos.
+- `UPPER()` de SQLite solo convierte letras ASCII.
+  - Para comparar nombres sin acentos ni Ñ se usa `UPPER(TRANSLATE(...))` (`sql_sin_acentos()`), y
+    `_abrir_sqlite()` registra `TRANSLATE` con `create_function`.
+  - Es el mismo enfoque que `_traducir`: adaptar SQLite para que acepte el SQL de PostgreSQL.
 
 ## Cuál se usa
 La selección se hace una vez por proceso ([[modulo-database]]):
