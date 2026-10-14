@@ -31,7 +31,8 @@ from .database import (ERRORES_DE_INTEGRIDAD, RAIZ, ErrorBaseDeDatos, conexion,
                        conflicto_de_identidad, descripcion_backend,
                        estadisticas, estado_afiliatorio,
                        movimiento_duplicado, obtener_o_crear_trabajador,
-                       obtener_patron_id, registrar_bitacora)
+                       obtener_patron_id, registrar_bitacora, sql_sin_acentos,
+                       texto_de_busqueda)
 from .validaciones import (CAUSAS_BAJA, ORDEN_CAMPOS, TIPO_ALTA, TIPO_BAJA,
                            TIPOS_JORNADA, TIPOS_SALARIO, TIPOS_TRABAJADOR,
                            aviso_montos_sin_cargar, normalizar_datos, validar_campos)
@@ -189,8 +190,10 @@ def _consultar_movimientos(conn, filtros):
     parametros = []
 
     if filtros["q"]:
-        patron = f"%{filtros['q'].upper()}%"
-        condiciones.append("(UPPER(t.nombre_completo) LIKE %s OR UPPER(t.curp) LIKE %s OR t.nss LIKE %s)")
+        # Sin distinguir mayúsculas, acentos ni Ñ: "lopez" encuentra a "López".
+        patron = f"%{texto_de_busqueda(filtros['q'])}%"
+        condiciones.append(f"({sql_sin_acentos('t.nombre_completo')} LIKE %s "
+                           "OR UPPER(t.curp) LIKE %s OR t.nss LIKE %s)")
         parametros += [patron, patron, patron]
     if filtros["estado"]:
         condiciones.append("m.estado = %s")

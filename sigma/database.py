@@ -101,6 +101,37 @@ class _CursorSQLite:
         return iter(self._cursor)
 
 
+# Búsqueda sin distinguir mayúsculas, acentos ni Ñ. UPPER() de SQLite solo
+# convierte letras ASCII ("López" queda "LóPEZ"), así que buscar "López" o
+# "LÓPEZ" no encontraba nada. Se compara el texto ya sin acentos: la misma
+# tabla se aplica en Python al texto buscado y en SQL a la columna.
+CON_ACENTO = "áéíóúüñÁÉÍÓÚÜÑ"
+SIN_ACENTO = "aeiouunAEIOUUN"
+_TABLA_SIN_ACENTO = str.maketrans(CON_ACENTO, SIN_ACENTO)
+
+
+def texto_de_busqueda(texto):
+    """Texto buscado sin acentos ni Ñ y en mayúsculas, para el patrón de LIKE."""
+    return (texto or "").translate(_TABLA_SIN_ACENTO).upper()
+
+
+def sql_sin_acentos(columna):
+    """
+    Expresión SQL que deja la columna sin acentos ni Ñ y en mayúsculas.
+    TRANSLATE es nativa en PostgreSQL; en SQLite la registra _abrir_sqlite().
+    Después de TRANSLATE solo quedan letras ASCII, que UPPER convierte en
+    los dos motores.
+    """
+    return f"UPPER(TRANSLATE({columna}, '{CON_ACENTO}', '{SIN_ACENTO}'))"
+
+
+def _translate(texto, de, a):
+    """TRANSLATE(texto, de, a) de PostgreSQL, para SQLite."""
+    if texto is None:
+        return None
+    return texto.translate(str.maketrans(de, a))
+
+
 class _ConexionSQLite:
     """Conexión de sqlite3 que devuelve cursores compatibles."""
 
@@ -128,6 +159,7 @@ def _abrir_sqlite():
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     conn.execute("PRAGMA journal_mode = WAL")  # permite lecturas durante escrituras
+    conn.create_function("TRANSLATE", 3, _translate, deterministic=True)  # ver sql_sin_acentos()
     return _ConexionSQLite(conn)
 
 
