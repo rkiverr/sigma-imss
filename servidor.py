@@ -7,8 +7,11 @@ a cualquiera que alcance el puerto. En la oficina el sistema se usa desde la red
 local, así que aquí se sirve con waitress, un servidor WSGI de producción que
 funciona en Windows sin compilar nada.
 
-Al arrancar, primero respalda la base (antes de cualquier migración) y después
-deja un hilo que respalda cada SIGMA_RESPALDO_HORAS horas (sigma/respaldo.py).
+Al arrancar, primero revisa que el puerto esté libre: en Windows un segundo
+servidor puede escuchar en el mismo puerto sin ningún error y las peticiones se
+reparten entre los dos, así que si ya hay alguien escuchando se detiene con un
+mensaje. Después respalda la base (antes de cualquier migración) y deja un hilo
+que respalda cada SIGMA_RESPALDO_HORAS horas (sigma/respaldo.py).
 
 Uso (desde la raíz del repositorio):
     python servidor.py
@@ -23,6 +26,8 @@ Variables de entorno:
     (las de respaldo, sesión y tamaño de petición están en el README)
 """
 import os
+import socket
+import sys
 from datetime import date
 
 from waitress import serve
@@ -33,10 +38,25 @@ from sigma.database import descripcion_backend, init_db
 from sigma.validaciones import aviso_montos_sin_cargar
 
 
+def puerto_ocupado(host, puerto):
+    """True si ya hay un programa escuchando en ese puerto (por ejemplo, otra copia de Sigma)."""
+    destino = "127.0.0.1" if host in ("", "0.0.0.0") else host
+    try:
+        with socket.create_connection((destino, puerto), timeout=1):
+            return True
+    except OSError:
+        return False
+
+
 def main():
     host = os.environ.get("SIGMA_HOST", "0.0.0.0")
     puerto = int(os.environ.get("SIGMA_PUERTO", "5050"))
     hilos = int(os.environ.get("SIGMA_HILOS", "8"))
+    if puerto_ocupado(host, puerto):
+        print(f"[sigma] Error: el puerto {puerto} ya está en uso. Lo más probable es que Sigma ya esté "
+              f"corriendo en esta PC; ciérrelo antes de arrancar otra copia o elija otro puerto con "
+              f"SIGMA_PUERTO.", flush=True)
+        sys.exit(1)
     try:
         ruta = respaldo.respaldar()
         if ruta:
