@@ -1,13 +1,14 @@
 ---
 tipo: prueba
 tags: [pruebas, estrategia, regresion, arnes]
-fuentes: ["pruebas/test_prueba_concepto.py", "pruebas/prueba_ambiente_relevante.py", "pruebas/prueba_integracion.py"]
-actualizado: 2026-10-07
+fuentes: ["pruebas/test_prueba_concepto.py", "pruebas/prueba_ambiente_relevante.py", "pruebas/prueba_integracion.py", "pruebas/prueba_operacion.py"]
+actualizado: 2026-10-18
 ---
 
 # Estrategia de pruebas
 
-Sigma tiene **tres arneses**, que corresponden a tres niveles TRL (el tercero, solo en la rama `trl6/correcciones`). No hay pytest ni CI: las pruebas se corren a mano
+Sigma tiene **cuatro arneses**, que corresponden a cuatro niveles TRL. El cuarto, [[arnes-operacion]] (TRL 9),
+reproduce los problemas que aparecieron al operar el sistema (O-01 a O-04) y tarda unos 10 s. No hay pytest ni CI: las pruebas se corren a mano
 y **producen reportes de texto** que alimentan los informes.
 
 | | [[arnes-prueba-de-concepto]] | [[arnes-ambiente-relevante]] | [[arnes-integracion]] |
@@ -34,7 +35,8 @@ y **producen reportes de texto** que alimentan los informes.
 python -m compileall -q servidor.py sigma pruebas
 python pruebas/test_prueba_concepto.py                       # 8/8
 python pruebas/prueba_ambiente_relevante.py --bloques B,C,G  # 96.9 %, 0 duplicados, 0 hallazgos
-python pruebas/prueba_integracion.py --bloques F,L,S         # rama del E6: 23/23, lote conforme, solo S-03
+python pruebas/prueba_integracion.py --bloques F,L,S         # 23/23, lote conforme, solo S-03
+python pruebas/prueba_operacion.py                          # 4 de 4
 ```
 Todas las salidas quedan en `pruebas/resultados/`, que está en `.gitignore`; se puede borrar la carpeta entera.
 

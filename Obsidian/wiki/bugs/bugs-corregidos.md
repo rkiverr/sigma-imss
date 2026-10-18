@@ -3,7 +3,7 @@ tipo: bug
 estado: corregido
 tags: [bugs, regresion, no-reintroducir]
 fuentes: ["CLAUDE.md", "raw/entregables/e4-trl4-prototipo-integrado.md", "raw/entregables/e5-trl5-ambiente-relevante.md"]
-actualizado: 2026-10-14
+actualizado: 2026-10-18
 ---
 
 # Bugs corregidos: no reintroducir
@@ -98,5 +98,20 @@ S-13 y S-14 cubren 405, 413, la cookie copiada y los inicios de sesión simultá
 - **Verificación:** 20 consultas, con y sin acento, con Ñ, por CURP, por NSS y con una inyección SQL. Las 20 dieron el conteo esperado.
 - **Regresión:** E3 8/8, E6 23/23 y E5 sin cambios (detección del 96.9 % y G05, inyección SQL, correcto).
 - **PostgreSQL:** usa `UPPER(TRANSLATE(...))` nativo; no se probó porque no está instalado.
+
+## Corregidos en la operación (TRL 9, 2026-10-18)
+Rama `trl9/operacion`. Los cuatro aparecieron al **operar** el sistema (marcha blanca del TRL 7 y operación de un
+mes del TRL 8). El [[arnes-operacion]] los reproduce: en `509a64d` fallan los cuatro y con la corrección pasan.
+
+| Clave | Problema | Corrección | Commit |
+|---|---|---|---|
+| O-03 (H-02 del E7) | El nombre del lote lleva la hora al segundo: dos exportaciones en el mismo segundo compartían nombre y la segunda sobrescribía a la primera | Un sello por exportación y consecutivo `_2`, `_3`… si ya existe; escritura exclusiva (`"x"`) | `2b8eb5e` |
+| O-01 (E8) | «Último lote» buscaba el archivo más reciente de cada tipo por separado: tras un lote solo de altas seguía ofreciendo «Bajas (02)» con el archivo anterior, con riesgo de cargarlo dos veces en el IDSE | `archivos_del_ultimo_lote()` por sello; la descarga avisa si el último lote no tuvo ese tipo | `ab350dc` |
+| O-02 (E8) | Un lote podía llevar alta, baja y reingreso del mismo trabajador; el IDSE rechazaría alguno según el orden de carga | `un_movimiento_por_trabajador()`; los demás esperan al siguiente lote, con aviso ([[adr-022-un-movimiento-por-trabajador-en-cada-lote]]) | `569d82d` |
+| O-04 (H-01 del E7) | Windows dejaba arrancar un segundo `servidor.py` en el mismo puerto sin error; las peticiones se repartían entre los dos | `puerto_ocupado()` al arrancar: mensaje y salida con código 1 | `635a002` |
+
+- **Regresión:** E3 8/8, E5 10/10 criterios, E6 F 23/23 · L conforme · S solo S-03.
+- **Para no reintroducirlos:** correr `python pruebas/prueba_operacion.py` (4 de 4) después de tocar la exportación
+  o el arranque.
 
 Ver también: [[resultados-de-pruebas]] · [[guia-para-modificar-el-codigo]]

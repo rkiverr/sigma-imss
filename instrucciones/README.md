@@ -80,7 +80,7 @@ taskkill /F /IM python.exe
 |---|---|
 | `python no se reconoce` | Instala Python marcando "Add Python to PATH", o usa `py servidor.py` |
 | `No module named flask` | Corre `pip install -r requirements.txt` |
-| `Address already in use` | Ya hay un servidor corriendo: ciérralo con `Ctrl + C` |
+| `El puerto 5050 ya está en uso` | Ya hay un servidor corriendo: usa ese o ciérralo con `Ctrl + C` |
 | La página se ve sin estilos | Recarga forzando con `Ctrl + Shift + R` |
 
 ---

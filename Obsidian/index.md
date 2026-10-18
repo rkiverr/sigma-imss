@@ -48,6 +48,7 @@ la bitácora en [[log]].
 - [[arnes-prueba-de-concepto]]: `pruebas/test_prueba_concepto.py` (E3), regresión de 8 casos.
 - [[arnes-ambiente-relevante]]: `pruebas/prueba_ambiente_relevante.py` (E5), bloques A–H.
 - [[arnes-integracion]]: `pruebas/prueba_integracion.py` (E6), bloques F, L, S, R y C.
+- [[arnes-operacion]]: `pruebas/prueba_operacion.py` (E9), los cuatro problemas de la operación (O-01 a O-04).
 
 ## Reglas de negocio
 - [[reglas-de-validacion]]: las 30 reglas, con su tipo (error o aviso) y su lugar en el código.
@@ -92,6 +93,7 @@ la bitácora en [[log]].
 - [[adr-019-lote-con-la-estructura-oficial]]: tabla declarativa de 168 posiciones, un archivo por tipo.
 - [[adr-020-respaldo-automatico]]: respaldo al arrancar y cada 24 h, con revisión de integridad.
 - [[adr-021-migraciones-de-datos-unicas]]: tabla `migracion` para que nada se migre dos veces.
+- [[adr-022-un-movimiento-por-trabajador-en-cada-lote]]: el segundo movimiento de un trabajador espera al siguiente lote.
 
 ## Operación
 - [[como-arrancar]]: instalar, arrancar en desarrollo y en producción.
@@ -107,7 +109,7 @@ la bitácora en [[log]].
 - [[resultados-de-pruebas]]: cifras del TRL 6 (versión corregida) y del TRL 5 (antes y después, CA5-1 a CA5-10).
 
 ## Bugs
-- [[bugs-corregidos]]: los del E4, E-01 a E-15, BUG-01 (feriado de la LFT), P-05 a P-22 del E6 y la búsqueda con acentos y Ñ (2026-10-14). No reintroducir.
+- [[bugs-corregidos]]: los del E4, E-01 a E-15, BUG-01 (feriado de la LFT), P-05 a P-22 del E6, la búsqueda con acentos y Ñ (2026-10-14) y O-01 a O-04 de la operación (2026-10-18). No reintroducir.
 - [[bugs-conocidos]]: sin bugs abiertos; limitaciones declaradas (P-11 sin HTTPS, P-14 sin PostgreSQL) y otras.
 
 ## Historial
@@ -116,6 +118,7 @@ la bitácora en [[log]].
 - [[sesion-2026-10-04-entregable-5]]: Entregable 5, merge a `main` y creación de este wiki.
 - [[sesion-2026-10-04-estructura-de-carpetas]]: reorganización del repo en `sigma/` y `pruebas/`.
 - [[sesion-2026-10-07-correcciones-trl6]]: Entregable 6, primera demostración y correcciones en la rama local `trl6/correcciones`.
+- [[sesion-2026-10-18-correcciones-trl9]]: los cuatro problemas de la operación corregidos en `trl9/operacion` y arnés del E9.
 
 ## Consultas
 - [[preguntas-frecuentes]]: usuarios semilla, insignia del patrón, punto verde, base local, ramas, etc.

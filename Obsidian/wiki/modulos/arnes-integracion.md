@@ -58,3 +58,13 @@ Salida literal: `raw/resultados/e6-arnes-integracion.md`. Las cifras completas e
 - Las 5 capturas posteriores al respaldo se pierden a propósito: miden el punto de recuperación.
 
 Ver también: [[estrategia-de-pruebas]] · [[arnes-prueba-de-concepto]] · [[seguridad-web]] · [[lote-idse]]
+
+## Cambios del TRL 9 (2026-10-18)
+Con la regla de un movimiento por trabajador en cada lote ([[adr-022-un-movimiento-por-trabajador-en-cada-lote]]):
+- **PF-17** espera un solo archivo de altas y el aviso de que la baja (PF-09) y el reingreso (PF-11) de t1
+  quedan en espera; antes esperaba altas y bajas juntas, que es justo el caso del problema.
+- **PF-18** descarga solo los tipos que tuvo el lote.
+- **PF-21** genera los lotes siguientes (bajas y luego altas) y después espera el mensaje «No hay…».
+- **Bloque L** captura las 12 bajas después del lote de altas, así que revisa dos lotes (30 altas y 12 bajas).
+
+Resultado con las correcciones: F 23/23, L conforme y S con el mismo hallazgo de siempre (S-03).

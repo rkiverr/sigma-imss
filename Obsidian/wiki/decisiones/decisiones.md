@@ -32,6 +32,7 @@ como `estado: reemplazada` y se crea la nueva; nunca se borra.
 | [[adr-019-lote-con-la-estructura-oficial]] | Lote con la estructura oficial del IMSS: 168 posiciones, un archivo por tipo | E6 | vigente |
 | [[adr-020-respaldo-automatico]] | Respaldo al arrancar (antes de migrar) y cada 24 horas | E6 | vigente |
 | [[adr-021-migraciones-de-datos-unicas]] | Columnas nuevas y migraciones de datos que se aplican una vez | E6 | vigente |
+| [[adr-022-un-movimiento-por-trabajador-en-cada-lote]] | A lo más un movimiento por trabajador en cada lote IDSE | E9 | vigente |
 | [[adr-017-paquete-sigma-y-carpeta-de-pruebas]] | La app es el paquete `sigma/`; los arneses van en `pruebas/` | 2026-10-04 | vigente |
 
 Ver también: [[inicio]] · [[guia-para-modificar-el-codigo]]

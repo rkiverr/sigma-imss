@@ -239,3 +239,14 @@ Bitácora cronológica: solo se agrega al final y lo anterior no se edita.
   inyección). Regresión: E3 8/8, E6 23/23 y E5 sin cambios. PostgreSQL no se probó porque no está instalado.
 - Páginas: [[bugs-corregidos]], [[modulo-database]], [[modulo-app]], [[rutas-http]] y
   [[doble-motor-de-base-de-datos]].
+
+## [2026-10-18] sesion | Correcciones de la operación (TRL 9)
+- Para el Entregable 9, Pedro aprobó corregir los cuatro problemas abiertos de la operación. Rama `trl9/operacion`:
+  `2b8eb5e` (lotes en el mismo segundo), `ab350dc` (último lote), `569d82d` (un movimiento por trabajador),
+  `635a002` (puerto ocupado) y `e92f533` (arnés del E9 y ajuste del E6).
+- [[arnes-operacion]]: 0 de 4 en `509a64d`, 4 de 4 con las correcciones. Regresión: E3 8/8, E5 10/10, E6 23/23 · L
+  conforme · solo S-03.
+- Páginas: [[arnes-operacion]] y [[adr-022-un-movimiento-por-trabajador-en-cada-lote]] (nuevas),
+  [[sesion-2026-10-18-correcciones-trl9]], [[modulo-exportar-idse]], [[modulo-app]], [[modulo-servidor]],
+  [[lote-idse]], [[rutas-http]], [[problemas-frecuentes]], [[estrategia-de-pruebas]], [[arnes-integracion]],
+  [[bugs-corregidos]], [[decisiones]] y [[cronologia]]. Fuera del wiki: `README.md`, `CLAUDE.md` e `instrucciones/`.

@@ -2,7 +2,7 @@
 tipo: historial
 tags: [cronologia, git, ramas, entregables]
 fuentes: ["raw/historial/git-log.md", "raw/entregables/"]
-actualizado: 2026-10-07
+actualizado: 2026-10-18
 ---
 
 # Cronología del proyecto
@@ -36,12 +36,17 @@ Todos los hechos con fecha, en orden. Los hashes salen de `raw/historial/git-log
 | 2026-10-07 | Rama **local** `trl6/correcciones`: `02aaad0` (lote oficial, login, respaldo, robustez) y `540a313` (arnés del E6) | Pedro con Claude | [[sesion-2026-10-07-correcciones-trl6]] |
 | 2026-10-07 | `882d60f`, `86038c2`, `aee7bc0` y `8914883`: lo que reveló la verificación (espera a PostgreSQL, carrera del token, texto del aviso) | Pedro con Claude | [[bugs-corregidos]] |
 | 2026-10-07 | **Entregable 6 (TRL 6)** redactado (v2, 33 páginas): 9 de 10 criterios con la versión corregida | Pedro con Claude | [[entregable-6-trl6]] |
-| (pendiente) | Publicar e integrar `trl6/correcciones`; TRL 7: piloto con datos reales | — | [[hoja-de-ruta-trl6]] |
+| 2026-10-08 | `trl6/correcciones` integrada a `main` (avance rápido, `7fffd1c`) y publicada; después, interfaz final y documentación (`8caec1c`) | Pedro con Claude | [[sesion-2026-10-07-correcciones-trl6]] |
+| 2026-10-11 | **Entregable 7 (TRL 7)**: instalación en tres etapas, marcha blanca de 10 jornadas y manuales; hallazgos H-01 a H-04 | Pedro con Claude | — |
+| 2026-10-14 | `205cfd0` y `509a64d`: la búsqueda encuentra nombres con acento y Ñ | Pedro con Claude | [[bugs-corregidos]] |
+| 2026-10-17 | **Entregable 8 (TRL 8)**: validación del sistema final con `509a64d`; dos hallazgos nuevos en la exportación | Pedro con Claude | — |
+| 2026-10-18 | Rama `trl9/operacion`: `2b8eb5e`, `ab350dc`, `569d82d` y `635a002` (los cuatro problemas de la operación) y `e92f533` (arnés del E9) | Pedro con Claude | [[sesion-2026-10-18-correcciones-trl9]] |
 
 ## Ramas
 | Rama | Punta | Estado |
 |---|---|---|
 | `main` | `7f43596` | **Publicada.** Incluye E5, corrección del calendario, este wiki y la reorganización en carpetas |
+| `trl9/operacion` | (ver log) | Correcciones de la operación del TRL 9 ([[sesion-2026-10-18-correcciones-trl9]]) |
 | `trl6/correcciones` | `7fffd1c` | **Integrada a `main`** el 2026-10-08 (avance rápido). Ya no tiene commits propios |
 | `mejora/interfaz-y-validaciones` | `4c79ce4` | Histórica (E4). Ya fusionada por el PR #1 |
 | `trl5/ambiente-relevante` | `b46ad50` | Histórica (E5). Ya fusionada; se conserva porque el informe del E5 la cita por nombre |

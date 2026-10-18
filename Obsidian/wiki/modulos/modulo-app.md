@@ -83,6 +83,10 @@ Bloques A, B, C, F y G de [[arnes-ambiente-relevante]].
   ni `usuario_id` (se quitó `_usuario_valido()`). `_guardar_movimiento()` guarda la UMF y los apellidos.
 - `exportar()`: un archivo por tipo, `faltantes()`, asiento "Incluido en lote IDSE" por movimiento y
   `_mensaje_incompletos()`. `descargar_lote()` acepta `?tipo=`.
+- TRL 9: `exportar()` pasa los pendientes por `exportar_idse.un_movimiento_por_trabajador()`; los que esperan
+  siguen como `Válido`, salen en el aviso (`_mensaje_en_espera()`, categoría *warning*) y en el detalle de la
+  bitácora. `descargar_lote()` avisa «El último lote no incluye bajas» si ese tipo no estuvo en la última
+  exportación ([[adr-022-un-movimiento-por-trabajador-en-cada-lote]]).
 - Errores: `error_http()` para cualquier `HTTPException` (`MENSAJES_HTTP` con 400, 405 y 413); `error_403()`
   muestra la explicación del rol cuando la trae.
 

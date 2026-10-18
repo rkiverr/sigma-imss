@@ -2,7 +2,7 @@
 tipo: modulo
 tags: [servidor, waitress, produccion, despliegue]
 fuentes: ["servidor.py", "sigma/app.py"]
-actualizado: 2026-10-07
+actualizado: 2026-10-18
 ---
 
 # `servidor.py` — arranque en producción (waitress)
@@ -53,5 +53,12 @@ Detalle en [[resultados-de-pruebas]].
 ## Cambios del TRL 6 (2026-10-07)
 `main()` respalda la base **antes** de `init_db()` (y antes de cualquier migración), arranca el hilo de respaldo
 periódico y avisa si faltan los montos legales del año ([[modulo-respaldo]], [[adr-020-respaldo-automatico]]).
+
+## Cambios del TRL 9 (2026-10-18)
+Antes de todo, `main()` llama a `puerto_ocupado(host, puerto)`: intenta conectarse al puerto (a `127.0.0.1` si
+escucha en `0.0.0.0`). Si alguien responde, imprime `[sigma] Error: el puerto 5050 ya está en uso…` y sale con
+código 1, **sin respaldar ni migrar**. Motivo: en Windows, waitress dejaba arrancar un segundo servidor en el
+mismo puerto sin error y las peticiones se repartían entre los dos (H-01 de la marcha blanca del TRL 7).
+Lo prueba O-04 del [[arnes-operacion]].
 
 Ver también: [[como-arrancar]] · [[modulo-app]] · [[arquitectura-general]]

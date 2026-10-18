@@ -127,6 +127,7 @@ sigma-imss/
 | `pruebas/test_prueba_concepto.py` | Arnés de pruebas del "Desarrollo experimental" (Entrega 3) |
 | `pruebas/prueba_ambiente_relevante.py` | Arnés de validación en ambiente relevante (Entrega 5) |
 | `pruebas/prueba_integracion.py` | Arnés de integración y demostración (Entrega 6) |
+| `pruebas/prueba_operacion.py` | Arnés de los problemas encontrados durante la operación (Entrega 9) |
 | `instrucciones/` | Guías para personas: comandos rápidos, instalación y uso de la página |
 | `Obsidian/` | Segundo cerebro del proyecto en Markdown (se abre como bóveda de Obsidian): entregables, normativa, decisiones, pruebas e historial |
 
@@ -188,8 +189,8 @@ navegador nunca puede desviarse de la regla real que aplica el servidor.
 | `/logout` | POST | Cierre de sesión (invalida también las copias de la cookie) |
 | `/` | GET | Pantalla principal, con filtros y paginación |
 | `/capturar` | POST | Valida y guarda un movimiento |
-| `/exportar` | POST | Genera los lotes IDSE (altas y bajas por separado); solo administración |
-| `/descargar-lote?tipo=altas` o `bajas` | GET | Descarga el último lote de ese tipo; solo administración |
+| `/exportar` | POST | Genera los lotes IDSE (altas y bajas por separado, a lo más un movimiento por trabajador); solo administración |
+| `/descargar-lote?tipo=altas` o `bajas` | GET | Descarga el archivo de ese tipo del último lote generado (si ese lote no lo tuvo, lo avisa); solo administración |
 | `/api/validar` | POST | Validación en vivo (JSON) |
 | `/api/movimiento/<id>` | GET | Detalle de un movimiento y su bitácora (JSON) |
 
@@ -232,6 +233,16 @@ una semana por la IP de la red local con inicio de sesión y roles, conformidad
 del lote con la estructura oficial del IMSS campo por campo, seguridad
 (autenticación, bloqueo, cookie, métodos, rutas, tamaño, tráfico), respaldo y
 restauración tras perder la base, y tamaños y tiempos de cada enlace.
+
+```bash
+python pruebas/prueba_operacion.py
+```
+
+Reproduce los cuatro problemas que aparecieron al operar el sistema (Entrega 9,
+unos 10 s): un «Último lote» que ofrecía bajas de una exportación anterior, alta,
+baja y reingreso de un trabajador en un solo lote, dos lotes en el mismo segundo y
+un segundo servidor en el mismo puerto. Con `--codigo` se corre contra otra versión
+(en la `509a64d` fallan los cuatro).
 
 ## Documentación
 

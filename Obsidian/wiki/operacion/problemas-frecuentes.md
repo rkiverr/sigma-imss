@@ -11,7 +11,8 @@ actualizado: 2026-10-04
 |---|---|---|
 | "python no se reconoce como un comando" | Python no está en el PATH | Reinstalar marcando "Add Python to PATH", o usar `py servidor.py` |
 | `No module named flask` o `waitress` | Faltan dependencias | `pip install -r requirements.txt` |
-| "Address already in use" o el puerto 5050 está ocupado | Ya hay otro servidor corriendo | Cerrarlo con `Ctrl + C`; si no aparece, `taskkill /F /IM python.exe` |
+| "El puerto 5050 ya está en uso" al arrancar | Ya hay otro servidor corriendo (desde el TRL 9 `servidor.py` lo detecta y no abre un segundo) | Usar el que ya está abierto o cerrarlo con `Ctrl + C`; si no aparece, `taskkill /F /IM python.exe` |
+| El aviso del lote dice que «quedan para el siguiente lote» | Un trabajador tenía dos movimientos pendientes (por ejemplo, baja y reingreso) | Cargar el lote en el IDSE y, cuando lo confirme, generar el siguiente ([[lote-idse]]) |
 | La página se ve sin estilos | El navegador guardó un CSS viejo | `Ctrl + Shift + R` |
 | Cambié un `.py` y no veo el cambio | waitress no recarga solo | Reiniciar `python servidor.py` |
 | `UnicodeDecodeError` al conectar con PostgreSQL | En Windows en español, `libpq` traduce los mensajes con otra codificación | Ya está resuelto: `database.py` fuerza `LC_ALL=C`. Si reaparece, el error real está debajo (contraseña, servidor caído, base inexistente) |

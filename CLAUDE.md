@@ -82,6 +82,7 @@ archivo los módulos se nombran sin carpeta (`app.py` = `sigma/app.py`).
 | `pruebas/test_prueba_concepto.py` | Arnés de pruebas del "Desarrollo experimental" (E3) |
 | `pruebas/prueba_ambiente_relevante.py` | Arnés de validación en ambiente relevante (E5) |
 | `pruebas/prueba_integracion.py` | Arnés de integración y demostración (E6): escenario, lote, seguridad, respaldo, red |
+| `pruebas/prueba_operacion.py` | Arnés de los problemas de operación (E9): O-01 a O-04 |
 
 Lo que se genera al usar el sistema no se versiona: `sigma_imss.db`,
 `exportaciones/`, `respaldos/` y `.clave_sesion` en la raíz (fuera del paquete, a propósito: es la base y los
@@ -342,6 +343,10 @@ aplicada.
 | (E6) La exportación no quedaba en el historial de cada movimiento | Asiento "Incluido en lote IDSE" por movimiento |
 | (E6) Sin respaldo de la base | `respaldo.py` + respaldo al arrancar y periódico |
 | (E6) Con psycopg2 instalado y sin PostgreSQL, cada arranque esperaba 4 s ("localhost" por IPv6 e IPv4) | `DATABASE_URL` por omisión con `127.0.0.1` y `connect_timeout=1` (1 s); `SIGMA_DB=sqlite` lo evita |
+| (E9) Dos lotes en el mismo segundo: el segundo sobrescribía al primero | Sello compartido por exportación + consecutivo `_2`, `_3`… y escritura exclusiva |
+| (E9) «Último lote» ofrecía «Bajas (02)» de una exportación anterior | `archivos_del_ultimo_lote()`: solo los archivos de la exportación más reciente |
+| (E9) Alta, baja y reingreso de un trabajador en un solo lote (el IDSE depende del orden de carga) | `un_movimiento_por_trabajador()`: los demás esperan al siguiente lote, con aviso |
+| (E9) Windows dejaba arrancar un segundo `servidor.py` en el mismo puerto | `puerto_ocupado()` al arrancar: mensaje y salida con código 1 |
 
 ---
 
@@ -356,6 +361,7 @@ python pruebas/test_prueba_concepto.py      # arnés del E3 → pruebas/resultad
 python pruebas/prueba_ambiente_relevante.py # arnés del E5 (~3 min) → pruebas/resultados/
 python pruebas/prueba_ambiente_relevante.py --codigo <carpeta> --servidor desarrollo --etiqueta antes
 python pruebas/prueba_integracion.py        # arnés del E6 (~1 min); --capturas guarda el HTML de las pantallas
+python pruebas/prueba_operacion.py          # arnés del E9 (~10 s); --codigo <carpeta> --etiqueta antes
 python -m sigma.usuarios contrasena admin.rrhh   # asignar contraseña (también: listar, crear, desactivar…)
 python -m sigma.respaldo                    # respaldo manual; --restaurar ARCHIVO con el servidor detenido
 ```
@@ -436,6 +442,12 @@ clonada de la rama; salidas en `Obsidian/raw/resultados/*trl6*` y
 Con 10 usuarios sin pausa atiende 3,935 capturas por minuto (5,609 sin inicio
 de sesión): cada petición consulta usuario y token. Criterios del TRL 6: 9 de
 10; solo falta el cifrado (HTTPS).
+
+Correcciones de la operación (rama `trl9/operacion`, 18/10/2026): el arnés del E9
+da 0 de 4 en `509a64d` y 4 de 4 con las correcciones. Regresión: E3 8/8, E5 10/10
+criterios y E6 F 23/23 · L conforme · solo S-03. El arnés del E6 cambió en PF-17,
+PF-18, PF-21 y el bloque L, que esperaban alta, baja y reingreso del mismo
+trabajador en un solo lote.
 
 ⚠️ Si cambias las reglas de `validaciones.py`, **vuelve a correr el arnés**:
 los casos C1 y C2 tienen que seguir saliendo válidos y C3–C8 rechazados. Al

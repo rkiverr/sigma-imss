@@ -75,7 +75,9 @@ Todas usan `sigma/templates/error.html`.
 - Todas las rutas, salvo `/login` y `/static/`, piden sesión: la página redirige a `/login` y `/api/*` responde
   **401** JSON. Las direcciones inexistentes responden 404 aunque no haya sesión.
 - `/exportar` y `/descargar-lote` llevan `@requiere_rol("administrador")`: la capturista recibe **403** con la
-  explicación. `/exportar` genera un archivo por tipo y omite, con aviso, los movimientos sin UMF ni apellidos.
+  explicación. `/exportar` genera un archivo por tipo y omite, con aviso, los movimientos sin UMF ni apellidos. Desde el TRL 9
+  también deja para el siguiente lote, con aviso, el segundo movimiento de un mismo trabajador, y
+  `/descargar-lote` solo entrega archivos de la última exportación.
 - `GET /capturar`, `TRACE`, `PUT` y `DELETE` responden **405** (antes, 500 "El movimiento no se guardó"); una
   petición de más de `SIGMA_MAX_PETICION_KB` responde **413**. `error_http()` conserva el código de cualquier
   `HTTPException`.

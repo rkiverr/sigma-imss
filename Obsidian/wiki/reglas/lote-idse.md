@@ -36,6 +36,13 @@ alta o reingreso (08), modificación de salario (07) y baja (02).
 | 150–167 | CURP | AN 18 | 18 espacios |
 | 168 | Identificador del formato | 9 | 9 |
 
+## Un movimiento por trabajador en cada lote (TRL 9)
+El IDSE procesa cada archivo por separado y valida cada movimiento contra la situación del trabajador en ese
+momento. Si un lote lleva el alta y la baja de una persona, o su baja y su reingreso, el resultado depende del
+orden en que se carguen los archivos. Por eso cada lote lleva **a lo más un movimiento por trabajador**; los
+demás quedan pendientes y el aviso pide cargar el lote y generar el siguiente cuando el IDSE lo confirme
+([[adr-022-un-movimiento-por-trabajador-en-cada-lote]]).
+
 ## Cómo lo genera Sigma desde el TRL 6 ([[modulo-exportar-idse]], [[adr-019-lote-con-la-estructura-oficial]])
 - `exportaciones/lote_idse_altas_AAAAMMDD_HHMMSS.txt` y `…_bajas_…txt`, en Windows-1252 con CRLF.
 - La tabla anterior está en `exportar_idse.ESTRUCTURA`; `generar_linea_idse()` afirma las 168 posiciones.

@@ -197,10 +197,13 @@ Faltó el paso 2. Corre:
 pip install -r requirements.txt
 ```
 
-### "Address already in use" o "El puerto 5050 ya está en uso"
+### "El puerto 5050 ya está en uso"
 
-Ya tienes otra copia del servidor corriendo. Ciérrala (`Ctrl + C` en su
-terminal) o, si no la encuentras, en Windows:
+Ya tienes otra copia del servidor corriendo. `servidor.py` lo revisa al
+arrancar y se detiene con ese mensaje en lugar de abrir un segundo servidor
+(en Windows los dos quedarían escuchando y se repartirían las peticiones).
+Usa la copia que ya está abierta, ciérrala (`Ctrl + C` en su terminal) o, si
+no la encuentras, en Windows:
 
 ```powershell
 taskkill /F /IM python.exe

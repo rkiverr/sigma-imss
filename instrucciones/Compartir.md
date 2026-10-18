@@ -163,7 +163,7 @@ Lo que capture cada quien queda en la bitácora **con su nombre**.
 | Tu IP cambió | Pasa con la red local al reiniciar el módem; vuelve a correr `ipconfig`. La de Tailscale casi no cambia |
 | "Usuario o contraseña incorrectos" | La contraseña es la que tú asignaste con `python -m sigma.usuarios`, no la del recuadro "Acceso de prueba" |
 | La cuenta se bloqueó | `python -m sigma.usuarios desbloquear <usuario>` |
-| Aparecen dos servidores en el puerto 5050 | Windows deja arrancar dos veces `servidor.py` sin dar error. Revisa con `Get-NetTCPConnection -LocalPort 5050 -State Listen` y deja uno solo |
+| Al arrancar sale «el puerto 5050 ya está en uso» | Sigma ya está corriendo en esa PC. `servidor.py` ya no abre un segundo servidor en el mismo puerto (antes Windows lo permitía sin error); usa el que está abierto o ciérralo primero |
 
 Para quitar las reglas del firewall cuando ya no las necesites:
 
