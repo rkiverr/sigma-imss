@@ -559,9 +559,13 @@ def _mensaje_incompletos(incompletos):
 @requiere_rol("administrador")
 def descargar_lote():
     tipo = request.args.get("tipo")
-    ruta = exportar_idse.ultimo_lote(tipo if tipo in ("altas", "bajas") else None)
+    tipo = tipo if tipo in ("altas", "bajas") else None
+    ruta = exportar_idse.ultimo_lote(tipo)
     if not ruta or not os.path.isfile(ruta):
-        flash("Todavía no se ha generado ningún lote IDSE para descargar.", "error")
+        if tipo and exportar_idse.archivos_del_ultimo_lote():
+            flash(f"El último lote no incluye {tipo}: no hay archivo de ese tipo para descargar.", "error")
+        else:
+            flash("Todavía no se ha generado ningún lote IDSE para descargar.", "error")
         return redirect(url_for("index"))
     return send_file(ruta, as_attachment=True, mimetype="text/plain")
 

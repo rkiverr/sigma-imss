@@ -223,18 +223,34 @@ def exportar_lote(registros, prefijo="lote_idse"):
             consecutivo += 1
 
 
-def ultimo_lote(tipo=None):
+_PATRON_LOTE = re.compile(r"_(altas|bajas)_(\d{8}_\d{6})(?:_(\d+))?\.txt$", re.IGNORECASE)
+
+
+def archivos_del_ultimo_lote():
     """
-    Ruta del lote generado más recientemente (del tipo pedido, "altas" o
-    "bajas", si se indica), o None si todavía no hay ninguno.
+    {"altas": ruta, "bajas": ruta} de la exportación más reciente, solo con los
+    tipos que esa exportación tuvo. Un archivo de una exportación anterior
+    nunca se ofrece como si fuera del último lote.
     """
     if not os.path.isdir(DIRECTORIO_SALIDA):
-        return None
-    archivos = [
-        os.path.join(DIRECTORIO_SALIDA, nombre)
-        for nombre in os.listdir(DIRECTORIO_SALIDA)
-        if nombre.lower().endswith(".txt") and (tipo is None or f"_{tipo}_" in nombre)
-    ]
-    if not archivos:
-        return None
-    return max(archivos, key=os.path.getmtime)
+        return {}
+    lotes = {}
+    for nombre in os.listdir(DIRECTORIO_SALIDA):
+        encontrado = _PATRON_LOTE.search(nombre)
+        if encontrado:
+            tipo, marca, consecutivo = encontrado.groups()
+            sello = (marca, int(consecutivo or 1))
+            lotes.setdefault(sello, {})[tipo.lower()] = os.path.join(DIRECTORIO_SALIDA, nombre)
+    return lotes[max(lotes)] if lotes else {}
+
+
+def ultimo_lote(tipo=None):
+    """
+    Ruta del archivo del tipo pedido ("altas" o "bajas") en la exportación más
+    reciente, o None si esa exportación no tuvo movimientos de ese tipo. Sin
+    tipo, el de altas o, si no hubo altas, el de bajas.
+    """
+    archivos = archivos_del_ultimo_lote()
+    if tipo is None:
+        return archivos.get("altas") or archivos.get("bajas")
+    return archivos.get(tipo)
