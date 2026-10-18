@@ -171,19 +171,24 @@ def generar_lote_idse(registros):
     return "".join(generar_linea_idse(registro) + FIN_DE_LINEA for registro in registros)
 
 
-def nombre_de_lote(tipo, prefijo="lote_idse"):
-    """Nombre único con el tipo y la marca de tiempo, para no sobrescribir lotes previos."""
-    return f"{prefijo}_{NOMBRES_TIPO[tipo]}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+def nombre_de_lote(tipo, prefijo="lote_idse", sello=None):
+    """
+    Nombre del archivo con el tipo y el sello de la exportación (fecha y hora,
+    más un consecutivo si en ese segundo ya hubo otra exportación).
+    """
+    sello = sello or datetime.now().strftime("%Y%m%d_%H%M%S")
+    return f"{prefijo}_{NOMBRES_TIPO[tipo]}_{sello}.txt"
 
 
-def exportar_a_archivo(registros, ruta_salida):
+def exportar_a_archivo(registros, ruta_salida, exclusivo=False):
     """
     Escribe los registros (todos del mismo tipo) en disco y devuelve la ruta.
-    Crea el directorio destino si no existe.
+    Crea el directorio destino si no existe. Con exclusivo=True nunca
+    sobrescribe: si el archivo ya existe lanza FileExistsError.
     """
     directorio = os.path.dirname(os.path.abspath(ruta_salida))
     os.makedirs(directorio, exist_ok=True)
-    with open(ruta_salida, "w", encoding=CODIFICACION, newline="") as archivo:
+    with open(ruta_salida, "x" if exclusivo else "w", encoding=CODIFICACION, newline="") as archivo:
         archivo.write(generar_lote_idse(registros))
     return ruta_salida
 
@@ -191,15 +196,31 @@ def exportar_a_archivo(registros, ruta_salida):
 def exportar_lote(registros, prefijo="lote_idse"):
     """
     Genera un archivo por tipo de movimiento en la carpeta de exportaciones.
-    Devuelve {tipo: ruta} solo con los tipos que tenían movimientos.
+    Los archivos de una misma exportación comparten el sello; si en ese segundo
+    ya se generó otro lote, el sello lleva un consecutivo (_2, _3…) en lugar de
+    sobrescribirlo. Devuelve {tipo: ruta} solo con los tipos que tenían movimientos.
     """
-    rutas = {}
-    for tipo in (TIPO_ALTA, TIPO_BAJA):
-        del_tipo = [r for r in registros if r.get("tipo_movimiento") == tipo]
-        if del_tipo:
-            ruta = os.path.join(DIRECTORIO_SALIDA, nombre_de_lote(tipo, prefijo))
-            rutas[tipo] = exportar_a_archivo(del_tipo, ruta)
-    return rutas
+    por_tipo = {tipo: [r for r in registros if r.get("tipo_movimiento") == tipo]
+                for tipo in (TIPO_ALTA, TIPO_BAJA)}
+    por_tipo = {tipo: del_tipo for tipo, del_tipo in por_tipo.items() if del_tipo}
+    marca = datetime.now().strftime("%Y%m%d_%H%M%S")
+    consecutivo = 1
+    while True:
+        sello = marca if consecutivo == 1 else f"{marca}_{consecutivo}"
+        candidatas = {tipo: os.path.join(DIRECTORIO_SALIDA, nombre_de_lote(tipo, prefijo, sello))
+                      for tipo in (TIPO_ALTA, TIPO_BAJA)}
+        rutas = {}
+        try:
+            if any(os.path.exists(ruta) for ruta in candidatas.values()):
+                raise FileExistsError(sello)
+            for tipo, del_tipo in por_tipo.items():
+                rutas[tipo] = exportar_a_archivo(del_tipo, candidatas[tipo], exclusivo=True)
+            return rutas
+        except FileExistsError:
+            # Otra exportación ya usa ese sello: se deshace lo escrito y se prueba el siguiente.
+            for ruta in rutas.values():
+                os.remove(ruta)
+            consecutivo += 1
 
 
 def ultimo_lote(tipo=None):
