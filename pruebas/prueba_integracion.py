@@ -215,16 +215,20 @@ def bloque_f(modo):
         r = cli.formulario("/exportar", {"usuario_id": ADMIN})
         pag = con_sesion(cli, r)
         cat, msg = par.leer_notificacion(pag.texto)
-        archivos = re.findall(r"(lote_idse_(?:altas|bajas)_\d+_\d+\.txt)", msg)
+        archivos = re.findall(r"(lote_idse_(?:altas|bajas)_[\d_]+\.txt)", msg)
         n_lote = int(re.search(r"con (\d+) movimiento", msg).group(1)) if "movimiento" in msg else 0
+        # Desde el TRL 9 cada lote lleva a lo más un movimiento por trabajador: la baja (PF-09) y el
+        # reingreso (PF-11) de t1 esperan a los lotes siguientes (PF-21).
+        en_espera = "siguiente lote" in msg
         caso("PF-17", "Administración genera el lote con los pendientes", "OE2",
-             "Un archivo de altas y otro de bajas", f"HTTP {r.estado} · {n_lote} movimientos · {len(archivos)} archivos",
-             r.estado == 302 and cat == "success" and len(archivos) == 2, r.segundos * 1000,
-             n_lote=n_lote, archivos=archivos)
+             "Un archivo de altas; la baja y el reingreso del mismo trabajador quedan en espera",
+             f"HTTP {r.estado} · {n_lote} movimientos · {len(archivos)} archivo(s) · en espera={en_espera}",
+             r.estado == 302 and cat == "warning" and len(archivos) == 1 and "_altas_" in archivos[0]
+             and en_espera, r.segundos * 1000, n_lote=n_lote, archivos=archivos)
         guardar_html(srv, "snap_exportado.html", pag.texto)
 
         lotes = {}
-        for tipo in ("altas", "bajas"):
+        for tipo in [t for t in ("altas", "bajas") if any(f"_{t}_" in a for a in archivos)]:
             r = cli.pedir("GET", f"/descargar-lote?tipo={tipo}")
             lotes[tipo] = r.cuerpo
         tamanos = {tipo: sorted({len(x) for x in contenido.split(b"\r\n")[:-1]}) for tipo, contenido in lotes.items()}
@@ -253,10 +257,18 @@ def bloque_f(modo):
              "Movimiento capturado" in acciones and "Incluido en lote IDSE" in acciones, r.segundos * 1000,
              historial=historial)
 
-        r = cli.formulario("/exportar", {"usuario_id": ADMIN})
-        cat, msg = par.leer_notificacion(con_sesion(cli, r).texto)
-        caso("PF-21", "Generar un lote cuando no hay pendientes", "OE2", "Mensaje claro, sin lote vacío",
-             f"{cat}: {msg}", cat == "error" and "No hay" in msg, r.segundos * 1000)
+        siguientes = []
+        for _ in range(3):
+            r = cli.formulario("/exportar", {"usuario_id": ADMIN})
+            cat, msg = par.leer_notificacion(con_sesion(cli, r).texto)
+            tipos = re.findall(r"lote_idse_(altas|bajas)_[\d_]+\.txt", msg)
+            if not tipos:
+                break
+            siguientes.append("+".join(tipos))
+        caso("PF-21", "Lotes siguientes con los movimientos en espera y, al final, sin pendientes", "OE2",
+             "Un lote con la baja, otro con el reingreso y después un mensaje claro, sin lote vacío",
+             f"lotes siguientes: {siguientes} · {cat}: {msg}",
+             siguientes == ["bajas", "altas"] and cat == "error" and "No hay" in msg, r.segundos * 1000)
 
         conexion = srv.bd()
         filas = conexion.execute("""SELECT u.nombre, b.accion, COUNT(*) FROM bitacora b
@@ -309,9 +321,12 @@ def bloque_l(modo):
             r = cli.formulario("/capturar", par.alta(t, par.dia_habil_atras(2), CAPTURA))
             if r.estado == 302:
                 enviados[t["curp"]] = t
+        # Las bajas se capturan después del lote de altas: desde el TRL 9 cada lote lleva a lo
+        # más un movimiento por trabajador, así que salen en un segundo lote.
+        antes = len(srv.lotes())
+        cli.formulario("/exportar", {"usuario_id": ADMIN})
         for t in list(enviados.values())[:12]:
             cli.formulario("/capturar", par.baja(t, par.dia_habil_atras(1), "2", CAPTURA))
-        antes = len(srv.lotes())
         cli.formulario("/exportar", {"usuario_id": ADMIN})
         lotes = []
         for ruta in srv.lotes()[antes:]:          # se leen antes de que se borre la copia aislada
