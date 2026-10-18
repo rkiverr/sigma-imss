@@ -515,6 +515,9 @@ def exportar():
         # no se pueden escribir en la estructura oficial y se quedan pendientes.
         incompletos = [r for r in pendientes if exportar_idse.faltantes(r)]
         registros = [r for r in pendientes if not exportar_idse.faltantes(r)]
+        # Un movimiento por trabajador en cada lote: su baja o su reingreso
+        # esperan a que el IDSE procese el movimiento anterior.
+        registros, en_espera = exportar_idse.un_movimiento_por_trabajador(registros)
 
         if not registros:
             cur.close()
@@ -538,21 +541,33 @@ def exportar():
             f"{exportar_idse.NOMBRES_TIPO[tipo]}: "
             f"{sum(1 for r in registros if r['tipo_movimiento'] == tipo)} en {archivo}"
             for tipo, archivo in archivos.items())
-        registrar_bitacora(conn, usuario_id, None, "Exportación de lote IDSE",
-                           f"{len(registros)} movimiento(s): {resumen}")
+        detalle = f"{len(registros)} movimiento(s): {resumen}"
+        if en_espera:
+            detalle += f"; {len(en_espera)} en espera para el siguiente lote ({_folios(en_espera)})"
+        registrar_bitacora(conn, usuario_id, None, "Exportación de lote IDSE", detalle)
 
     mensaje = f"Lote IDSE generado con {len(registros)} movimiento(s): {resumen}."
+    if en_espera:
+        mensaje += " " + _mensaje_en_espera(en_espera)
     if incompletos:
-        flash(mensaje + " " + _mensaje_incompletos(incompletos), "warning")
-    else:
-        flash(mensaje, "success")
+        mensaje += " " + _mensaje_incompletos(incompletos)
+    flash(mensaje, "warning" if en_espera or incompletos else "success")
     return redirect(url_for("index"))
 
 
+def _folios(registros):
+    return ", ".join(f"#{r['movimiento_id']}" for r in registros)
+
+
+def _mensaje_en_espera(en_espera):
+    return (f"{len(en_espera)} movimiento(s) quedan para el siguiente lote ({_folios(en_espera)}) "
+            "porque su trabajador ya lleva un movimiento en este. Cargue este lote en el IDSE y, "
+            "cuando lo confirme, genere el siguiente.")
+
+
 def _mensaje_incompletos(incompletos):
-    folios = ", ".join(f"#{r['movimiento_id']}" for r in incompletos)
-    return (f"No se exportaron {len(incompletos)} movimiento(s) capturados antes del TRL 6 ({folios}) "
-            "porque les faltan apellidos separados o la UMF que pide el IMSS.")
+    return (f"No se exportaron {len(incompletos)} movimiento(s) capturados antes del TRL 6 "
+            f"({_folios(incompletos)}) porque les faltan apellidos separados o la UMF que pide el IMSS.")
 
 
 @app.route("/descargar-lote")

@@ -171,6 +171,25 @@ def generar_lote_idse(registros):
     return "".join(generar_linea_idse(registro) + FIN_DE_LINEA for registro in registros)
 
 
+def un_movimiento_por_trabajador(registros):
+    """
+    Separa los movimientos que pueden ir en el mismo lote de los que deben
+    esperar al siguiente. El IDSE procesa cada archivo por separado y valida
+    cada movimiento contra la situación del trabajador en ese momento: si un
+    lote lleva el alta y la baja de una misma persona (o su baja y su
+    reingreso), el resultado depende del orden en que se carguen los archivos.
+    Por eso cada lote lleva a lo más un movimiento por trabajador, el primero
+    que se capturó; los demás quedan pendientes para el lote siguiente.
+    Devuelve (incluidos, en_espera) conservando el orden recibido.
+    """
+    incluidos, en_espera, vistos = [], [], set()
+    for registro in registros:
+        clave = registro.get("trabajador_id") or registro.get("curp")
+        (en_espera if clave in vistos else incluidos).append(registro)
+        vistos.add(clave)
+    return incluidos, en_espera
+
+
 def nombre_de_lote(tipo, prefijo="lote_idse", sello=None):
     """
     Nombre del archivo con el tipo y el sello de la exportación (fecha y hora,
